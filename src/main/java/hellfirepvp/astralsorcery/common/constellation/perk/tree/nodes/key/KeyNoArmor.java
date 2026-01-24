@@ -1,0 +1,87 @@
+/*******************************************************************************
+ * HellFirePvP / Astral Sorcery 2019
+ *
+ * All rights reserved.
+ * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
+ * For further details, see the License file there.
+ ******************************************************************************/
+
+package hellfirepvp.astralsorcery.common.constellation.perk.tree.nodes.key;
+
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
+import hellfirepvp.astralsorcery.common.constellation.perk.PerkAttributeHelper;
+import hellfirepvp.astralsorcery.common.constellation.perk.attribute.AttributeTypeRegistry;
+import hellfirepvp.astralsorcery.common.constellation.perk.tree.nodes.KeyPerk;
+import hellfirepvp.astralsorcery.common.data.config.Config;
+import hellfirepvp.astralsorcery.common.data.config.entry.ConfigEntry;
+import hellfirepvp.astralsorcery.common.data.research.PlayerProgress;
+import hellfirepvp.astralsorcery.common.data.research.ResearchManager;
+
+/**
+ * This class is part of the Astral Sorcery Mod
+ * The complete source code for this mod can be found on github.
+ * Class: KeyNoArmor
+ * Created by HellFirePvP
+ * Date: 11.08.2018 / 20:26
+ */
+public class KeyNoArmor extends KeyPerk {
+
+    private float dmgReductionMultiplier = 0.7F;
+
+    public KeyNoArmor(String name, int x, int y) {
+        super(name, x, y);
+        Config.addDynamicEntry(new ConfigEntry(ConfigEntry.Section.PERKS, name) {
+
+            @Override
+            public void loadFromConfig(Configuration cfg) {
+                dmgReductionMultiplier = cfg.getFloat(
+                    "ReductionMultiplier",
+                    getConfigurationSection(),
+                    dmgReductionMultiplier,
+                    0.05F,
+                    1F,
+                    "The multiplier that is applied to damage the player receives. The lower the more damage is negated.");
+            }
+        });
+    }
+
+    @Override
+    protected void applyEffectMultiplier(double multiplier) {
+        super.applyEffectMultiplier(multiplier);
+
+        this.dmgReductionMultiplier *= multiplier;
+    }
+
+    @SubscribeEvent
+    public void onLivingHurt(LivingHurtEvent event) {
+        if (!(event.getEntityLiving() instanceof EntityPlayer)) {
+            return;
+        }
+
+        EntityPlayer player = (EntityPlayer) event.getEntityLiving();
+        Side side = event.getEntityLiving().worldObj.isRemote ? Side.CLIENT : Side.SERVER;
+        PlayerProgress prog = ResearchManager.getProgress(player, side);
+        if (prog.hasPerkEffect(this)) {
+            int eq = 0;
+            // In 1.7.10, iterate over armor slots manually
+            for (int i = 0; i < 4; i++) {
+                ItemStack stack = player.inventory.armorItemInSlot(i);
+                if (!(stack == null || stack.stackSize <= 0)) {
+                    eq++;
+                }
+            }
+            if (eq < 2) {
+                float effMulti = PerkAttributeHelper.getOrCreateMap(player, side)
+                    .getModifier(player, prog, AttributeTypeRegistry.ATTR_TYPE_INC_PERK_EFFECT);
+                event.setAmount(event.getAmount() * (dmgReductionMultiplier * (1F / effMulti)));
+            }
+        }
+    }
+
+}

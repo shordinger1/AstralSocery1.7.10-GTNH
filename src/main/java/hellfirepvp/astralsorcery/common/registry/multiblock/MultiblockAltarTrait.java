@@ -1,0 +1,76 @@
+/*******************************************************************************
+ * HellFirePvP / Astral Sorcery 2019
+ *
+ * All rights reserved.
+ * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
+ * For further details, see the License file there.
+ ******************************************************************************/
+
+package hellfirepvp.astralsorcery.common.registry.multiblock;
+
+import net.minecraft.block.Block;
+import net.minecraft.util.ResourceLocation;
+
+import hellfirepvp.astralsorcery.AstralSorcery;
+import hellfirepvp.astralsorcery.common.block.BlockMarble;
+import hellfirepvp.astralsorcery.common.block.network.BlockAltar;
+import hellfirepvp.astralsorcery.common.lib.BlocksAS;
+import hellfirepvp.astralsorcery.common.lib.MultiBlockArrays;
+import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
+
+/**
+ * This class is part of the 1.11.2 port of Reika's mods.
+ * Original code for this project on Minecraft 1.7.10
+ * is available under the same licence on Github:
+ * https://github.com/ReikaKalseki/DragonAPI
+ * Class: MultiblockAltarTrait
+ * Author: HellFirePvP
+ * Owner & Author: Reika Kalseki
+ * Date: 24.02.2017 / 17:33
+ */
+public class MultiblockAltarTrait extends PatternBlockArray {
+
+    public MultiblockAltarTrait() {
+        super(new ResourceLocation(AstralSorcery.MODID, "pattern_altar_t4"));
+        addAll(MultiBlockArrays.patternAltarConstellation);
+        load();
+    }
+
+    private void load() {
+        Block mBrick = BlocksAS.blockMarble.withProperty(BlockMarble.MARBLE_TYPE, BlockMarble.MarbleBlockType.BRICKS);
+
+        addBlock(4, 3, 3, mBrick);
+        addBlock(4, 3, -3, mBrick);
+        addBlock(-4, 3, 3, mBrick);
+        addBlock(-4, 3, -3, mBrick);
+
+        addBlock(3, 3, 4, mBrick);
+        addBlock(-3, 3, 4, mBrick);
+        addBlock(3, 3, -4, mBrick);
+        addBlock(-3, 3, -4, mBrick);
+
+        addBlock(3, 4, 3, mBrick);
+        addBlock(3, 4, 2, mBrick);
+        addBlock(3, 4, 1, mBrick);
+        addBlock(3, 4, -1, mBrick);
+        addBlock(3, 4, -2, mBrick);
+        addBlock(3, 4, -3, mBrick);
+        addBlock(2, 4, -3, mBrick);
+        addBlock(1, 4, -3, mBrick);
+        addBlock(-1, 4, -3, mBrick);
+        addBlock(-2, 4, -3, mBrick);
+        addBlock(-3, 4, -3, mBrick);
+        addBlock(-3, 4, -2, mBrick);
+        addBlock(-3, 4, -1, mBrick);
+        addBlock(-3, 4, 1, mBrick);
+        addBlock(-3, 4, 2, mBrick);
+        addBlock(-3, 4, 3, mBrick);
+        addBlock(-2, 4, 3, mBrick);
+        addBlock(-1, 4, 3, mBrick);
+        addBlock(1, 4, 3, mBrick);
+        addBlock(2, 4, 3, mBrick);
+
+        addBlock(0, 0, 0, BlocksAS.blockAltar.withProperty(BlockAltar.ALTAR_TYPE, BlockAltar.AltarType.ALTAR_4));
+    }
+
+}

@@ -1,0 +1,142 @@
+/*******************************************************************************
+ * HellFirePvP / Astral Sorcery 2019
+ *
+ * All rights reserved.
+ * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
+ * For further details, see the License file there.
+ ******************************************************************************/
+
+package hellfirepvp.astralsorcery.common.tile;
+
+import java.util.UUID;
+
+import javax.annotation.Nullable;
+
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.World;
+
+import com.cleanroommc.modularui.utils.item.IItemHandler;
+
+import hellfirepvp.astralsorcery.common.auxiliary.StorageNetworkHandler;
+import hellfirepvp.astralsorcery.common.tile.base.TileEntityTick;
+import hellfirepvp.astralsorcery.common.tile.storage.IStorageNetworkTile;
+import hellfirepvp.astralsorcery.common.tile.storage.StorageCache;
+import hellfirepvp.astralsorcery.common.tile.storage.StorageKey;
+import hellfirepvp.astralsorcery.common.util.BlockPos;
+import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
+
+/**
+ * This class is part of the Astral Sorcery Mod
+ * The complete source code for this mod can be found on github.
+ * Class: TileStorageCore
+ * Created by HellFirePvP
+ * Date: 13.12.2017 / 12:22
+ */
+public class TileStorageCore extends TileEntityTick implements IStorageNetworkTile<TileStorageCore> {
+
+    private StorageCache storageCache = new StorageCache();
+    private UUID ownerUUID;
+
+    @Override
+    public void updateEntity() {
+        super.updateEntity();
+
+        if (getOwnerUUID() == null) {
+            return;
+        }
+    }
+
+    @Override
+    public void receiveMappingChange(StorageNetworkHandler.MappingChange newMapping) {
+
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+
+        StorageNetworkHandler.getHandler(getWorld())
+            .addCore(this);
+    }
+
+    @Override
+    public void invalidate() {
+        super.invalidate();
+
+        StorageNetworkHandler.getHandler(getWorld())
+            .removeCore(this);
+    }
+
+    @Override
+    protected void onFirstTick() {}
+
+    @Override
+    public TileStorageCore getAssociatedCore() {
+        return this;
+    }
+
+    @Override
+    public World getNetworkWorld() {
+        return getWorld();
+    }
+
+    @Override
+    public BlockPos getLocationPos() {
+        return getPos();
+    }
+
+    @Nullable
+    public UUID getOwnerUUID() {
+        return ownerUUID;
+    }
+
+    public void setOwnerUUID(@Nullable UUID ownerUUID) {
+        this.ownerUUID = ownerUUID;
+    }
+
+    public boolean extractFromStorage(IItemHandler inv, StorageKey key, boolean simulate) {
+        return this.storageCache.attemptTransferInto(key, inv, simulate);
+    }
+
+    public boolean insertIntoStorage(ItemStack stack) {
+        return !(stack == null || stack.stackSize <= 0) && this.storageCache.add(stack);
+    }
+
+    @Override
+    public void writeCustomNBT(NBTTagCompound compound) {
+        super.writeCustomNBT(compound);
+
+        if (this.ownerUUID != null) {
+            NBTHelper.setUniqueId(compound, "ownerUUID", this.ownerUUID);
+        }
+    }
+
+    @Override
+    public void readCustomNBT(NBTTagCompound compound) {
+        super.readCustomNBT(compound);
+
+        if (NBTHelper.hasUniqueId(compound, "ownerUUID")) {
+            this.ownerUUID = NBTHelper.getUniqueId(compound, "ownerUUID");
+        } else {
+            this.ownerUUID = null;
+        }
+    }
+
+    @Override
+    public void readSaveNBT(NBTTagCompound compound) {
+        super.readSaveNBT(compound);
+
+        StorageCache cache = new StorageCache();
+        cache.readFromNBT(compound.getCompoundTag("storage"));
+        this.storageCache = cache;
+    }
+
+    @Override
+    public void writeSaveNBT(NBTTagCompound compound) {
+        super.writeSaveNBT(compound);
+
+        NBTHelper.setAsSubTag(compound, "storage", (tag1, stack1) -> stack1.writeToNBT(tag1));
+    }
+
+}

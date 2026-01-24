@@ -1,0 +1,26 @@
+//version: 1707058017
+//
+plugins {
+    id 'com.github.ElytraServers.elytra-conventions' version 'v1.1.2'
+    id 'com.gtnewhorizons.gtnhconvention'
+}
+
+minecraft {
+    extraRunJvmArguments.add("-Xmx8G")
+    extraRunJvmArguments.add("-Xms8G")
+}
+
+configurations.configureEach {
+    exclude group: "com.github.GTNewHorizons", module: "Baubles"
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'com.github.GTNewHorizons:ForestryMC:4.10.17:dev'
+    }
+}
+
+
+test {
+    useJUnitPlatform()
+}
