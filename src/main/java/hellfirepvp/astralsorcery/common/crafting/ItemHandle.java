@@ -11,15 +11,15 @@ package hellfirepvp.astralsorcery.common.crafting;
 
 import java.lang.reflect.Constructor;
 import java.util.*;
-import java.util.ArrayList;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.common.ForgeModContainer;
 import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -142,8 +142,10 @@ public final class ItemHandle {
             ArrayList<ItemStack> out = new ArrayList<>();
             for (ItemStack oreDictIn : stacks) {
                 if (oreDictIn.getItemDamage() == OreDictionary.WILDCARD_VALUE && !oreDictIn.isItemStackDamageable()) {
+                    // In 1.7.10, getSubItems takes (Item, CreativeTabs, List)
                     oreDictIn.getItem()
                         .getSubItems(
+                            oreDictIn.getItem(),
                             oreDictIn.getItem()
                                 .getCreativeTab(),
                             out);
@@ -154,9 +156,14 @@ public final class ItemHandle {
             return out;
         } else if (fluidTypeAndAmount != null) {
             ArrayList<ItemStack> l = new ArrayList<>();
-            l.add(
-                UniversalBucket
-                    .getFilledBucket(ForgeModContainer.getInstance().universalBucket, fluidTypeAndAmount.getFluid()));
+            // In 1.7.10, use FluidContainerRegistry to get filled bucket
+            ItemStack filledBucket = FluidContainerRegistry.fillFluidContainer(
+                fluidTypeAndAmount,
+                new ItemStack(Items.bucket)
+            );
+            if (filledBucket != null) {
+                l.add(filledBucket);
+            }
             return l;
         } else {
             ArrayList<ItemStack> l = new ArrayList<>();
@@ -171,8 +178,11 @@ public final class ItemHandle {
             return oreDictName;
         }
         if (fluidTypeAndAmount != null) {
-            return UniversalBucket
-                .getFilledBucket(ForgeModContainer.getInstance().universalBucket, fluidTypeAndAmount.getFluid());
+            // In 1.7.10, use FluidContainerRegistry
+            return FluidContainerRegistry.fillFluidContainer(
+                fluidTypeAndAmount,
+                new ItemStack(Items.bucket)
+            );
         }
         return applicableItems;
     }
@@ -200,23 +210,33 @@ public final class ItemHandle {
             case OREDICT:
                 return new OreIngredient(this.oreDictName);
             case FLUID:
-                return new FluidIngredient(new FluidStack(fluidTypeAndAmount.getFluid(), 1000));
+                // In 1.7.10, FluidIngredient is not an Ingredient subclass
+                // Return the matching stacks instead
+                ItemStack fluidStack = FluidContainerRegistry.fillFluidContainer(
+                    new FluidStack(fluidTypeAndAmount.getFluid(), FluidContainerRegistry.BUCKET_VOLUME),
+                    new ItemStack(Items.bucket)
+                );
+                if (fluidStack != null) {
+                    return new HandleIngredient(fluidStack);
+                }
+                return Ingredient.EMPTY;
             case STACK:
             default:
                 List<Ingredient> ingredients = new ArrayList<>();
                 for (ItemStack stack : this.applicableItems) {
                     if (!(stack == null || stack.stackSize <= 0)) {
                         Ingredient i = new HandleIngredient(stack);
-                        if (i != Ingredient.EMPTY) {
+                        if (!i.equals(Ingredient.EMPTY)) {
                             ingredients.add(i);
                         }
                     }
                 }
                 try {
                     return COMPOUND_CTOR.newInstance(ingredients);
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                    return Ingredient.EMPTY;
+                }
         }
-        return Ingredient.EMPTY;
     }
 
     @Nullable
@@ -338,9 +358,8 @@ public final class ItemHandle {
                 return false;
             }
 
-            ItemStack thisStack = this.originalStack;
             return ItemComparator.compare(
-                thisStack,
+                this.originalStack,
                 other,
                 ItemComparator.Clause.ITEM,
                 ItemComparator.Clause.META_WILDCARD,

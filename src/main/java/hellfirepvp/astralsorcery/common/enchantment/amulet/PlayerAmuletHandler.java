@@ -13,7 +13,6 @@ import java.util.EnumSet;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
@@ -37,13 +36,15 @@ public class PlayerAmuletHandler implements ITickHandler {
 
     private PlayerAmuletHandler() {}
 
-    @SubscribeEvent
-    public void attachAmuletItemCapability(AttachCapabilitiesEvent<ItemStack> itemCapEvent) {
-        if (!EnchantmentUpgradeHelper.isItemBlacklisted(itemCapEvent.getObject())) {
-            itemCapEvent
-                .addCapability(AmuletHolderCapability.CAP_AMULETHOLDER_NAME, new AmuletHolderCapability.Provider());
-        }
-    }
+    // 1.7.10: AttachCapabilitiesEvent doesn't exist - capabilities were added in 1.10+
+    // This event handler is disabled for 1.7.10 compatibility
+    // @SubscribeEvent
+    // public void attachAmuletItemCapability(AttachCapabilitiesEvent<ItemStack> itemCapEvent) {
+    //     if (!EnchantmentUpgradeHelper.isItemBlacklisted(itemCapEvent.getObject())) {
+    //         itemCapEvent
+    //             .addCapability(AmuletHolderCapability.CAP_AMULETHOLDER_NAME, new AmuletHolderCapability.Provider());
+    //     }
+    // }
 
     @SubscribeEvent
     public void onAmuletEnchantApply(DynamicEnchantmentEvent.Add event) {
@@ -66,7 +67,8 @@ public class PlayerAmuletHandler implements ITickHandler {
 
         boolean client = player.worldObj.isRemote;
         for (EnchantmentPlayerWornTick e : RegistryEnchantments.wearableTickEnchantments) {
-            int max = EnchantmentHelper.getMaxEnchantmentLevel(e, player);
+            // 1.7.10: getMaxEnchantmentLevel expects (int effectId, ItemStack[] stacks)
+            int max = EnchantmentHelper.getMaxEnchantmentLevel(e.effectId, player.getLastActiveItems());
             if (max > 0) {
                 e.onWornTick(client, player, max);
             }

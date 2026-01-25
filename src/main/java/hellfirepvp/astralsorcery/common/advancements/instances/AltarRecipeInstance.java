@@ -48,7 +48,7 @@ public class AltarRecipeInstance extends AbstractCriterionInstance {
     }
 
     public boolean test(AbstractAltarRecipe recipe) {
-        return recipeNames.isEmpty() || recipeNames.contains(
+        return recipeNames == null || recipeNames.stackSize <= 0 || recipeNames.contains(
             recipe.getNativeRecipe()
                 .getRegistryName());
     }

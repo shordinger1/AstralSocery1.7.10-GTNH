@@ -60,13 +60,15 @@ public class InfusionRecipeRegistry {
     }
 
     public static void cacheLocalRecipes() {
-        if ((localFallbackCache == null || localFallbackCache.stackSize <= 0)) {
+        // localFallbackCache is a List, not ItemStack - use isEmpty() check
+        if (localFallbackCache == null || localFallbackCache.stackSize <= 0) {
             localFallbackCache.addAll(recipes);
         }
     }
 
     public static void loadFromFallback() {
-        if (!(localFallbackCache == null || localFallbackCache.stackSize <= 0)) {
+        // localFallbackCache is a List, not ItemStack - use isEmpty() check
+        if (!localFallbackCache == null || localFallbackCache.stackSize <= 0) {
             recipes.addAll(localFallbackCache);
         }
     }

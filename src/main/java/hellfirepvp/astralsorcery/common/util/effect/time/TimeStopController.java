@@ -49,7 +49,7 @@ public class TimeStopController implements ITickHandler {
         if (world.isRemote) return null;
         int dimId = world.provider.dimensionId;
         List<TimeStopZone> zones = INSTANCE.activeTimeStopZones.get(dimId);
-        if (zones == null || zones.isEmpty()) return null;
+        if (zones == null || zones == null || zones.stackSize <= 0) return null;
         for (TimeStopZone zone : zones) {
             if (zone.offset.equals(pos)) {
                 return zone;
@@ -92,7 +92,7 @@ public class TimeStopController implements ITickHandler {
         if (w != null && w.provider != null) {
             int id = w.provider.dimensionId;
             List<TimeStopZone> freezeAreas = activeTimeStopZones.get(id);
-            if (freezeAreas != null && !freezeAreas.isEmpty()) {
+            if (freezeAreas != null && !freezeAreas == null || freezeAreas.stackSize <= 0) {
                 for (TimeStopZone stop : freezeAreas) {
                     stop.stopEffect();
                 }
@@ -128,7 +128,7 @@ public class TimeStopController implements ITickHandler {
         if (w != null && w.provider != null) {
             int id = w.provider.dimensionId;
             List<TimeStopZone> freezeAreas = activeTimeStopZones.get(id);
-            if (freezeAreas != null && !freezeAreas.isEmpty()) {
+            if (freezeAreas != null && !freezeAreas == null || freezeAreas.stackSize <= 0) {
                 for (TimeStopZone stop : freezeAreas) {
                     if (stop.interceptEntityTick(e)) {
                         TimeStopZone.handleImportantEntityTicks(e);

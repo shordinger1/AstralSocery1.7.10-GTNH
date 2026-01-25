@@ -36,7 +36,7 @@ public class PotionCheatDeath extends PotionCustomTexture {
     public PotionCheatDeath() {
         super(false, 0xFF5711);
         setPotionName("effect.as.cheatdeath");
-        setBeneficial();
+        // 1.7.10: setBeneficial() doesn't exist - beneficial potions are already handled differently
     }
 
     @Override

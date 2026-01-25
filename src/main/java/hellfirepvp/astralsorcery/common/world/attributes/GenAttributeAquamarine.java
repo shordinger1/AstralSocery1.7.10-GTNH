@@ -73,7 +73,7 @@ public class GenAttributeAquamarine extends WorldGenAttribute {
                 continue;
             }
             Block b = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(spl[0], spl[1]));
-            if (b == null || b == Blocks.AIR) {
+            if (b == null || b == Blocks.air) {
                 AstralSorcery.log
                     .error("Skipping invalid replacement state: " + stateStr + " - The block does not exist!");
                 continue;

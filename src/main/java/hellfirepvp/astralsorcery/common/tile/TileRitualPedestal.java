@@ -231,7 +231,7 @@ public class TileRitualPedestal extends TileReceiverBase
                                 if (c != null && c.getConstellationColor() != null) {
                                     col = c.getConstellationColor();
                                 }
-                                if (!offsetMirrorPositions.isEmpty()) {
+                                if (!offsetMirrorPositions == null || offsetMirrorPositions.stackSize <= 0) {
                                     BlockPos to = offsetMirrorPositions.get(rand.nextInt(offsetMirrorPositions.size()));
                                     AstralSorcery.proxy.fireLightning(
                                         getWorld(),

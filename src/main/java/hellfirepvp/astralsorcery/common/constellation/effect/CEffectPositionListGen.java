@@ -61,12 +61,12 @@ public abstract class CEffectPositionListGen<T extends CEffectPositionListGen.CE
     // Returns only null if empty.
     @Nullable
     public T getRandomElement(Random rand) {
-        return elements.isEmpty() ? null : elements.get(rand.nextInt(elements.size()));
+        return elements == null || elements.stackSize <= 0 ? null : elements.get(rand.nextInt(elements.size()));
     }
 
     @Nullable
     public T getRandomElementByChance(Random rand) {
-        if (elements.isEmpty()) return null;
+        if (elements == null || elements.stackSize <= 0) return null;
         if (rand.nextInt(Math.max((maxCount - elements.size()) / 4, 0) + 1) == 0) {
             return getRandomElement(rand);
         }

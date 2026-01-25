@@ -36,6 +36,8 @@ import hellfirepvp.astralsorcery.common.crafting.helper.AccessibleRecipe;
 import hellfirepvp.astralsorcery.common.data.research.ResearchProgression;
 import hellfirepvp.astralsorcery.common.tile.TileAltar;
 import hellfirepvp.astralsorcery.common.tile.base.TileReceiverBaseInventory;
+
+import com.cleanroommc.modularui.utils.item.ItemStackHandler;
 import hellfirepvp.astralsorcery.common.util.ItemUtils;
 import hellfirepvp.astralsorcery.common.util.data.Vector3;
 
@@ -119,8 +121,8 @@ public class AttunementRecipe extends DiscoveryRecipe {
                     return false;
                 }
             } else {
-                if (!invHandler.getStackInSlot(slot.slotId)
-                    .isEmpty()) return false;
+                ItemStack stack = invHandler.getStackInSlot(slot.slotId);
+                if (stack != null && stack.stackSize > 0) return false;
             }
         }
 

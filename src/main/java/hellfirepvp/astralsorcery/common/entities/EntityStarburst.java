@@ -36,8 +36,9 @@ import hellfirepvp.astralsorcery.common.util.effect.CelestialStrike;
  */
 public class EntityStarburst extends EntityThrowable {
 
+    // 1.7.10: Use expand() instead of grow()
     private static final AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(-1, -1, -1, 1, 1, 1)
-        .grow(17);
+        .expand(17, 17, 17);
     private static final double descendingDst = 17.0D;
 
     private int targetId = -1;
@@ -52,46 +53,67 @@ public class EntityStarburst extends EntityThrowable {
 
     public EntityStarburst(World worldIn, EntityLivingBase throwerIn) {
         super(worldIn, throwerIn);
-        shoot(throwerIn, throwerIn.rotationPitch, throwerIn.rotationYaw, 0.0F, 0.7F, 1.0F);
+        // 1.7.10: EntityThrowable doesn't have shoot(), set velocity directly
+        this.setThrowableHeading(
+            throwerIn.rotationPitch,
+            throwerIn.rotationYaw,
+            0.0F,
+            0.7F,
+            1.0F);
     }
 
     @Override
     public void onUpdate() {
         super.onUpdate();
 
-        if (getWorld().isRemote) {
+        if (worldObj.isRemote) { // 1.7.10: Use worldObj instead of getWorld()
             playEffects();
         } else {
             if (targetId == -1) {
                 AxisAlignedBB box = searchBox.offset(posX, posY, posZ);
-                // 1.7.10: EntitySelectors doesn't exist, use IEntitySelector
-                List<EntityLivingBase> entities = world
-                    .getEntitiesWithinAABB(EntityLivingBase.class, box, new net.minecraft.command.IEntitySelector() {
-
-                        @Override
-                        public boolean isEntityApplicable(Entity entity) {
-                            return entity.isEntityAlive();
-                        }
-                    });
+                // 1.7.10: getEntitiesWithinAABB takes 2 args, not 3
+                List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, box);
+                // Filter for alive entities
+                java.util.Iterator<EntityLivingBase> it = entities.iterator();
+                while (it.hasNext()) {
+                    EntityLivingBase ent = it.next();
+                    if (!ent.isEntityAlive()) {
+                        it.remove();
+                    }
+                }
                 if (getThrower() != null) {
                     entities.remove(getThrower());
                 }
-                // 1.7.10: removeIf doesn't exist on List in 1.7.10, use iterator
-                java.util.Iterator<EntityLivingBase> it = entities.iterator();
+                // Filter by attack capability
+                it = entities.iterator();
                 while (it.hasNext()) {
                     if (!MiscUtils.canPlayerAttackServer(getThrower(), it.next())) {
                         it.remove();
                     }
                 }
 
-                EntityLivingBase closest = EntityUtils
-                    .selectClosest(entities, entityLivingBase -> entityLivingBase.getDistanceSq(this));
+                // 1.7.10: Manual closest entity selection
+                EntityLivingBase closest = null;
+                double minDist = Double.MAX_VALUE;
+                double thisX = this.posX;
+                double thisY = this.posY;
+                double thisZ = this.posZ;
+                for (EntityLivingBase ent : entities) {
+                    double dx = ent.posX - thisX;
+                    double dy = ent.posY - thisY;
+                    double dz = ent.posZ - thisZ;
+                    double dist = dx * dx + dy * dy + dz * dz;
+                    if (dist < minDist) {
+                        minDist = dist;
+                        closest = ent;
+                    }
+                }
                 if (closest != null) {
                     targetId = closest.getEntityId();
                 }
             }
             if (targetId != -1) {
-                Entity e = world.getEntityByID(targetId);
+                Entity e = worldObj.getEntityByID(targetId); // 1.7.10: Use worldObj
                 if (e == null || e.isDead || !(e instanceof EntityLivingBase)) {
                     targetId = -1;
                 } else {
@@ -210,14 +232,14 @@ public class EntityStarburst extends EntityThrowable {
 
     @Override
     protected void onImpact(MovingObjectPosition result) {
-        if (!getWorld().isRemote) {
+        if (!worldObj.isRemote) { // 1.7.10: Use worldObj instead of getWorld()
             if (result.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY) {
                 if (result.entityHit.equals(getThrower())) {
                     return;
                 }
                 CelestialStrike.play(
                     getThrower(),
-                    world,
+                    worldObj, // 1.7.10: Use worldObj
                     Vector3.atEntityCenter(result.entityHit),
                     Vector3.atEntityCenter(result.entityHit));
             }

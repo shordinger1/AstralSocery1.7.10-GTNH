@@ -159,7 +159,7 @@ public class TileCrystalLens extends TileTransmissionBase {
                 boolean clear = rta.isClear(world);
                 if (!clear && rta.blockHit() != null) {
                     BlockPos hit = rta.blockHit();
-                    Block hitState = world.getBlock(hit);
+                    Block hitState = world.getBlock(hit.posX, hit.posY, hit.posZ);
                     if (!hit.equals(to.toBlockPos())
                         || (!hitState.equals(BlocksAS.lens) && !hitState.equals(BlocksAS.lensPrism))) {
                         lensColor.onBlockOccupyingBeam(world, hit, hitState, str);

@@ -14,7 +14,7 @@ import net.minecraft.item.ItemStack;
  */
 public interface IItemRenderer {
 
-    boolean handleRenderType(ItemStack item, net.minecraft.client.renderer.ItemRenderer.ItemRenderType type);
+    boolean handleRenderType(ItemStack item, net.minecraft.item.ItemRenderType type);
 
     boolean shouldUseRenderHelper(net.minecraft.item.ItemRenderType type, ItemStack item,
         net.minecraft.client.renderer.ItemRendererHelper helper);

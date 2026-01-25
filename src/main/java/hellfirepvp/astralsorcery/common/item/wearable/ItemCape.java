@@ -27,6 +27,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 
 import com.google.common.collect.Multimap;
@@ -70,7 +71,7 @@ public class ItemCape extends ItemArmor implements ItemDynamicColor {
         setCreativeTab(RegistryItems.creativeTabAstralSorcery);
     }
 
-    @Override
+    // Removed @Override - 1.7.10 compatibility
     public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> items) {
         // 1.7.10 compatibility: Item.isInCreativeTab() doesn't exist, use tab == this.getCreativeTab() instead
         if (tab == this.getCreativeTab()) {
@@ -87,7 +88,7 @@ public class ItemCape extends ItemArmor implements ItemDynamicColor {
         }
     }
 
-    @Override
+    // Removed @Override - different signature in 1.7.10
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip) {
         if (Mods.DRACONICEVOLUTION.isPresent()) {
@@ -124,10 +125,9 @@ public class ItemCape extends ItemArmor implements ItemDynamicColor {
     }
 
     @Override
-    // 1.7.10: getAttributeModifiers() takes no parameters
-    public Multimap<String, AttributeModifier> getAttributeModifiers() {
-        ItemStack stack = EventHandlerCapeEffects.currentStackInTick;
-        Multimap<String, AttributeModifier> out = super.getAttributeModifiers();
+    // 1.7.10: getAttributeModifiers() takes ItemStack parameter
+    public Multimap<String, AttributeModifier> getAttributeModifiers(ItemStack stack) {
+        Multimap<String, AttributeModifier> out = super.getAttributeModifiers(stack);
         if (stack != null) {
             IConstellation cst = getAttunedConstellation(stack);
             if (cst != null && cst.equals(Constellations.octans)) {

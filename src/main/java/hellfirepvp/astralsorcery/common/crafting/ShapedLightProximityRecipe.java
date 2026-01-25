@@ -10,12 +10,12 @@ package hellfirepvp.astralsorcery.common.crafting;
 
 import java.util.ArrayList;
 
+import hellfirepvp.astralsorcery.common.migration.Ingredient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiCrafting;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.ContainerWorkbench;
-import net.minecraft.inventory.Ingredient;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -108,9 +108,13 @@ public class ShapedLightProximityRecipe extends BasePlainRecipe {
         return out.copy();
     }
 
-    @Override
     public boolean canFit(int width, int height) {
         return width >= grid.getWidth() && height >= grid.getHeight();
+    }
+
+    @Override
+    public int getRecipeSize() {
+        return grid.getWidth() * grid.getHeight();
     }
 
     @Override
@@ -118,12 +122,10 @@ public class ShapedLightProximityRecipe extends BasePlainRecipe {
         return out.copy();
     }
 
-    @Override
     public ArrayList<ItemStack> getRemainingItems(InventoryCrafting inv) {
         return ForgeHooks.defaultRecipeGetRemainingItems(inv);
     }
 
-    @Override
     public ArrayList<Ingredient> getIngredients() {
         return grid.getRawIngredientList();
     }

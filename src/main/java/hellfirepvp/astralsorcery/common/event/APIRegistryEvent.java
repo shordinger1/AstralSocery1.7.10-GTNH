@@ -8,7 +8,7 @@
 
 package hellfirepvp.astralsorcery.common.event;
 
-import java.util.function.Function;
+import com.google.common.base.Function;
 
 import net.minecraft.entity.player.EntityPlayer;
 

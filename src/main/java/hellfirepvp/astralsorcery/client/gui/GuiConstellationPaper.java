@@ -140,9 +140,9 @@ public class GuiConstellationPaper extends GuiWHScreen {
             GL11.glColor4f(1, 1, 1, 1);
             TextureHelper.refreshTextureBindState();
         } else {
-            if (this.phases.isEmpty()) {
+            if (this.phases == null || phases.stackSize <= 0) {
                 testPhases();
-                if (this.phases.isEmpty()) {
+                if (this.phases == null || phases.stackSize <= 0) {
                     return;
                 }
             }

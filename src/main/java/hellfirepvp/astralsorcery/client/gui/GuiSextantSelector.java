@@ -319,7 +319,7 @@ public class GuiSextantSelector extends GuiWHScreen implements GuiSkyScreen {
 
     private void drawEffectBackground(float partialTicks, boolean canSeeSky, float transparency, double mouseX,
         double mouseY) {
-        if (usedStars.isEmpty()) {
+        if (usedStars == null || usedStars.stackSize <= 0) {
             Optional<Long> currSeed = ConstellationSkyHandler.getInstance()
                 .getSeedIfPresent(Minecraft.getMinecraft().theWorld);
             if (!currSeed.isPresent()) {

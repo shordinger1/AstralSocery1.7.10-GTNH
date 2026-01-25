@@ -9,57 +9,61 @@
 package hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.tweaks;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
-import com.google.common.collect.Lists;
-
-import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.BaseTweaker;
-import stanhebben.zenscript.annotations.ZenClass;
-import stanhebben.zenscript.annotations.ZenMethod;
+import hellfirepvp.astralsorcery.common.config.GameStageConfig;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: GameStageTweaks
- * Created by HellFirePvP
- * Date: 16.11.2018 / 17:17
+ * Game Stage configuration helpers
+ * Replaces CraftTweaker-based GameStageTweaks class
+ *
+ * This class now delegates to GameStageConfig
+ *
+ * Usage:
+ *   GameStageTweaks.addLevelCap("stage_name", 10);
+ *   GameStageTweaks.addConstellationDiscoveryStage("stage_name", "constellation_name");
  */
-@ZenClass("mods.astralsorcery.GameStages")
-public class GameStageTweaks extends BaseTweaker {
+public final class GameStageTweaks {
 
-    private static Map<String, Integer> stageLevelCap = new HashMap<>();
-    private static Map<String, Collection<String>> constellationStages = new HashMap<>();
+    private GameStageTweaks() {}
 
-    @ZenMethod
+    /**
+     * Adds a level cap for a game stage
+     *
+     * @param stageName The game stage name
+     * @param levelCap  The level cap to apply
+     */
     public static void addLevelCap(String stageName, int levelCap) {
-        stageLevelCap.put(stageName, levelCap);
+        GameStageConfig.addLevelCap(stageName, levelCap);
     }
 
-    @ZenMethod
+    /**
+     * Adds a constellation discovery stage requirement
+     *
+     * @param stageName                The game stage name
+     * @param unlocalizedConstellationName The constellation name
+     */
     public static void addConstellationDiscoveryStage(String stageName, String unlocalizedConstellationName) {
-        if (!constellationStages.containsKey(unlocalizedConstellationName)) {
-            constellationStages.put(unlocalizedConstellationName, Lists.newArrayList());
-        }
-        constellationStages.get(unlocalizedConstellationName)
-            .add(stageName);
+        GameStageConfig.addConstellationDiscoveryStage(stageName, unlocalizedConstellationName);
     }
 
+    /**
+     * Gets the maximum level cap for a game stage
+     *
+     * @param gameStageName The game stage name
+     * @return The level cap, or -1 if no cap is set
+     */
     public static int getMaxCap(String gameStageName) {
-        return stageLevelCap.getOrDefault(gameStageName, -1);
+        return GameStageConfig.getMaxCap(gameStageName);
     }
 
+    /**
+     * Checks if a constellation can be discovered with the given game stages
+     *
+     * @param gameStages      The player's game stages
+     * @param constellationName The constellation name
+     * @return true if the constellation can be discovered
+     */
     public static boolean canDiscover(Collection<String> gameStages, String constellationName) {
-        Collection<String> stages = constellationStages.getOrDefault(constellationName, Lists.newArrayList());
-        if (gameStages == null || stages.isEmpty()) {
-            return true;
-        }
-        for (String gameStage : gameStages) {
-            if (stages.contains(gameStage)) {
-                return true;
-            }
-        }
-        return false;
+        return GameStageConfig.canDiscover(gameStages, constellationName);
     }
-
 }

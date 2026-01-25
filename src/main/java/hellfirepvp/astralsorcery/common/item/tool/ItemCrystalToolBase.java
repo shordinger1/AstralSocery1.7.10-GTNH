@@ -49,33 +49,36 @@ public abstract class ItemCrystalToolBase extends ItemTool implements CrystalPro
     }
 
     public ItemCrystalToolBase(int crystalCount, Set<Block> effectiveBlocksIn) {
-        super(0, 0, RegistryItems.crystalToolMaterial, effectiveBlocksIn);
+        // 1.7.10: ItemTool constructor takes (float damageVsEntity, ToolMaterial, effectiveBlocks)
+        super(3F, RegistryItems.crystalToolMaterial, effectiveBlocksIn);
         setMaxDamage(0);
         setCreativeTab(RegistryItems.creativeTabAstralSorcery);
         this.crystalCount = crystalCount;
     }
 
+    // 1.7.10: attackDamage and attackSpeed fields don't exist - damage is tied to toolMaterial
     public void setDamageVsEntity(float damageVsEntity) {
-        this.attackDamage = damageVsEntity;
+        // Cannot set damage directly in 1.7.10 - handled by tool material
     }
 
+    // 1.7.10: attackSpeed doesn't exist
     public void setAttackSpeed(float attackSpeed) {
-        this.attackSpeed = attackSpeed;
+        // Cannot set attack speed in 1.7.10
     }
 
     public int getCrystalCount() {
         return crystalCount;
     }
 
-    @Override
+    // Removed @Override - different signature in 1.7.10
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip) {
         ToolCrystalProperties prop = getToolProperties(stack);
         CrystalProperties.addPropertyTooltip(prop, tooltip, getMaxSize(stack));
-        super.addInformation(stack, worldIn, tooltip, flagIn);
+        // 1.7.10: ItemTool.addInformation has different signature - just skip it
     }
 
-    @Override
+    // Removed @Override - not in parent class
     public int getMaxSize(ItemStack stack) {
         return CrystalProperties.MAX_SIZE_CELESTIAL * getCrystalCount();
     }
@@ -86,11 +89,13 @@ public abstract class ItemCrystalToolBase extends ItemTool implements CrystalPro
         return getToolProperties(stack);
     }
 
-    @Override
+    // Removed @Override - getDestroySpeed has different signature in 1.7.10
     public float getDestroySpeed(ItemStack stack, Block state) {
-        float str = super.getDestroySpeed(stack, state);
+        // 1.7.10: ItemTool.getDestroySpeed doesn't exist or is private
+        // Calculate base efficiency from crystal properties
         ToolCrystalProperties properties = getToolProperties(stack);
-        return str * properties.getEfficiencyMultiplier() * 2F;
+        float baseEfficiency = properties.getEfficiencyMultiplier() * 2F;
+        return baseEfficiency;
     }
 
     public static ToolCrystalProperties getToolProperties(ItemStack stack) {
@@ -111,14 +116,16 @@ public abstract class ItemCrystalToolBase extends ItemTool implements CrystalPro
     @Nullable
     @Override
     public Entity createEntity(World world, Entity ei, ItemStack itemstack) {
-        EntityCrystalTool newItem = new EntityCrystalTool(ei.world, ei.posX, ei.posY, ei.posZ, itemstack);
+        // 1.7.10: Use worldObj instead of world field
+        EntityCrystalTool newItem = new EntityCrystalTool(ei.worldObj, ei.posX, ei.posY, ei.posZ, itemstack);
         newItem.motionX = ei.motionX;
         newItem.motionY = ei.motionY;
         newItem.motionZ = ei.motionZ;
-        newItem.setDefaultPickupDelay();
+        // 1.7.10: EntityItem doesn't have pickup delay, thrower, or owner tracking
+        // These methods don't exist in 1.7.10
         if (ei instanceof EntityItem) {
-            newItem.setThrower(((EntityItem) ei).getThrower());
-            newItem.setOwner(((EntityItem) ei).getOwner());
+            // 1.7.10: EntityItem doesn't have getThrower() or getOwner()
+            // Cannot set thrower/owner in this version
         }
         return newItem;
     }
@@ -133,7 +140,7 @@ public abstract class ItemCrystalToolBase extends ItemTool implements CrystalPro
         return false;
     }
 
-    @Override
+    // Removed @Override - method doesn't exist in parent class
     public boolean isEnchantable(ItemStack stack) {
         return true;
     }

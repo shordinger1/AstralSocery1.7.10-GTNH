@@ -18,19 +18,17 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.common.constellation.IConstellation;
 import hellfirepvp.astralsorcery.common.constellation.starmap.ActiveStarMap;
-import hellfirepvp.astralsorcery.common.item.base.render.INBTModel;
-import hellfirepvp.astralsorcery.common.migration.ModelResourceLocation;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
 import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
 
@@ -41,7 +39,8 @@ import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
  * Created by HellFirePvP
  * Date: 30.04.2017 / 16:54
  */
-public class ItemInfusedGlass extends Item implements INBTModel {
+// 1.7.10: INBTModel removed - ModelResourceLocation doesn't exist in 1.7.10
+public class ItemInfusedGlass extends Item {
 
     public ItemInfusedGlass() {
         setMaxStackSize(1);
@@ -49,7 +48,7 @@ public class ItemInfusedGlass extends Item implements INBTModel {
         setCreativeTab(RegistryItems.creativeTabAstralSorcery);
     }
 
-    @Override
+    // 1.7.10: isEnchantable doesn't exist as overrideable method
     public boolean isEnchantable(ItemStack stack) {
         return true;
     }
@@ -59,7 +58,7 @@ public class ItemInfusedGlass extends Item implements INBTModel {
         return 15;
     }
 
-    @Override
+    // 1.7.10: canApplyAtEnchantingTable doesn't exist as overrideable method
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
         return enchantment != null && enchantment.equals(Enchantment.unbreaking);
     }
@@ -72,7 +71,8 @@ public class ItemInfusedGlass extends Item implements INBTModel {
     @Override
     public void setDamage(ItemStack stack, int damage) {
         if (damage < getDamage(stack)) return;
-        int lvl = EnchantmentHelper.getEnchantmentLevel(Enchantment.unbreaking, stack);
+        // 1.7.10: EnchantmentHelper.getEnchantmentLevel takes (int enchantmentId, ItemStack stack)
+        int lvl = EnchantmentHelper.getEnchantmentLevel(Enchantment.unbreaking.effectId, stack);
         if (lvl > 0) {
             for (int i = 0; i < lvl; i++) {
                 if (itemRand.nextFloat() > 0.7) {
@@ -90,7 +90,7 @@ public class ItemInfusedGlass extends Item implements INBTModel {
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip) {
+    public void addInformation(ItemStack stack, EntityPlayer player, List tooltip, boolean advanced) {
         ActiveStarMap map = getMapEngravingInformations(stack);
         if (map != null) {
             if (GuiScreen.isShiftKeyDown()) {
@@ -98,7 +98,8 @@ public class ItemInfusedGlass extends Item implements INBTModel {
                     String out = EnumChatFormatting.GRAY + "- "
                         + EnumChatFormatting.BLUE
                         + I18n.format(c.getUnlocalizedName());
-                    if (Minecraft.getMinecraft().thePlayer != null && Minecraft.getMinecraft().thePlayer.isCreative()) {
+                    // 1.7.10: Use capabilities.isCreativeMode instead of isCreative()
+                    if (Minecraft.getMinecraft().thePlayer != null && Minecraft.getMinecraft().thePlayer.capabilities.isCreativeMode) {
                         out += EnumChatFormatting.LIGHT_PURPLE + " (Creative) "
                             + (int) (map.getPercentage(c) * 100)
                             + "%";
@@ -134,25 +135,7 @@ public class ItemInfusedGlass extends Item implements INBTModel {
         return ActiveStarMap.deserialize(tag.getCompoundTag("map"));
     }
 
-    @Override
-    public ModelResourceLocation getModelLocation(ItemStack stack, ModelResourceLocation suggestedDefaultLocation) {
-        if (ItemInfusedGlass.getMapEngravingInformations(stack) == null) {
-            return suggestedDefaultLocation;
-        }
-        return new ModelResourceLocation(
-            new ResourceLocation(
-                suggestedDefaultLocation.getResourceDomain(),
-                suggestedDefaultLocation.getResourcePath() + "_engraved"),
-            suggestedDefaultLocation.getVariant());
-    }
-
-    @Override
-    public List<ResourceLocation> getAllPossibleLocations(ModelResourceLocation defaultLocation) {
-        List<ResourceLocation> out = new LinkedList<>();
-        out.add(defaultLocation);
-        out.add(
-            new ResourceLocation(defaultLocation.getResourceDomain(), defaultLocation.getResourcePath() + "_engraved"));
-        return out;
-    }
+    // 1.7.10: INBTModel methods removed - ModelResourceLocation doesn't exist in 1.7.10
+    // Model loading is handled differently in 1.7.10
 
 }

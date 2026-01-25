@@ -180,6 +180,15 @@ public class CraftingAccessManager {
         addRecipe(le);
     }
 
+    /**
+     * Overload for adding liquefaction with integer color hex value
+     */
+    public static void addMTLiquefaction(ItemStack catalystIn, Fluid producedIn, float productionMultiplier,
+        float shatterMultiplier, int colorHex) {
+        Color color = new Color(colorHex);
+        addMTLiquefaction(catalystIn, producedIn, productionMultiplier, shatterMultiplier, color);
+    }
+
     public static void removeMTLiquefaction(ItemStack match, @Nullable Fluid fluid) {
         markForRemoval(WellLiquefaction.tryRemoveLiquefaction(match, fluid));
     }
@@ -211,41 +220,24 @@ public class CraftingAccessManager {
 
     /*
      ****************************************** NEI interact (1.7.10)
-     * Full NEI recipe integration with dynamic add/remove support
+     * NEI 1.7.10 doesn't support dynamic recipe refreshing like JEI 1.12.2
+     * Recipe handlers are registered during initialization and cannot be dynamically reloaded
      */
     private static void addRecipe(Object o) {
-        if (!ignoreNEI && Mods.NEI.isPresent()) {
-            try {
-                // Reload NEI to show new recipes
-                codechicken.nei.api.API.reinjectRecipeHandlers();
-            } catch (Exception e) {
-                // Silently fail if NEI isn't fully loaded
-            }
-        }
+        // NEI 1.7.10 doesn't support dynamic recipe refresh
+        // Recipes will be available after game restart
     }
 
-    private static void removeAll(Collection objects) {
-        if (!ignoreNEI && Mods.NEI.isPresent()) {
-            try {
-                // Reload NEI to update recipe list
-                codechicken.nei.api.API.reinjectRecipeHandlers();
-            } catch (Exception e) {
-                // Silently fail if NEI isn't fully loaded
-            }
-        }
+    private static void removeAll(Collection<?> objects) {
+        // NEI 1.7.10 doesn't support dynamic recipe refresh
+        // Removed recipes will be hidden after game restart
     }
 
     private static void markForRemoval(Object o) {
-        if (!ignoreNEI && o != null) {
+        if (o != null) {
             lastReloadRemovedRecipes.add(o);
-            if (Mods.NEI.isPresent()) {
-                try {
-                    // Reload NEI to hide removed recipes
-                    codechicken.nei.api.API.reinjectRecipeHandlers();
-                } catch (Exception e) {
-                    // Silently fail if NEI isn't fully loaded
-                }
-            }
         }
+        // NEI 1.7.10 doesn't support dynamic recipe refresh
+        // Removed recipes will be hidden after game restart
     }
 }

@@ -71,9 +71,10 @@ public class PktRequestSeed implements IMessage, IMessageHandler<PktRequestSeed,
                 WorldProvider mgr = DimensionManager.getProvider(message.dimId);
                 seed = new Random(mgr.getSeed()).nextLong();
             } catch (Exception exc) {
-                World plWorld = ctx.getServerHandler().player.worldObj;
+                // 1.7.10: Use playerEntity instead of player
+                World plWorld = ctx.getServerHandler().playerEntity.worldObj;
                 if (plWorld.provider.dimensionId == message.dimId) {
-                    seed = ctx.getServerHandler().player.worldObj.getSeed();
+                    seed = ctx.getServerHandler().playerEntity.worldObj.getSeed();
                     seed = new Random(seed).nextLong();
                 } else {
                     return null; // Who sent that packet? World desync between server and client?...
@@ -88,10 +89,8 @@ public class PktRequestSeed implements IMessage, IMessageHandler<PktRequestSeed,
 
     @SideOnly(Side.CLIENT)
     private void updateSeedClient(int dimId, int session, long seed) {
-        Minecraft.getMinecraft()
-            .addScheduledTask(
-                () -> ConstellationSkyHandler.getInstance()
-                    .updateSeedCache(dimId, session, seed));
+        // 1.7.10: Call directly, addScheduledTask with lambda doesn't exist
+        ConstellationSkyHandler.getInstance().updateSeedCache(dimId, session, seed);
     }
 
 }

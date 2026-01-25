@@ -94,7 +94,7 @@ public abstract class ItemRockCrystalBase extends Item implements ItemHighlighte
         return crystal;
     }
 
-    @Override
+
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip) {
         addCrystalPropertyToolTip(stack, tooltip);

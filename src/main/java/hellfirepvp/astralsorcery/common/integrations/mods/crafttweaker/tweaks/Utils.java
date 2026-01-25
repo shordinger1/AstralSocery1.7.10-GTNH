@@ -9,67 +9,107 @@
 package hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.tweaks;
 
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.oredict.OreDictionary;
 
-import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.BaseTweaker;
+import hellfirepvp.astralsorcery.common.crafting.ItemHandle;
+import hellfirepvp.astralsorcery.common.crafting.registry.ASRecipeUtils;
 import hellfirepvp.astralsorcery.common.lib.ItemsAS;
-import stanhebben.zenscript.annotations.ZenClass;
-import stanhebben.zenscript.annotations.ZenMethod;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: Utils
- * Created by HellFirePvP
- * Date: 19.05.2018 / 15:58
+ * Utility class for Astral Sorcery recipe helpers
+ * Replaces CraftTweaker-based Utils class
+ *
+ * Usage:
+ *   ItemHandle handle = Utils.getCrystalHandle(false, false);
  */
-@ZenClass("mods.astralsorcery.Utils")
-public class Utils extends BaseTweaker {
+public final class Utils {
 
-    @ZenMethod
-    public static IIngredient getCrystalORIngredient(boolean hasToBeCelestial, boolean hasToBeAttuned) {
-        IIngredient combined;
-        if (hasToBeCelestial) {
-            if (hasToBeAttuned) {
-                combined = getMCLazyMatchItem(new ItemStack(ItemsAS.tunedCelestialCrystal));
-            } else {
-                combined = getMCLazyMatchItem(new ItemStack(ItemsAS.tunedCelestialCrystal));
-                combined = combined.or(getMCLazyMatchItem(new ItemStack(ItemsAS.celestialCrystal)));
-            }
-        } else {
-            if (hasToBeAttuned) {
-                combined = getMCLazyMatchItem(new ItemStack(ItemsAS.tunedCelestialCrystal));
-                combined = combined.or(getMCLazyMatchItem(new ItemStack(ItemsAS.tunedRockCrystal)));
-            } else {
-                combined = getMCLazyMatchItem(new ItemStack(ItemsAS.tunedCelestialCrystal));
-                combined = combined.or(getMCLazyMatchItem(new ItemStack(ItemsAS.celestialCrystal)));
-                combined = combined.or(getMCLazyMatchItem(new ItemStack(ItemsAS.tunedRockCrystal)));
-                combined = combined.or(getMCLazyMatchItem(new ItemStack(ItemsAS.rockCrystal)));
-            }
-        }
-        return combined;
+    private Utils() {}
+
+    /**
+     * Creates an ItemHandle for crystal ingredients based on type and attunement requirements
+     *
+     * @param hasToBeCelestial Whether the crystal must be celestial
+     * @param hasToBeAttuned   Whether the crystal must be attuned
+     * @return An ItemHandle matching the specified criteria
+     */
+    public static ItemHandle getCrystalHandle(boolean hasToBeCelestial, boolean hasToBeAttuned) {
+        return ASRecipeUtils.getCrystalHandle(hasToBeCelestial, hasToBeAttuned);
     }
 
-    private static IIngredient getMCLazyMatchItem(ItemStack stack) {
-        return new MCItemStack(stack) {
-
-            @Override
-            public boolean matchesExact(IItemStack item) {
-                ItemStack internal = getItemStack(item);
-                ItemStack thisInternal = (ItemStack) getInternal();
-                if (thisInternal.hasTagCompound()) {
-                    return super.matchesExact(item);
-                }
-                return !(internal == null || internal.stackSize <= 0)
-                    && !(thisInternal == null || thisInternal.stackSize <= 0)
-                    && internal.getItem() == thisInternal.getItem()
-                    && (internal.stackSize >= thisInternal.stackSize)
-                    && (thisInternal.getItemDamage() == OreDictionary.WILDCARD_VALUE
-                        || thisInternal.getItemDamage() == internal.getItemDamage()
-                        || (!thisInternal.getHasSubtypes() && !thisInternal.getItem()
-                            .isDamageable()));
-            }
-        };
+    /**
+     * Creates an ItemHandle for rock crystal
+     */
+    public static ItemHandle rockCrystal() {
+        return ASRecipeUtils.rockCrystal();
     }
 
+    /**
+     * Creates an ItemHandle for celestial crystal
+     */
+    public static ItemHandle celestialCrystal() {
+        return ASRecipeUtils.celestialCrystal();
+    }
+
+    /**
+     * Creates an ItemHandle for tuned rock crystal
+     */
+    public static ItemHandle tunedRockCrystal() {
+        return ASRecipeUtils.tunedRockCrystal();
+    }
+
+    /**
+     * Creates an ItemHandle for tuned celestial crystal
+     */
+    public static ItemHandle tunedCelestialCrystal() {
+        return ASRecipeUtils.tunedCelestialCrystal();
+    }
+
+    /**
+     * Creates an ItemHandle for any crystal (no restrictions)
+     */
+    public static ItemHandle anyCrystal() {
+        return ASRecipeUtils.anyCrystal();
+    }
+
+    /**
+     * Creates an ItemHandle for any attuned crystal
+     */
+    public static ItemHandle anyAttunedCrystal() {
+        return ASRecipeUtils.anyAttunedCrystal();
+    }
+
+    /**
+     * Creates an ItemHandle for any celestial crystal
+     */
+    public static ItemHandle anyCelestialCrystal() {
+        return ASRecipeUtils.anyCelestialCrystal();
+    }
+
+    /**
+     * Creates an ItemHandle for any attuned celestial crystal
+     */
+    public static ItemHandle anyAttunedCelestialCrystal() {
+        return ASRecipeUtils.anyAttunedCelestialCrystal();
+    }
+
+    /**
+     * Creates an ItemHandle from a single ItemStack
+     */
+    public static ItemHandle handle(ItemStack stack) {
+        return ASRecipeUtils.handle(stack);
+    }
+
+    /**
+     * Creates an ItemHandle from an ore dictionary name
+     */
+    public static ItemHandle oreHandle(String oreDictName) {
+        return ASRecipeUtils.oreHandle(oreDictName);
+    }
+
+    /**
+     * Creates an ItemHandle from multiple ItemStacks
+     */
+    public static ItemHandle handle(ItemStack... stacks) {
+        return ASRecipeUtils.handle(stacks);
+    }
 }

@@ -53,7 +53,7 @@ public class BlockDiscoverer {
                     .containsKey(at)) {
                     continue;
                 }
-                Block test = world.getBlock(at);
+                Block test = world.getBlock(at.posX, at.posY, at.posZ);
                 if (MiscUtils.matchStateExact(match, test) && addCheck.isStateValid(world, at, test)) {
                     out.addBlock(at.getX(), at.getY(), at.getZ(), test);
                     length--;
@@ -81,7 +81,7 @@ public class BlockDiscoverer {
                 for (int yy = -cubeSize; yy <= cubeSize; yy++) {
                     offset.setPos(origin.getX() + xx, origin.getY() + yy, origin.getZ() + zz);
                     if (getWorld().isBlockLoaded(offset)) {
-                        Block atState = world.getBlock(offset);
+                        Block atState = world.getBlock(offset.posX, offset.posY, offset.posZ);
                         if (match.isStateValid(world, offset, atState)) {
                             out.addBlock(new BlockPos(offset), atState);
                         }
@@ -95,7 +95,7 @@ public class BlockDiscoverer {
 
     public static BlockArray discoverBlocksWithSameStateAroundLimited(Map<Block, Integer> stateLimits, World world,
         BlockPos origin, boolean onlyExposed, int cubeSize, int limit, boolean searchCorners) {
-        Block testState = world.getBlock(origin);
+        Block testState = world.getBlock(origin.posX, origin.posY, origin.posZ);
 
         BlockArray foundResult = new BlockArray();
         foundResult.addBlock(origin, testState);
@@ -121,7 +121,7 @@ public class BlockDiscoverer {
                                 visited.add(search);
 
                                 if (!onlyExposed || isExposedToAir(world, search)) {
-                                    Block current = world.getBlock(search);
+                                    Block current = world.getBlock(search.posX, search.posY, search.posZ);
                                     if (MiscUtils.matchStateExact(current, testState)) {
                                         foundResult.addBlock(search, current);
                                         searchNext.add(search);
@@ -140,7 +140,7 @@ public class BlockDiscoverer {
                         visited.add(search);
 
                         if (!onlyExposed || isExposedToAir(world, search)) {
-                            Block current = world.getBlock(search);
+                            Block current = world.getBlock(search.posX, search.posY, search.posZ);
                             if (MiscUtils.matchStateExact(current, testState)) {
                                 foundResult.addBlock(search, current);
                                 searchNext.add(search);
@@ -157,7 +157,7 @@ public class BlockDiscoverer {
     public static BlockArray discoverBlocksWithSameStateAround(List<Block> states, World world, BlockPos origin,
         boolean onlyExposed, int cubeSize, int limit, boolean searchCorners) {
         BlockArray foundResult = new BlockArray();
-        foundResult.addBlock(origin, world.getBlock(origin));
+        foundResult.addBlock(origin, world.getBlock(origin.posX, origin.posY, origin.posZ));
         List<BlockPos> visited = new LinkedList<>();
 
         Deque<BlockPos> searchNext = new LinkedList<>();
@@ -180,7 +180,7 @@ public class BlockDiscoverer {
                                 visited.add(search);
 
                                 if (!onlyExposed || isExposedToAir(world, search)) {
-                                    Block current = world.getBlock(search);
+                                    Block current = world.getBlock(search.posX, search.posY, search.posZ);
                                     if (MiscUtils.getMatchingState(states, current) != null) {
                                         foundResult.addBlock(search, current);
                                         searchNext.add(search);
@@ -199,7 +199,7 @@ public class BlockDiscoverer {
                         visited.add(search);
 
                         if (!onlyExposed || isExposedToAir(world, search)) {
-                            Block current = world.getBlock(search);
+                            Block current = world.getBlock(search.posX, search.posY, search.posZ);
                             if (MiscUtils.getMatchingState(states, current) != null) {
                                 foundResult.addBlock(search, current);
                                 searchNext.add(search);
@@ -215,7 +215,7 @@ public class BlockDiscoverer {
 
     public static BlockArray discoverBlocksWithSameStateAround(World world, BlockPos origin, boolean onlyExposed,
         int cubeSize, int limit, boolean searchCorners) {
-        Block toMatch = world.getBlock(origin);
+        Block toMatch = world.getBlock(origin.posX, origin.posY, origin.posZ);
         return discoverBlocksWithSameStateAround(
             Lists.newArrayList(toMatch),
             world,
@@ -234,7 +234,7 @@ public class BlockDiscoverer {
     public static boolean isExposedToAir(World world, BlockPos pos) {
         for (EnumFacing face : EnumFacing.values()) {
             BlockPos offset = pos.offset(face);
-            if (getWorld().isAirBlock(offset) || world.getBlock(offset)
+            if (getWorld().isAirBlock(offset) || world.getBlock(offset.posX, offset.posY, offset.posZ)
                 .getBlock()
                 .isReplaceable(world, offset)) return true;
         }

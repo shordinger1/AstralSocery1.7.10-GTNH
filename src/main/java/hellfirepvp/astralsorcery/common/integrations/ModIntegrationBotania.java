@@ -72,7 +72,7 @@ public class ModIntegrationBotania {
         Block block = stateSearch;
         int meta;
         try {
-            meta = block.damageDropped(stateSearch);
+            meta = block.damageDropped(0);
         } catch (Exception e) {
             meta = 0;
         }

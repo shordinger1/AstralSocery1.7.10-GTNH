@@ -44,7 +44,7 @@ public class BlockDropCaptureAssist {
             ItemStack itemStack = ((EntityItem) event.getEntity()).getEntityItem();
             if (stack > -1) {
                 event.setCanceled(true);
-                if (!itemStack.isEmpty()) {
+                if (!itemStack == null || itemStack.stackSize <= 0) {
                     if (itemStack.getItem() instanceof ItemBlock && ((ItemBlock) itemStack.getItem()).getBlock()
                         .equals(Blocks.STONE)) {
                         event.getEntity()

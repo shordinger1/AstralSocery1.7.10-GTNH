@@ -50,9 +50,9 @@ public class RegistryEntities {
 
     // trackingRange refers x/z distance, not y.
     private static void registerEntity(Class<? extends Entity> entityClass, String name, int id, int trackingRange,
-        int updateFreq, boolean sendVelUpdates) {
+                                       int updateFreq, boolean sendVelUpdates) {
         EntityRegistry.registerModEntity(
-            new ResourceLocation(AstralSorcery.MODID, name.toLowerCase()),
+//            new ResourceLocation(AstralSorcery.MODID, name.toLowerCase()),
             entityClass,
             name,
             id,

@@ -69,19 +69,29 @@ public class ItemChargedCrystalPickaxe extends ItemCrystalPickaxe implements Cha
     private boolean scanForOres(World world, EntityPlayer player) {
         // 1.7.10: No CooldownTracker, removed cooldown check; use world parameter
         if (!world.isRemote && player instanceof EntityPlayerMP && !MiscUtils.isPlayerFakeMP((EntityPlayerMP) player)) {
-            Thread tr = new Thread(() -> {
-                BlockArray foundOres = OreDiscoverer.startSearch(world, Vector3.atEntityCorner(player), 14);
-                if (!foundOres.isEmpty()) {
-                    List<BlockPos> positions = new LinkedList<>();
-                    BlockPos plPos = new BlockPos(player);
-                    for (BlockPos pos : foundOres.getPattern()
-                        .keySet()) {
-                        if (pos.distanceSq(plPos) < 350) {
-                            positions.add(pos);
+            final World scanWorld = world;
+            final EntityPlayer scanPlayer = player;
+            Thread tr = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    BlockArray foundOres = OreDiscoverer.startSearch(scanWorld, Vector3.atEntityCorner(scanPlayer), 14);
+                    if (!foundOres == null || foundOres.stackSize <= 0) {
+                        List<BlockPos> positions = new LinkedList<>();
+                        BlockPos plPos = new BlockPos(scanPlayer);
+                        for (BlockPos pos : foundOres.getPattern()
+                            .keySet()) {
+                            // 1.7.10: BlockPos.distanceSq() doesn't exist, calculate manually
+                            double dx = pos.getX() - plPos.getX();
+                            double dy = pos.getY() - plPos.getY();
+                            double dz = pos.getZ() - plPos.getZ();
+                            double distSq = dx * dx + dy * dy + dz * dz;
+                            if (distSq < 350) {
+                                positions.add(pos);
+                            }
                         }
+                        PktOreScan scan = new PktOreScan(positions, true);
+                        PacketChannel.CHANNEL.sendTo(scan, (EntityPlayerMP) scanPlayer);
                     }
-                    PktOreScan scan = new PktOreScan(positions, true);
-                    PacketChannel.CHANNEL.sendTo(scan, (EntityPlayerMP) player);
                 }
             });
             tr.setName("Ore Scan " + idx);
@@ -105,7 +115,8 @@ public class ItemChargedCrystalPickaxe extends ItemCrystalPickaxe implements Cha
                 itemRand.nextFloat() - itemRand.nextFloat(),
                 itemRand.nextFloat() - itemRand.nextFloat(),
                 itemRand.nextFloat() - itemRand.nextFloat());
-            Block state = Minecraft.getMinecraft().theWorld.getBlock(at);
+            // 1.7.10: getBlock() takes x, y, z coordinates, not BlockPos
+            Block state = Minecraft.getMinecraft().theWorld.getBlock(at.getX(), at.getY(), at.getZ());
             if (Mods.ORESTAGES.isPresent()) {
                 if (changed.contains(state) || !ModIntegrationOreStages.canSeeOreClient(state)) {
                     changed.add(state);

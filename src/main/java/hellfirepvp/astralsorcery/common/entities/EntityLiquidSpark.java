@@ -55,17 +55,19 @@ import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
 public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAmbient {
 
     private static final int ENTITY_TARGET_DATAWATCHER_ID = 20;
-    private static final int FLUID_REPRESENTED_DATAWATCHER_ID = 21;
+    // private static final int FLUID_REPRESENTED_DATAWATCHER_ID = 21; // 1.7.10: Not used, stored locally instead
 
     private LiquidInteraction purpose;
     private TileEntity tileTarget;
     private BlockPos resolvableTilePos = null;
+    private FluidStack clientFluidStack; // 1.7.10: Store fluid locally instead of DataWatcher
 
     public EntityLiquidSpark(World worldIn) {
         super(worldIn);
         setSize(0.4F, 0.4F);
         this.noClip = true;
-        this.moveHelper = new EntityFlyHelper(this);
+        // 1.7.10: moveHelper is private and EntityFlyHelper doesn't exist
+        // Movement will be handled manually in onUpdate
         this.purpose = null;
     }
 
@@ -74,7 +76,7 @@ public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAm
         setSize(0.4F, 0.4F);
         setPosition(spawnPos.getX() + 0.5, spawnPos.getY() + 0.5, spawnPos.getZ() + 0.5);
         this.noClip = true;
-        this.moveHelper = new EntityFlyHelper(this);
+        // 1.7.10: moveHelper is private and EntityFlyHelper doesn't exist
         this.purpose = purposeOfLiving;
     }
 
@@ -83,7 +85,7 @@ public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAm
         setSize(0.4F, 0.4F);
         setPosition(spawnPos.getX() + 0.5, spawnPos.getY() + 0.5, spawnPos.getZ() + 0.5);
         this.noClip = true;
-        this.moveHelper = new EntityFlyHelper(this);
+        // 1.7.10: moveHelper is private and EntityFlyHelper doesn't exist
         this.tileTarget = target;
     }
 
@@ -92,11 +94,13 @@ public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAm
     }
 
     public void setFluidRepresented(FluidStack fs) {
-        this.dataWatcher.updateObject(FLUID_REPRESENTED_DATAWATCHER_ID, fs);
+        // 1.7.10: Store locally instead of DataWatcher
+        this.clientFluidStack = fs;
     }
 
     public FluidStack getRepresentitiveFluid() {
-        return (FluidStack) this.dataWatcher.getWatchableObjectObject(FLUID_REPRESENTED_DATAWATCHER_ID);
+        // 1.7.10: Return local storage
+        return this.clientFluidStack;
     }
 
     @Nullable
@@ -115,20 +119,17 @@ public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAm
         super.entityInit();
 
         this.dataWatcher.addObject(ENTITY_TARGET_DATAWATCHER_ID, -1);
-        this.dataWatcher.addObject(FLUID_REPRESENTED_DATAWATCHER_ID, null);
+        // 1.7.10: FLUID_REPRESENTED_DATAWATCHER_ID not used, stored locally
     }
 
     @Override
     protected void applyEntityAttributes() {
         super.applyEntityAttributes();
 
-        this.getAttributeMap()
-            .registerAttribute(SharedMonsterAttributes.FLYING_SPEED);
-
-        this.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH)
+        // 1.7.10: SharedMonsterAttributes use lowercase field names
+        // FLYING_SPEED doesn't exist in 1.7.10, skip it
+        this.getEntityAttribute(SharedMonsterAttributes.maxHealth)
             .setBaseValue(2.0D);
-        this.getEntityAttribute(SharedMonsterAttributes.FLYING_SPEED)
-            .setBaseValue(0.35);
     }
 
     @Override
@@ -136,7 +137,9 @@ public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAm
         super.onUpdate();
         if (isDead) return;
 
-        this.noClip = worldObj.getBlock(new BlockPos(this))
+        // 1.7.10: worldObj.getBlock takes 3 int parameters
+        BlockPos pos = new BlockPos(this);
+        this.noClip = worldObj.getBlock(pos.getX(), pos.getY(), pos.getZ())
             .equals(BlocksAS.blockChalice);
 
         if (this.resolvableTilePos != null) {
@@ -151,19 +154,18 @@ public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAm
             }
 
             // 1.7.10: EntitySelectors doesn't exist, use IEntitySelector
-            List<Entity> nearby = worldObj.getEntitiesInAABBexcluding(
+            // Also getEntitiesWithinAABBExcludingEntity instead of getEntitiesInAABBexcluding
+            List<Entity> nearby = worldObj.getEntitiesWithinAABBExcludingEntity(
                 this,
-                this.boundingBox.grow(1),
-                new net.minecraft.command.IEntitySelector() {
-
-                    @Override
-                    public boolean isEntityApplicable(Entity entity) {
-                        // Check if alive and not spectating
-                        return entity.isEntityAlive()
-                            && !(entity instanceof EntityPlayerMP && ((EntityPlayerMP) entity).isSpectator());
-                    }
-                });
-            if (nearby.size() > 2) {
+                this.boundingBox.expand(1, 1, 1)); // 1.7.10: Use expand() instead of grow()
+            // Filter for alive entities (1.7.10 doesn't have isSpectator check)
+            int count = 0;
+            for (Entity e : nearby) {
+                if (e.isEntityAlive()) {
+                    count++;
+                }
+            }
+            if (count > 2) {
                 setDead();
                 return;
             }
@@ -180,7 +182,7 @@ public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAm
                     return;
                 }
 
-                if (getDistance(e) < 0.7F) {
+                if (getDistanceToEntity(e) < 0.7F) { // 1.7.10: Use getDistanceToEntity()
                     setDead();
                     e.setDead();
                     Vector3 at = Vector3.atEntityCenter(e)
@@ -195,15 +197,23 @@ public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAm
                     PacketChannel.CHANNEL
                         .sendToAllAround(ev, PacketChannel.pointFromPos(worldObj, at.toBlockPos(), 32));
                 } else {
-                    this.moveHelper.setMoveTo(e.posX, e.posY, e.posZ, 2.4F);
+                    // 1.7.10: moveHelper is private, set movement manually
+                    Vector3 targetPos = new Vector3(e.posX, e.posY, e.posZ);
+                    Vector3 currentPos = new Vector3(posX, posY, posZ);
+                    Vector3 direction = targetPos.add(-currentPos.posX, -currentPos.posY, -currentPos.posZ).normalize();
+                    this.motionX = direction.getX() * 0.15;
+                    this.motionY = direction.getY() * 0.15;
+                    this.motionZ = direction.getZ() * 0.15;
                 }
             } else if (tileTarget != null) {
+                // 1.7.10: TileEntity doesn't have getPos(), use xCoord, yCoord, zCoord
+                BlockPos tilePos = new BlockPos(tileTarget.xCoord, tileTarget.yCoord, tileTarget.zCoord);
                 if (tileTarget.isInvalid()
-                    || MiscUtils.getTileAt(worldObj, tileTarget.getPos(), tileTarget.getClass(), true) == null) {
+                    || MiscUtils.getTileAt(worldObj, tilePos, tileTarget.getClass(), true) == null) {
                     setDead();
                     return;
                 }
-                Vector3 target = new Vector3(tileTarget.getPos()).add(0.5, 0.5, 0.5);
+                Vector3 target = new Vector3(tilePos.getX(), tilePos.getY(), tilePos.getZ()).add(0.5, 0.5, 0.5);
 
                 if (getDistance(target.getX(), target.getY(), target.getZ()) < 1.1F) {
                     setDead();
@@ -231,7 +241,13 @@ public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAm
                     PacketChannel.CHANNEL
                         .sendToAllAround(ev, PacketChannel.pointFromPos(worldObj, at.toBlockPos(), 32));
                 } else {
-                    this.moveHelper.setMoveTo(target.getX(), target.getY(), target.getZ(), 2.4F);
+                    // 1.7.10: moveHelper is private, set movement manually
+                    Vector3 targetPos = target;
+                    Vector3 currentPos = new Vector3(posX, posY, posZ);
+                    Vector3 direction = targetPos.add(-currentPos.posX, -currentPos.posY, -currentPos.posZ).normalize();
+                    this.motionX = direction.getX() * 0.15;
+                    this.motionY = direction.getY() * 0.15;
+                    this.motionZ = direction.getZ() * 0.15;
                 }
             } else {
                 setDead();
@@ -267,8 +283,7 @@ public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAm
         return null;
     }
 
-    @Override
-    // 1.7.10: getFallSound doesn't exist, entity fall sounds are handled differently
+    // 1.7.10: getFallSoundString doesn't exist in Entity base class, no override
     protected String getFallSoundString() {
         return null;
     }
@@ -277,6 +292,8 @@ public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAm
     protected float getSoundVolume() {
         return 0;
     }
+
+    // 1.7.10: getFallSoundString doesn't exist in Entity base class
 
     @Override
     public void readEntityFromNBT(NBTTagCompound compound) {
@@ -292,10 +309,12 @@ public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAm
         super.writeEntityToNBT(compound);
 
         if (this.tileTarget != null) {
+            // 1.7.10: TileEntity doesn't have getPos(), use xCoord, yCoord, zCoord
+            BlockPos pos = new BlockPos(tileTarget.xCoord, tileTarget.yCoord, tileTarget.zCoord);
             NBTHelper.setAsSubTag(
                 compound,
                 "tileTarget",
-                tag -> NBTHelper.writeBlockPosToNBT(this.tileTarget.getPos(), tag));
+                tag -> NBTHelper.writeBlockPosToNBT(pos, tag));
         }
     }
 

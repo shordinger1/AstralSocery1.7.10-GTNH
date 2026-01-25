@@ -28,6 +28,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.AstralSorcery;
 import hellfirepvp.astralsorcery.client.effect.EffectHandler;
 import hellfirepvp.astralsorcery.client.effect.EffectHelper;
+import hellfirepvp.astralsorcery.client.effect.EntityComplexFX;
 import hellfirepvp.astralsorcery.client.effect.fx.EntityFXFacingParticle;
 import hellfirepvp.astralsorcery.client.effect.fx.EntityFXFacingSprite;
 import hellfirepvp.astralsorcery.client.util.SpriteLibrary;
@@ -91,7 +92,8 @@ public class EntityFlare extends EntityFlying {
         // 1.7.10: getCurrentDaytimeDistribution takes only world
         float nightPerc = ConstellationSkyHandler.getInstance()
             .getCurrentDaytimeDistribution(world);
-        if (world.rand.nextInt(Config.ambientFlareChance) == 0 && world.isAirBlock(at.getX(), at.getY(), at.getZ())
+        if (world.rand.nextInt(Config.ambientFlareChance) == 0
+            && world.isAirBlock((int) at.getX(), (int) at.getY(), (int) at.getZ())
             && world.rand.nextFloat() < nightPerc) {
             world.spawnEntityInWorld(new EntityFlare(world, at.getX(), at.getY(), at.getZ()).setAmbient(true));
         }
@@ -164,7 +166,9 @@ public class EntityFlare extends EntityFlying {
                 }
 
                 if (isAmbient) {
-                    if ((moveTarget == null || getDistanceSq(moveTarget) < 5D) && rand.nextInt(260) == 0) {
+                    if ((moveTarget == null
+                        || getDistanceSq(moveTarget.getX(), moveTarget.getY(), moveTarget.getZ()) < 5D)
+                        && rand.nextInt(260) == 0) {
                         // 1.7.10: BlockPos doesn't have add(), calculate coordinates manually
                         BlockPos bp = new BlockPos(this);
                         moveTarget = new BlockPos(
@@ -173,9 +177,10 @@ public class EntityFlare extends EntityFlying {
                             bp.getZ() - strollRange / 2 + rand.nextInt(strollRange));
                     }
 
-                    if (moveTarget != null && (moveTarget.getY() <= 1
-                        || !worldObj.isAirBlock(moveTarget.getX(), moveTarget.getY(), moveTarget.getZ())
-                        || getDistanceSq(moveTarget) < 5D)) {
+                    if (moveTarget != null
+                        && (moveTarget.getY() <= 1
+                            || !worldObj.isAirBlock(moveTarget.getX(), moveTarget.getY(), moveTarget.getZ())
+                            || getDistanceSq(moveTarget.getX(), moveTarget.getY(), moveTarget.getZ()) < 5D)) {
                         moveTarget = null;
                     }
                 } else if (followingEntityId != -1) {
@@ -205,13 +210,16 @@ public class EntityFlare extends EntityFlying {
                             .toBlockPos();
                     }
 
-                    if (moveTarget != null && (moveTarget.getY() <= 1 || getDistanceSq(moveTarget) < 3D)) {
+                    if (moveTarget != null
+                        && (moveTarget.getY() <= 1
+                            || getDistanceSq(moveTarget.getX(), moveTarget.getY(), moveTarget.getZ()) < 3D)) {
                         moveTarget = null;
                     }
                 }
 
                 if (getAttackTarget() != null && !getAttackTarget().isDead
-                    && getAttackTarget().getDistance(this) < 10
+                    // 1.7.10: Use getDistanceToEntity() instead of getDistance()
+                    && getAttackTarget().getDistanceToEntity(this) < 10
                     && rand.nextInt(40) == 0) {
                     DamageUtil.attackEntityFrom(getAttackTarget(), CommonProxy.dmgSourceStellar, 5.5F);
                     PktParticleEvent ev = new PktParticleEvent(

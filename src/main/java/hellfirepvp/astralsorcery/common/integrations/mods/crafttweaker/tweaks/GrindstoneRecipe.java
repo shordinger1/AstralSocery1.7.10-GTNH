@@ -8,79 +8,124 @@
 
 package hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.tweaks;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.item.ItemStack;
 
 import hellfirepvp.astralsorcery.common.crafting.ItemHandle;
+import hellfirepvp.astralsorcery.common.crafting.registry.ASRecipe;
+import hellfirepvp.astralsorcery.common.crafting.registry.ASRecipeMaps;
+import hellfirepvp.astralsorcery.common.crafting.registry.ASRecipeUtils;
 import hellfirepvp.astralsorcery.common.integrations.ModIntegrationCrafttweaker;
-import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.BaseTweaker;
-import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.network.GrindstoneRecipeAdd;
-import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.network.GrindstoneRecipeRemove;
-import stanhebben.zenscript.annotations.ZenClass;
-import stanhebben.zenscript.annotations.ZenMethod;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: GrindstoneRecipe
- * Created by HellFirePvP
- * Date: 30.11.2017 / 16:55
+ * Grindstone Recipe helpers using ASRecipe system
+ * Replaces CraftTweaker-based GrindstoneRecipe class
+ *
+ * Usage:
+ *   GrindstoneRecipe.add(new ItemStack(Items.iron_ore), new ItemStack(Items.dust), 0.1F);
  */
-@ZenClass("mods.astralsorcery.Grindstone")
-public class GrindstoneRecipe extends BaseTweaker {
+public final class GrindstoneRecipe {
 
-    protected static final String name = "AstralSorcery Grindstone";
+    private GrindstoneRecipe() {}
 
-    @ZenMethod
-    public static void addRecipe(IOreDictEntry oreDict, IItemStack output) {
-        addRecipe(oreDict, output, 0F);
+    /**
+     * Adds a grindstone recipe
+     *
+     * @param input        The input item
+     * @param output       The output item
+     * @param doubleChance Chance (0-1) for double output
+     */
+    public static void add(@Nullable ItemStack input, @Nullable ItemStack output, float doubleChance) {
+        add(input, output, doubleChance, 12); // default duration
     }
 
-    @ZenMethod
-    public static void addRecipe(IOreDictEntry oreDict, IItemStack output, float doubleChance) {
-        addRecipeInternal(oreDict, output, doubleChance);
-    }
-
-    @ZenMethod
-    public static void addRecipe(IItemStack input, IItemStack output) {
-        addRecipe(input, output, 0F);
-    }
-
-    @ZenMethod
-    public static void addRecipe(IItemStack input, IItemStack output, float doubleChance) {
-        addRecipeInternal(input, output, doubleChance);
-    }
-
-    private static void addRecipeInternal(IIngredient obj, IItemStack output, float doubleChance) {
-        ItemHandle in = convertToHandle(obj);
-        if (in == null || in.handleType == ItemHandle.Type.FLUID) { // No fluid inputs :thonk:
-            CraftTweakerAPI.logError("[" + name + "] Skipping recipe-add due to invalid input itemstack.");
+    /**
+     * Adds a grindstone recipe with specified duration
+     *
+     * @param input        The input item
+     * @param output       The output item
+     * @param doubleChance Chance (0-1) for double output
+     * @param duration     Crafting duration in ticks
+     */
+    public static void add(@Nullable ItemStack input, @Nullable ItemStack output, float doubleChance, int duration) {
+        if (!ASRecipeUtils.isOutputValid(output)) {
             return;
         }
 
-        ItemStack out = convertToItemStack(output);
-        if ((out == null || out.stackSize <= 0)) {
-            CraftTweakerAPI.logError("[" + name + "] Skipping recipe-add due to invalid output itemstack.");
+        ItemHandle in = ASRecipeUtils.handle(input);
+        if (in == null) {
             return;
         }
 
-        ModIntegrationCrafttweaker.recipeModifications.add(new GrindstoneRecipeAdd(in, out, doubleChance));
+        ASRecipe recipe = ASRecipe.builder(ASRecipe.Type.GRINDSTONE)
+            .inputs(in)
+            .output(output)
+            .doubleChance(doubleChance)
+            .duration(duration)
+            .build();
+
+        ModIntegrationCrafttweaker.recipeQueue.add(recipe);
     }
 
-    @ZenMethod
-    public static void removeRecipe(IItemStack output) {
-        ItemStack out = convertToItemStack(output);
-        if ((out == null || out.stackSize <= 0)) {
-            CraftTweakerAPI.logError("[" + name + "] Skipping recipe-add due to invalid output itemstack.");
+    /**
+     * Adds a grindstone recipe using ore dictionary
+     *
+     * @param oreDict      The ore dictionary entry
+     * @param output       The output item
+     * @param doubleChance Chance (0-1) for double output
+     */
+    public static void addOre(String oreDict, @Nullable ItemStack output, float doubleChance) {
+        addOre(oreDict, output, doubleChance, 12); // default duration
+    }
+
+    /**
+     * Adds a grindstone recipe using ore dictionary with specified duration
+     *
+     * @param oreDict      The ore dictionary entry
+     * @param output       The output item
+     * @param doubleChance Chance (0-1) for double output
+     * @param duration     Crafting duration in ticks
+     */
+    public static void addOre(String oreDict, @Nullable ItemStack output, float doubleChance, int duration) {
+        if (!ASRecipeUtils.isOutputValid(output)) {
             return;
         }
 
-        ModIntegrationCrafttweaker.recipeModifications.add(new GrindstoneRecipeRemove(out));
+        ItemHandle in = ASRecipeUtils.oreHandle(oreDict);
+
+        ASRecipe recipe = ASRecipe.builder(ASRecipe.Type.GRINDSTONE)
+            .inputs(in)
+            .output(output)
+            .doubleChance(doubleChance)
+            .duration(duration)
+            .build();
+
+        ModIntegrationCrafttweaker.recipeQueue.add(recipe);
     }
 
-    @ZenMethod
-    @Deprecated
-    public static void removeReipce(IItemStack output) {
-        removeRecipe(output);
+    /**
+     * Removes all grindstone recipes producing the specified output
+     *
+     * @param output The output to match
+     */
+    public static void remove(@Nullable ItemStack output) {
+        if (!ASRecipeUtils.isOutputValid(output)) {
+            return;
+        }
+        ASRecipeMaps.GRINDSTONE.removeRecipesByOutput(output);
     }
 
+    /**
+     * Adds a grindstone recipe directly to the recipe map
+     * This is for use in recipe loading classes
+     */
+    public static ASRecipe addToMap(ItemHandle input, ItemStack output, float doubleChance, int duration) {
+        return ASRecipe.builder(ASRecipe.Type.GRINDSTONE)
+            .inputs(input)
+            .output(output)
+            .doubleChance(doubleChance)
+            .duration(duration)
+            .addTo(ASRecipeMaps.GRINDSTONE);
+    }
 }

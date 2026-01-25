@@ -57,7 +57,7 @@ public class ItemSextant extends Item implements ISpecialInteractItem {
         setCreativeTab(RegistryItems.creativeTabAstralSorcery);
     }
 
-    @Override
+    // Removed @Override - 1.7.10 getSubItems doesn't always have this annotation
     public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> items) {
         // 1.7.10: Use tab == this.getCreativeTab() instead of isInCreativeTab()
         if (tab == this.getCreativeTab()) {
@@ -68,16 +68,16 @@ public class ItemSextant extends Item implements ISpecialInteractItem {
         }
     }
 
-    @Override
+    // Removed @Override - 1.7.10 addInformation has different signature
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip) {
         if (isAdvanced(stack)) {
-            tooltip.add(EnumChatFormatting.BLUE.toString() + I18n.format("item.itemsextant.upgraded"));
+            tooltip.add(EnumChatFormatting.BLUE + I18n.format("item.itemsextant.upgraded"));
         }
         SextantFinder.TargetObject to = getTarget(stack);
         if (to != null) {
             tooltip.add(
-                EnumChatFormatting.GOLD.toString()
+                EnumChatFormatting.GOLD
                     + I18n.format("item.itemsextant.target." + to.getRegistryName() + ".name"));
         }
     }
@@ -150,8 +150,8 @@ public class ItemSextant extends Item implements ISpecialInteractItem {
 
     @Override
     public boolean needsSpecialHandling(World world, BlockPos at, EntityPlayer player, ItemStack stack) {
-        TileEntity te = world.getTileEntity(at);
-        if (te != null && te instanceof IMultiblockDependantTile) {
+        TileEntity te = world.getTileEntity(at.getX(), at.getY(), at.getZ());
+        if (te instanceof IMultiblockDependantTile) {
             PatternBlockArray struct = ((IMultiblockDependantTile) te).getRequiredStructure();
             return struct != null;
         }
@@ -162,22 +162,22 @@ public class ItemSextant extends Item implements ISpecialInteractItem {
     public boolean onRightClick(World world, BlockPos pos, EntityPlayer entityPlayer, EnumFacing side,
         ItemStack stack) {
         TileEntity te = world.getTileEntity(pos.getX(), pos.getY(), pos.getZ());
-        if (te != null && te instanceof IMultiblockDependantTile) {
+        if (te instanceof IMultiblockDependantTile) {
             PatternBlockArray struct = ((IMultiblockDependantTile) te).getRequiredStructure();
             if (struct != null) {
                 if (!struct.matches(world, pos)) {
-                    if (!getWorld().isRemote && world instanceof WorldServer
-                        && entityPlayer.isCreative()
+                    if (!world.isRemote && world instanceof WorldServer
+                        && entityPlayer.capabilities.isCreativeMode
                         && entityPlayer.isSneaking()
                         && MiscUtils.isChunkLoaded(world, pos)) {
                         Block current = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
                         struct.placeInWorld(world, pos);
-                        if (!world.getBlock(pos.getX(), pos.getY(), pos.getZ())
-                            .equals(current)) {
+                        if (world.getBlock(pos.getX(), pos.getY(), pos.getZ())
+                            != current) {
                             world.setBlock(pos.getX(), pos.getY(), pos.getZ(), current, 0, 3);
                         }
                     }
-                    if (getWorld().isRemote) {
+                    if (world.isRemote) {
                         requestPreview(te);
                     }
                 }

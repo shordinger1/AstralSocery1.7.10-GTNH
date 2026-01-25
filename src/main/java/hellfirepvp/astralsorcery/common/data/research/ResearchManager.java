@@ -23,6 +23,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 
 import com.google.common.io.Files;
 
@@ -48,6 +50,7 @@ import hellfirepvp.astralsorcery.common.network.packet.server.PktSyncKnowledge;
 import hellfirepvp.astralsorcery.common.network.packet.server.PktSyncPerkActivity;
 import hellfirepvp.astralsorcery.common.tile.TileAltar;
 import hellfirepvp.astralsorcery.common.tile.TileStarlightInfuser;
+import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
 
 /**
@@ -121,7 +124,8 @@ public class ResearchManager {
             loadPlayerKnowledge(p);
         }
         if (playerProgressServer.get(uuid) == null) {
-            AstralSorcery.log.warn("Failed to load AstralSocery Progress data for " + p.getName());
+            // In 1.7.10, use getCommandSenderName() instead of getName()
+            AstralSorcery.log.warn("Failed to load AstralSocery Progress data for " + p.getCommandSenderName());
             AstralSorcery.log.warn("Erroneous file: " + uuid.toString() + ".astral");
             return;
         }
@@ -140,7 +144,7 @@ public class ResearchManager {
 
         LinkedList<ResearchProgression> progToGive = new LinkedList<>();
         progToGive.add(prog);
-        while (!(progToGive == null || progToGive.stackSize <= 0)) {
+        while (!progToGive == null || progToGive.stackSize <= 0) { // progToGive is LinkedList, not ItemStack
             ResearchProgression give = progToGive.pop();
             if (!progress.getResearchProgression()
                 .contains(give)) {
@@ -718,10 +722,11 @@ public class ResearchManager {
         EntityPlayer crafter = recipe.tryGetCraftingPlayerServer();
         if (crafter == null) {
             AstralSorcery.log.warn("Infusion finished, player that initialized crafting could not be found!");
+            // In 1.7.10, use getWorldObj() instead of direct field access
             AstralSorcery.log.warn(
                 "Affected tile: " + new BlockPos(infuser.xCoord, infuser.yCoord, infuser.zCoord)
                     + " in dim "
-                    + infuser.worldObj.provider.dimensionId);
+                    + infuser.getWorldObj().provider.dimensionId);
             return;
         }
 
@@ -736,10 +741,11 @@ public class ResearchManager {
         EntityPlayer crafter = recipeToCraft.tryGetCraftingPlayerServer();
         if (crafter == null || !(crafter instanceof EntityPlayerMP)) {
             AstralSorcery.log.warn("Crafting finished, player that initialized crafting could not be found!");
+            // In 1.7.10, use getWorldObj() instead of direct field access
             AstralSorcery.log.warn(
                 "Affected tile: " + new BlockPos(altar.xCoord, altar.yCoord, altar.zCoord)
                     + " in dim "
-                    + altar.worldObj.provider.dimensionId);
+                    + altar.getWorldObj().provider.dimensionId);
             return;
         }
 
@@ -787,25 +793,35 @@ public class ResearchManager {
         MinecraftServer server = FMLCommonHandler.instance()
             .getMinecraftServerInstance();
         if (server != null) {
-            EntityPlayerMP player = server.getPlayerList()
-                .getPlayerByUUID(pUUID);
+            // In 1.7.10, iterate through playerEntityList to find player by UUID
+            EntityPlayerMP player = null;
+            for (Object playerObj : server.getConfigurationManager().playerEntityList) {
+                if (playerObj instanceof EntityPlayerMP) {
+                    EntityPlayerMP p = (EntityPlayerMP) playerObj;
+                    if (p.getUniqueID().equals(pUUID)) {
+                        player = p;
+                        break;
+                    }
+                }
+            }
             if (player != null) {
+                // In 1.7.10, ChatComponentText doesn't have setStyle, use plain text with color codes
                 player.addChatMessage(
                     new ChatComponentText(
-                        "AstralSorcery: Your progression could not be loaded and can't be recovered from backup. Please contact an administrator to lookup what went wrong and/or potentially recover your data from a backup.")
-                            .setStyle(new Style().setColor(EnumChatFormatting.RED)));
+                        EnumChatFormatting.RED + "AstralSorcery: Your progression could not be loaded and can't be recovered from backup. Please contact an administrator to lookup what went wrong and/or potentially recover your data from a backup."));
             }
-            String resolvedName = player != null ? player.getName() : pUUID.toString() + " (Not online)";
-            for (String opName : server.getPlayerList()
-                .getOppedPlayerNames()) {
-                EntityPlayer pl = server.getPlayerList()
-                    .getPlayerByUsername(opName);
-                if (pl != null) {
-                    pl.addChatMessage(
-                        new ChatComponentText(
-                            "AstralSorcery: The progression of " + resolvedName
-                                + " could not be loaded and can't be recovered from backup. Error files might be created from the unloadable progression files, check the console for additional information!")
-                                    .setStyle(new Style().setColor(EnumChatFormatting.RED)));
+            // In 1.7.10, use getCommandSenderName() instead of getName()
+            String resolvedName = player != null ? player.getCommandSenderName() : pUUID.toString() + " (Not online)";
+            // In 1.7.10, check OP status using func_152596_g with GameProfile
+            for (Object playerObj : server.getConfigurationManager().playerEntityList) {
+                if (playerObj instanceof EntityPlayerMP) {
+                    EntityPlayerMP pl = (EntityPlayerMP) playerObj;
+                    if (server.getConfigurationManager().func_152596_g(pl.getGameProfile())) { // isOP
+                        pl.addChatMessage(
+                            new ChatComponentText(
+                                EnumChatFormatting.RED + "AstralSorcery: The progression of " + resolvedName
+                                    + " could not be loaded and can't be recovered from backup. Error files might be created from the unloadable progression files, check the console for additional information!"));
+                    }
                 }
             }
         }

@@ -308,7 +308,7 @@ public class TileAttunementAltar extends TileEntityTick implements IMultiblockDe
         if (activeFound instanceof IMajorConstellation) {
             Vector3 thisVec = new Vector3(this).add(0.5, 0.5, 0.5);
             List<EntityPlayerMP> players = world.getEntitiesWithinAABB(EntityPlayerMP.class, box);
-            if (!players.isEmpty()) {
+            if (!players == null || players.stackSize <= 0) {
                 EntityPlayerMP pl = EntityUtils.selectClosest(
                     players,
                     (player) -> thisVec.distanceSquared(new Vec3(player.posX, player.posY, player.posZ)));
@@ -412,7 +412,7 @@ public class TileAttunementAltar extends TileEntityTick implements IMultiblockDe
         List<BlockPos> positions = translateConstellationPositions(activeFound);
         for (BlockPos pos : positions) {
             if (pos.equals(getPos())) continue;
-            Block state = worldObj.getBlock(pos);
+            Block state = worldObj.getBlock(pos.posX, pos.posY, pos.posZ);
             if (!state.equals(BlocksAS.attunementRelay) && !(pos.subtract(getPos())
                 .equals(BlockPos.ORIGIN) && state.equals(BlocksAS.attunementAltar))) {
                 valid = false;
@@ -446,7 +446,7 @@ public class TileAttunementAltar extends TileEntityTick implements IMultiblockDe
             boolean valid = true;
             for (BlockPos pos : positions) {
                 if (pos.equals(getPos())) continue;
-                Block state = worldObj.getBlock(pos);
+                Block state = worldObj.getBlock(pos.posX, pos.posY, pos.posZ);
                 if (!state.equals(BlocksAS.attunementRelay) && !(pos.subtract(getPos())
                     .equals(BlockPos.ORIGIN) && state.equals(BlocksAS.attunementAltar))) {
                     valid = false;
@@ -570,7 +570,7 @@ public class TileAttunementAltar extends TileEntityTick implements IMultiblockDe
             AxisAlignedBB.getBoundingBox(0, 0, 0, 1, 1, 1)
                 .grow(1)
                 .offset(getPos()));
-        return !players.isEmpty() && players.contains(Minecraft.getMinecraft().thePlayer);
+        return !players == null || players.stackSize <= 0 && players.contains(Minecraft.getMinecraft().thePlayer);
     }
 
     private void checkClientEffectIntegrity() {
@@ -743,7 +743,7 @@ public class TileAttunementAltar extends TileEntityTick implements IMultiblockDe
                             .registerFX(p);
                     }
                 }
-                if (starSprites.isEmpty()) {
+                if (starSprites == null || starSprites.stackSize <= 0) {
                     addStarSprites();
                 }
                 if (getTicksExisted() % 53 == 0) {

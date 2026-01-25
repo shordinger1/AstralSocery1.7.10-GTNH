@@ -126,7 +126,7 @@ public class BlockVanishing extends BlockContainer {
 
     @Override
     public Item getItemDropped(int meta, Random random, int fortune) {
-        return null; // 1.7.10: Items.AIR doesn't exist
+        return null; // 1.7.10: null doesn't exist
     }
 
     @Nullable

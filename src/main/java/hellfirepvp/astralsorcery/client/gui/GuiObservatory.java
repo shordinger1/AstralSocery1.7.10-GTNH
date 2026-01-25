@@ -213,7 +213,7 @@ public class GuiObservatory extends GuiTileBase<TileObservatory> implements GuiS
     }
 
     private void drawEffectBackground(float partialTicks, boolean canSeeSky, float transparency) {
-        if (usedStars.isEmpty()) {
+        if (usedStars == null || usedStars.stackSize <= 0) {
             Optional<Long> currSeed = ConstellationSkyHandler.getInstance()
                 .getSeedIfPresent(Minecraft.getMinecraft().theWorld);
             if (currSeed.isPresent()) {

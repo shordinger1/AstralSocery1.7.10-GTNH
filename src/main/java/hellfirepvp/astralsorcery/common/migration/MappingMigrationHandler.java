@@ -10,15 +10,9 @@ package hellfirepvp.astralsorcery.common.migration;
 
 import java.util.LinkedList;
 
-import net.minecraft.item.Item;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.MinecraftForge;
 
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import hellfirepvp.astralsorcery.AstralSorcery;
-import hellfirepvp.astralsorcery.common.lib.ItemsAS;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -36,54 +30,24 @@ public class MappingMigrationHandler {
         AstralSorcery.MODID,
         "itemilluminationpowder");
 
-    private static LinkedList<String> migrationTileNames = new LinkedList<>();
+    private static final LinkedList<String> migrationTileNames = new LinkedList<>();
 
     public static void init() {
-        MappingMigrationHandler instance = new MappingMigrationHandler();
-
-        MinecraftForge.EVENT_BUS.register(instance);
-
-        ModFixs fixes = FMLCommonHandler.instance()
-            .getDataFixer()
-            .init(AstralSorcery.MODID, DATA_FIXER_VERSION);
-        fixes.registerFix(FixTypes.BLOCK_ENTITY, new IFixableData() {
-
-            @Override
-            public int getFixVersion() {
-                return 1;
-            }
-
-            @Override
-            public NBTTagCompound fixTagCompound(NBTTagCompound compound) {
-                ResourceLocation tileId = new ResourceLocation(compound.getString("id"));
-
-                if ("minecraft".equals(tileId.getResourceDomain())) {
-                    if (migrationTileNames.contains(tileId.getResourcePath())) {
-                        compound.setString(
-                            "id",
-                            new ResourceLocation(AstralSorcery.MODID, tileId.getResourcePath()).toString());
-                    }
-                }
-
-                tileId = new ResourceLocation(compound.getString("id"));
-
-                if ("astralsorcery:tileportalnode".equals(tileId.toString())) {
-                    compound.setString("id", "astralsorcery:tilestructcontroller");
-                }
-
-                return compound;
-            }
-        });
+        // 1.7.10: DataFixer system doesn't exist in this version
+        // Skipping data migration initialization for 1.7.10
+        // MappingMigrationHandler instance = new MappingMigrationHandler();
+        // MinecraftForge.EVENT_BUS.register(instance);
     }
 
-    @SubscribeEvent
-    public void onMissingMapping(RegistryEvent.MissingMappings<Item> event) {
-        for (RegistryEvent.MissingMappings.Mapping<Item> mapping : event.getMappings()) {
-            if (mapping.key.equals(ILLUMINATION_POWDER_KEY)) {
-                mapping.remap(ItemsAS.useableDust);
-            }
-        }
-    }
+    // 1.7.10: RegistryEvent doesn't exist, event system is different
+    // Removed @SubscribeEvent
+    // public void onMissingMapping(RegistryEvent.MissingMappings<Item> event) {
+    //     for (RegistryEvent.MissingMappings.Mapping<Item> mapping : event.getMappings()) {
+    //         if (mapping.key.equals(ILLUMINATION_POWDER_KEY)) {
+    //             mapping.remap(ItemsAS.useableDust);
+    //         }
+    //     }
+    // }
 
     public static void listenTileMigration(String name) {
         migrationTileNames.add(name);

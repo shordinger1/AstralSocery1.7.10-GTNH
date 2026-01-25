@@ -64,7 +64,7 @@ public class LightOreTransmutations {
 
     private static void cacheLocalFallback() {
         // 1.7.10: Collection doesn't have stackSize, use isEmpty()
-        if ((localFallback == null || localFallback.isEmpty())) {
+        if ((localFallback == null || localFallback == null || localFallback.stackSize <= 0)) {
             localFallback.addAll(registeredTransmutations);
         }
     }

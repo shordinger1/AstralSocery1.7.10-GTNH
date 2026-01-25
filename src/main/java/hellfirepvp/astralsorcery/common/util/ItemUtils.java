@@ -18,17 +18,20 @@ import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.cleanroommc.modularui.utils.item.ItemStackHandler;
 import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
+
+import hellfirepvp.astralsorcery.common.util.BlockPos;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -59,7 +62,7 @@ public class ItemUtils {
         ei.motionY = 0;
         ei.motionZ = 0;
         world.spawnEntityInWorld(ei);
-        ei.setDefaultPickupDelay();
+        ei.delayBeforeCanPickup = 10; // 1.7.10: set pickup delay directly
         return ei;
     }
 
@@ -68,7 +71,7 @@ public class ItemUtils {
         EntityItem ei = new EntityItem(world, x, y, z, stack);
         applyRandomDropOffset(ei);
         world.spawnEntityInWorld(ei);
-        ei.setDefaultPickupDelay();
+        ei.delayBeforeCanPickup = 10; // 1.7.10: set pickup delay directly
         return ei;
     }
 
@@ -81,15 +84,15 @@ public class ItemUtils {
     @Nonnull
     public static ItemStack createBlockStack(Block state) {
         Item i = Item.getItemFromBlock(state);
-        if (i == Items.AIR) return null;
-        int meta = state.damageDropped(state);
+        if (i == null) return null; // 1.7.10: null doesn't exist
+        int meta = state.damageDropped(0); // 1.7.10: damageDropped takes int metadata
         return new ItemStack(i, 1, meta);
     }
 
     @Nullable
     public static Block createBlockState(ItemStack stack) {
         Block b = Block.getBlockFromItem(stack.getItem());
-        if (b == Blocks.AIR) return null;
+        if (b == null) return null; // 1.7.10: null doesn't exist, just check null
         try {
             return b;
         } catch (Exception exc) {
@@ -101,7 +104,7 @@ public class ItemUtils {
         List<ItemStack> out = new LinkedList<>();
         for (int j = 0; j < handler.getSlots(); j++) {
             ItemStack s = handler.getStackInSlot(j);
-            if (!s.isEmpty() && s.getItem() == i) out.add(copyStackWithSize(s, s.stackSize));
+            if (s != null && s.stackSize > 0 && s.getItem() == i) out.add(copyStackWithSize(s, s.stackSize));
         }
         return out;
     }
@@ -164,12 +167,12 @@ public class ItemUtils {
             Block consumeState = createBlockState(toConsume);
             if (consumeState != null) {
                 Block b = consumeState;
-                int meta = b.damageDropped(consumeState);
+                int meta = b.damageDropped(toConsume.getItemDamage()); // 1.7.10: takes int metadata
 
                 for (int i = 0; i < toConsume.stackSize; i++) {
                     ItemStack res = ModIntegrationBotania
                         .requestFromInventory(player, requestingItemStack, b, meta, !simulate);
-                    if (!res.isEmpty()) {
+                    if (res != null && res.stackSize > 0) { // 1.7.10: no isEmpty()
                         consumed++;
                     }
                 }
@@ -187,7 +190,7 @@ public class ItemUtils {
 
     public static boolean consumeFromInventory(IItemHandlerModifiable handler, ItemStack toConsume, boolean simulate) {
         Map<Integer, ItemStack> contents = findItemsIndexedInInventory(handler, toConsume, false);
-        if (contents.isEmpty()) return false;
+        if (contents == null || contents.stackSize <= 0) return false;
 
         int cAmt = toConsume.stackSize;
         for (int slot : contents.keySet()) {
@@ -228,9 +231,9 @@ public class ItemUtils {
     }
 
     public static FluidActionResult drainFluidFromItem(ItemStack stack, FluidStack fluidStack, boolean doDrain) {
-        // In 1.7.10, use FluidContainerRegistry
+        // In 1.7.10, use FluidContainerRegistry and getFluidID() method
         FluidStack drained = FluidContainerRegistry.getFluidForFilledItem(stack);
-        if (drained != null && drained.fluidID == fluidStack.fluidID && drained.amount >= fluidStack.amount) {
+        if (drained != null && drained.getFluidID() == fluidStack.getFluidID() && drained.amount >= fluidStack.amount) {
             ItemStack emptyContainer = FluidContainerRegistry.drainFluidContainer(stack);
             return new FluidActionResult(emptyContainer);
         }
@@ -330,7 +333,7 @@ public class ItemUtils {
     }
 
     public static ArrayList<ItemStack> getStacksOfOredict(String name) {
-        return OreDictionary.getOres(name, false);
+        return new ArrayList<ItemStack>(OreDictionary.getOres(name, false));
     }
 
     private static List<String> getOreDictNames(ItemStack stack) {
@@ -348,25 +351,35 @@ public class ItemUtils {
         private static FluidHandlerVoid INSTANCE = new FluidHandlerVoid();
 
         @Override
-        public IFluidTankProperties[] getTankProperties() {
-            return new IFluidTankProperties[0];
-        }
-
-        @Override
-        public int fill(FluidStack resource, boolean doFill) {
+        public int fill(net.minecraftforge.common.util.ForgeDirection from, FluidStack resource, boolean doFill) {
             return resource.amount;
         }
 
         @Nullable
         @Override
-        public FluidStack drain(FluidStack resource, boolean doDrain) {
+        public FluidStack drain(net.minecraftforge.common.util.ForgeDirection from, FluidStack resource, boolean doDrain) {
             return null;
         }
 
         @Nullable
         @Override
-        public FluidStack drain(int maxDrain, boolean doDrain) {
+        public FluidStack drain(net.minecraftforge.common.util.ForgeDirection from, int maxDrain, boolean doDrain) {
             return null;
+        }
+
+        @Override
+        public boolean canFill(net.minecraftforge.common.util.ForgeDirection from, Fluid fluid) {
+            return true;
+        }
+
+        @Override
+        public boolean canDrain(net.minecraftforge.common.util.ForgeDirection from, Fluid fluid) {
+            return false;
+        }
+
+        @Override
+        public FluidTankInfo[] getTankInfo(net.minecraftforge.common.util.ForgeDirection from) {
+            return new FluidTankInfo[0];
         }
     }
 

@@ -13,6 +13,7 @@ import java.util.Map;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 
 /**
  * Migration class for 1.12.2 ItemColors class
@@ -25,7 +26,7 @@ public class ItemColors {
 
     /**
      * Get the color multiplier for the given item stack
-     * 
+     *
      * @param stack     The item stack
      * @param tintIndex The tint index
      * @return The color multiplier, or -1 if no handler registered
@@ -37,7 +38,7 @@ public class ItemColors {
 
     /**
      * Register an item color handler for the given blocks
-     * 
+     *
      * @param itemColor The color handler
      * @param blocksIn  The blocks to register for
      */
@@ -53,7 +54,7 @@ public class ItemColors {
 
     /**
      * Register an item color handler for the given items
-     * 
+     *
      * @param itemColor The color handler
      * @param itemsIn   The items to register for
      */
@@ -66,7 +67,7 @@ public class ItemColors {
 
     /**
      * Get the registered color handler for an item
-     * 
+     *
      * @param item The item
      * @return The color handler, or null if none registered
      */

@@ -14,8 +14,8 @@ import java.util.ArrayList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import hellfirepvp.astralsorcery.common.migration.Ingredient;
 import net.minecraft.block.Block;
-import net.minecraft.inventory.Ingredient;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;

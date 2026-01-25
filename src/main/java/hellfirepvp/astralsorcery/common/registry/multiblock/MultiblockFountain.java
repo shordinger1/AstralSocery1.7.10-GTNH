@@ -5,20 +5,18 @@
  * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
  * For further details, see the License file there.
  ******************************************************************************/
-
 package hellfirepvp.astralsorcery.common.registry.multiblock;
 
-import static hellfirepvp.astralsorcery.common.block.BlockMarble.MARBLE_TYPE;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.transpose;
 
-import net.minecraft.block.Block;
 import net.minecraft.util.ResourceLocation;
 
+import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
+import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+
 import hellfirepvp.astralsorcery.AstralSorcery;
-import hellfirepvp.astralsorcery.common.block.BlockBlackMarble;
-import hellfirepvp.astralsorcery.common.block.BlockMarble;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
-import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
-import hellfirepvp.astralsorcery.common.util.BlockStateCheck;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -27,88 +25,67 @@ import hellfirepvp.astralsorcery.common.util.BlockStateCheck;
  * Created by HellFirePvP
  * Date: 31.10.2017 / 15:36
  */
-public class MultiblockFountain extends PatternBlockArray {
+public class MultiblockFountain {
+
+    private static final String STRUCTURE_ID = "pattern_fountain";
+    private static IStructureDefinition<MultiblockFountain> STRUCTURE_DEFINITION = null;
 
     public MultiblockFountain() {
-        super(new ResourceLocation(AstralSorcery.MODID, "pattern_fountain"));
-        load();
+        // Structure defined via getStructureDefinition()
     }
 
-    private void load() {
-        Block marble = BlocksAS.blockMarble;
-
-        Block mpl = marble.withProperty(MARBLE_TYPE, BlockMarble.MarbleBlockType.PILLAR);
-        Block mru = marble.withProperty(MARBLE_TYPE, BlockMarble.MarbleBlockType.RUNED);
-        Block msr = BlocksAS.blockBlackMarble
-            .withProperty(BlockBlackMarble.BLACK_MARBLE_TYPE, BlockBlackMarble.BlackMarbleBlockType.RAW);
-
-        addBlock(0, 0, 0, BlocksAS.blockBore, new BlockStateCheck.Block(BlocksAS.blockBore));
-
-        addBlock(4, 0, 0, msr);
-        addBlock(-4, 0, 0, msr);
-        addBlock(0, 0, 4, msr);
-        addBlock(0, 0, -4, msr);
-
-        addBlock(4, 1, 0, mpl);
-        addBlock(4, 2, 0, mpl);
-        addBlock(4, -1, 0, mpl);
-        addBlock(4, -2, 0, mpl);
-
-        addBlock(-4, 1, 0, mpl);
-        addBlock(-4, 2, 0, mpl);
-        addBlock(-4, -1, 0, mpl);
-        addBlock(-4, -2, 0, mpl);
-
-        addBlock(0, 1, 4, mpl);
-        addBlock(0, 2, 4, mpl);
-        addBlock(0, -1, 4, mpl);
-        addBlock(0, -2, 4, mpl);
-
-        addBlock(0, 1, -4, mpl);
-        addBlock(0, 2, -4, mpl);
-        addBlock(0, -1, -4, mpl);
-        addBlock(0, -2, -4, mpl);
-
-        addBlock(4, 0, 1, mru);
-        addBlock(4, 0, 2, mru);
-        addBlock(4, 0, -1, mru);
-        addBlock(4, 0, -2, mru);
-
-        addBlock(-4, 0, 1, mru);
-        addBlock(-4, 0, 2, mru);
-        addBlock(-4, 0, -1, mru);
-        addBlock(-4, 0, -2, mru);
-
-        addBlock(1, 0, 4, mru);
-        addBlock(2, 0, 4, mru);
-        addBlock(-1, 0, 4, mru);
-        addBlock(-2, 0, 4, mru);
-
-        addBlock(1, 0, -4, mru);
-        addBlock(2, 0, -4, mru);
-        addBlock(-1, 0, -4, mru);
-        addBlock(-2, 0, -4, mru);
-
-        addBlock(3, 0, 3, mru);
-        addBlock(3, 0, -3, mru);
-        addBlock(-3, 0, -3, mru);
-        addBlock(-3, 0, 3, mru);
-
-        for (int yy = -2; yy <= 2; yy++) {
-            for (int xx = -3; xx <= 3; xx++) {
-                for (int zz = -3; zz <= 3; zz++) {
-                    if (Math.abs(xx) == 3 && Math.abs(zz) == 3) continue; // corners
-
-                    if (xx == 0 && zz == 0) {
-                        if (yy == -2) {
-                            addAir(xx, yy, zz);
-                        }
-                    } else {
-                        addAir(xx, yy, zz);
-                    }
-                }
-            }
+    public IStructureDefinition<MultiblockFountain> getStructureDefinition() {
+        if (STRUCTURE_DEFINITION == null) {
+            STRUCTURE_DEFINITION = StructureDefinition.<MultiblockFountain>builder()
+                .addShape(STRUCTURE_ID, transpose(shape))
+                .addElement('B', ofBlock(BlocksAS.blockBore, 0))
+                .addElement('S', ofBlock(BlocksAS.blockBlackMarble, 0)) // RAW
+                .addElement('P', ofBlock(BlocksAS.blockMarble, 5)) // PILLAR
+                .addElement('U', ofBlock(BlocksAS.blockMarble, 4)) // RUNED
+                .build();
         }
+        return STRUCTURE_DEFINITION;
     }
+
+    public ResourceLocation getStructureId() {
+        return new ResourceLocation(AstralSorcery.MODID, STRUCTURE_ID);
+    }
+
+    private final String[][] shape = new String[][] {
+        // Y = -2
+        {"        ", "        ", "        ", "   P    ", "   P    ", "        ", "        ", "        "},
+        {"        ", "        ", "   U    ", "   P    ", "   P    ", "   U    ", "        ", "        "},
+        {"        ", "   U    ", "   U    ", "   P    ", "   P    ", "   U    ", "   U    ", "        "},
+        {"        ", "        ", "   U    ", "   P    ", "   P    ", "   U    ", "        ", "        "},
+        {"        ", "        ", "        ", "   P    ", "   P    ", "        ", "        ", "        "},
+
+        // Y = -1
+        {"        ", "        ", "        ", "   P    ", "   P    ", "        ", "        ", "        "},
+        {"        ", "        ", "   U    ", "   P    ", "   P    ", "   U    ", "        ", "        "},
+        {"        ", "   U    ", "   U    ", "   P    ", "   P    ", "   U    ", "   U    ", "        "},
+        {"        ", "        ", "   U    ", "   P    ", "   P    ", "   U    ", "        ", "        "},
+        {"        ", "        ", "        ", "   P    ", "   P    ", "        ", "        ", "        "},
+
+        // Y = 0 (Main layer)
+        {"        ", "        ", "        ", "   S    ", "   B    ", "   S    ", "        ", "        "},
+        {"        ", "        ", "   U    ", "   U    ", "   U    ", "   U    ", "   U    ", "        "},
+        {"        ", "   U    ", "   U    ", "   U    ", "   U    ", "   U    ", "   U    ", "        "},
+        {"        ", "        ", "   U    ", "   U    ", "   U    ", "   U    ", "   U    ", "        "},
+        {"        ", "        ", "        ", "   S    ", "   S    ", "        ", "        ", "        "},
+
+        // Y = 1
+        {"        ", "        ", "        ", "   P    ", "        ", "   P    ", "        ", "        "},
+        {"        ", "        ", "   U    ", "        ", "        ", "        ", "   U    ", "        "},
+        {"        ", "   U    ", "        ", "        ", "        ", "        ", "   U    ", "        "},
+        {"        ", "        ", "   U    ", "        ", "        ", "        ", "   U    ", "        "},
+        {"        ", "        ", "        ", "   P    ", "        ", "   P    ", "        ", "        "},
+
+        // Y = 2
+        {"        ", "        ", "        ", "   P    ", "        ", "   P    ", "        ", "        "},
+        {"        ", "        ", "   U    ", "        ", "        ", "        ", "   U    ", "        "},
+        {"        ", "   U    ", "        ", "        ", "        ", "        ", "   U    ", "        "},
+        {"        ", "        ", "   U    ", "        ", "        ", "        ", "   U    ", "        "},
+        {"        ", "        ", "        ", "   P    ", "        ", "   P    ", "        ", "        "},
+    };
 
 }

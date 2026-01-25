@@ -8,16 +8,16 @@
 
 package hellfirepvp.astralsorcery.common.registry.multiblock;
 
-import java.util.Map;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.transpose;
 
-import net.minecraft.block.Block;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+
+import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
+import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 
 import hellfirepvp.astralsorcery.AstralSorcery;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
-import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
-import hellfirepvp.astralsorcery.common.util.BlockPos;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -26,84 +26,55 @@ import hellfirepvp.astralsorcery.common.util.BlockPos;
  * Created by HellFirePvP
  * Date: 28.11.2016 / 10:36
  */
-public class MultiblockAttunementFrame extends PatternBlockArray {
+public class MultiblockAttunementFrame {
+
+    private static final String STRUCTURE_ID = "pattern_attunement_frame";
+    private static IStructureDefinition<MultiblockAttunementFrame> STRUCTURE_DEFINITION = null;
 
     public MultiblockAttunementFrame() {
-        super(new ResourceLocation(AstralSorcery.MODID, "pattern_attunement_frame"));
-        load();
+        // Structure defined via getStructureDefinition()
     }
 
-    private void load() {
-        // 1.7.10: Use metadata instead of withProperty
-        Block mar = BlocksAS.blockMarble; // ARCH type has metadata 3
-        Block mbl = BlocksAS.blockBlackMarble; // RAW type has metadata 0
-
-        addBlock(0, 0, 0, BlocksAS.attunementAltar);
-        // addBlock(0, 1, 0, BlocksAS.blockStructural.getDefaultState().withProperty(BlockStructural.BLOCK_TYPE,
-        // BlockStructural.BlockType.ATTUNEMENT_ALTAR_STRUCT));
-
-        addBlockCube(mar, -7, -1, -8, 7, -1, -8);
-        addBlockCube(mar, -7, -1, 8, 7, -1, 8);
-        addBlockCube(mar, -8, -1, -7, -8, -1, 7);
-        addBlockCube(mar, 8, -1, -7, 8, -1, 7);
-
-        addBlockCube(mbl, -7, -1, -7, 7, -1, 7);
-
-        pillarAt(-8, -0, -8);
-        pillarAt(-8, -0, 8);
-        pillarAt(8, -0, -8);
-        pillarAt(8, -0, 8);
-
-        addBlock(-9, -1, -9, mar);
-        addBlock(-9, -1, -8, mar);
-        addBlock(-9, -1, -7, mar);
-        addBlock(-8, -1, -9, mar);
-        addBlock(-7, -1, -9, mar);
-
-        addBlock(-9, -1, 9, mar);
-        addBlock(-9, -1, 8, mar);
-        addBlock(-9, -1, 7, mar);
-        addBlock(-8, -1, 9, mar);
-        addBlock(-7, -1, 9, mar);
-
-        addBlock(9, -1, -9, mar);
-        addBlock(9, -1, -8, mar);
-        addBlock(9, -1, -7, mar);
-        addBlock(8, -1, -9, mar);
-        addBlock(7, -1, -9, mar);
-
-        addBlock(9, -1, 9, mar);
-        addBlock(9, -1, 8, mar);
-        addBlock(9, -1, 7, mar);
-        addBlock(8, -1, 9, mar);
-        addBlock(7, -1, 9, mar);
-    }
-
-    private void pillarAt(int x, int y, int z) {
-        // 1.7.10: Use metadata instead of withProperty
-        Block mru = BlocksAS.blockMarble; // RUNED has metadata 6
-        Block mpl = BlocksAS.blockMarble; // PILLAR has metadata 2
-        Block mch = BlocksAS.blockMarble; // CHISELED has metadata 4
-
-        addBlock(x, y, z, mru);
-        addBlock(x, y + 1, z, mpl);
-        addBlock(x, y + 2, z, mpl);
-        addBlock(x, y + 3, z, mpl);
-        addBlock(x, y + 4, z, mch);
-    }
-
-    @Override
-    public Map<BlockPos, Block> placeInWorld(World world, BlockPos center) {
-        Map<BlockPos, Block> placed = super.placeInWorld(world, center);
-        // 1.7.10: setBlockToAir takes (x, y, z)
-        if (world.setBlockToAir(center.getX(), center.getY(), center.getZ())) {
-            placed.remove(center);
+    public IStructureDefinition<MultiblockAttunementFrame> getStructureDefinition() {
+        if (STRUCTURE_DEFINITION == null) {
+            STRUCTURE_DEFINITION = StructureDefinition.<MultiblockAttunementFrame>builder()
+                .addShape(STRUCTURE_ID, transpose(shape))
+                .addElement('A', ofBlock(BlocksAS.attunementAltar, 0))
+                .addElement('B', ofBlock(BlocksAS.blockBlackMarble, 0)) // RAW
+                .addElement('C', ofBlock(BlocksAS.blockMarble, 3)) // ARCH
+                .addElement('U', ofBlock(BlocksAS.blockMarble, 4)) // RUNED
+                .addElement('P', ofBlock(BlocksAS.blockMarble, 5)) // PILLAR
+                .addElement('H', ofBlock(BlocksAS.blockMarble, 1)) // CHISELED
+                .build();
         }
-        // 1.7.10: BlockPos doesn't have offset(), create new BlockPos manually
-        BlockPos up = new BlockPos(center.getX(), center.getY() + 1, center.getZ());
-        if (world.setBlockToAir(up.getX(), up.getY(), up.getZ())) {
-            placed.remove(up);
-        }
-        return placed;
+        return STRUCTURE_DEFINITION;
     }
+
+    public ResourceLocation getStructureId() {
+        return new ResourceLocation(AstralSorcery.MODID, STRUCTURE_ID);
+    }
+
+    private final String[][] shape = new String[][] {
+        // Y = -1 (Base floor)
+        {"CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC"},
+        {"CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC"},
+
+        // Y = 0 (Altar at center, pillars at corners)
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "U       ", "        ", "        ", "        ", "        ", "        ", "        ", "U       ", "        ", "        ", "        "},
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "   A    ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
+
+        // Y = 1 (Pillars)
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        ", "        "},
+
+        // Y = 2 (Pillars)
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        ", "        "},
+
+        // Y = 3 (Pillars)
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        ", "        "},
+
+        // Y = 4 (Pillar tops)
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "H       ", "        ", "        ", "        ", "        ", "        ", "        ", "H       ", "        ", "        ", "        "},
+    };
+
 }

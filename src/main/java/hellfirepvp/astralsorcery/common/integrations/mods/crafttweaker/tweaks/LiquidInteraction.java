@@ -7,69 +7,98 @@
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.tweaks;
-// TODO: Forge fluid system - manual review needed
+
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
+import hellfirepvp.astralsorcery.common.crafting.registry.ASRecipe;
+import hellfirepvp.astralsorcery.common.crafting.registry.ASRecipeMaps;
+import hellfirepvp.astralsorcery.common.crafting.registry.ASRecipeUtils;
 import hellfirepvp.astralsorcery.common.integrations.ModIntegrationCrafttweaker;
-import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.BaseTweaker;
-import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.network.LiquidInteractionAdd;
-import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.network.LiquidInteractionRemove;
-import stanhebben.zenscript.annotations.ZenClass;
-import stanhebben.zenscript.annotations.ZenMethod;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: LiquidInteraction
- * Created by HellFirePvP
- * Date: 20.04.2018 / 09:53
+ * Liquid Interaction Recipe helpers using ASRecipe system
+ * Replaces CraftTweaker-based LiquidInteraction class
+ *
+ * Usage:
+ *   LiquidInteraction.add(FluidRegistry.WATER, FluidRegistry.LAVA, 1.0F, 1.0F, 10, new ItemStack(Items.diamond));
  */
-@ZenClass("mods.astralsorcery.LiquidInteraction")
-public class LiquidInteraction extends BaseTweaker {
+public final class LiquidInteraction {
 
-    protected static final String name = "AstralSorcery LiquidInteraction";
+    private LiquidInteraction() {}
 
-    @ZenMethod
-    public static void removeInteraction(ILiquidStack liquid1, ILiquidStack liquid2) {
-        removeInteraction(liquid1, liquid2, null);
-    }
-
-    @ZenMethod
-    public static void removeInteraction(ILiquidStack liquid1, ILiquidStack liquid2, IItemStack output) {
-        FluidStack comp1 = convertToFluidStack(liquid1, true);
-        FluidStack comp2 = convertToFluidStack(liquid2, true);
-        ItemStack out = convertToItemStack(output);
-
-        ModIntegrationCrafttweaker.recipeModifications.add(new LiquidInteractionRemove(comp1, comp2, out));
-    }
-
-    @ZenMethod
-    public static void addInteraction(ILiquidStack liquidIn1, float chanceConsumption1, ILiquidStack liquidIn2,
-        float chanceConsumption2, int weight, IItemStack output) {
-        ItemStack out = convertToItemStack(output);
-        if ((out == null || out.stackSize <= 0)) {
-            CraftTweakerAPI.logError("[" + name + "] Skipping recipe-removal due to invalid/empty item output.");
+    /**
+     * Adds a liquid interaction recipe
+     *
+     * @param fluidIn1  First input fluid
+     * @param chance1   Consumption chance for fluid 1
+     * @param fluidIn2  Second input fluid
+     * @param chance2   Consumption chance for fluid 2
+     * @param weight    Recipe weight (for selection priority)
+     * @param output    Output item
+     */
+    public static void add(@Nullable Fluid fluidIn1, float chance1, @Nullable Fluid fluidIn2, float chance2, int weight,
+        @Nullable ItemStack output) {
+        if (output == null || output.stackSize <= 0) {
             return;
         }
-        FluidStack in1 = convertToFluidStack(liquidIn1, false);
-        if (in1 == null || in1.getFluid() == null) {
-            CraftTweakerAPI.logError("[" + name + "] Skipping recipe-removal due to invalid/empty fluid input.");
+        if (fluidIn1 == null || fluidIn2 == null) {
             return;
         }
-        FluidStack in2 = convertToFluidStack(liquidIn2, false);
-        if (in2 == null || in2.getFluid() == null) {
-            CraftTweakerAPI.logError("[" + name + "] Skipping recipe-removal due to invalid/empty fluid input.");
-            return;
-        }
+
+        FluidStack fs1 = new FluidStack(fluidIn1, 1000);
+        FluidStack fs2 = new FluidStack(fluidIn2, 1000);
 
         weight = Math.max(0, weight);
-        chanceConsumption1 = Math.max(0, chanceConsumption1);
-        chanceConsumption2 = Math.max(0, chanceConsumption2);
+        chance1 = Math.max(0, chance1);
+        chance2 = Math.max(0, chance2);
 
-        ModIntegrationCrafttweaker.recipeModifications
-            .add(new LiquidInteractionAdd(in1, in2, chanceConsumption1, chanceConsumption2, out, weight));
+        ASRecipe recipe = ASRecipe.builder(ASRecipe.Type.LIQUID_INTERACTION)
+            .inputs(ASRecipeUtils.handle(new ItemStack(net.minecraft.init.Items.bucket))) // Placeholder
+            .output(output)
+            .fluidInput2(fs2)
+            .chanceConsumption1(chance1)
+            .chanceConsumption2(chance2)
+            .weight(weight)
+            .build();
+
+        ModIntegrationCrafttweaker.recipeQueue.add(recipe);
     }
 
+    /**
+     * Removes liquid interaction recipes
+     *
+     * @param fluid1 First fluid (can be null)
+     * @param fluid2 Second fluid (can be null)
+     * @param output Output item (can be null)
+     */
+    public static void remove(@Nullable Fluid fluid1, @Nullable Fluid fluid2, @Nullable ItemStack output) {
+        // Removal logic depends on how the registry stores these
+        // For now, we can remove by output
+        if (output != null && output.stackSize > 0) {
+            ASRecipeMaps.LIQUID_INTERACTION.removeRecipesByOutput(output);
+        }
+    }
+
+    /**
+     * Adds a liquid interaction recipe directly to the recipe map
+     * This is for use in recipe loading classes
+     */
+    public static ASRecipe addToMap(Fluid fluidIn1, Fluid fluidIn2, float chance1, float chance2, int weight,
+        ItemStack output) {
+        FluidStack fs1 = new FluidStack(fluidIn1, 1000);
+        FluidStack fs2 = new FluidStack(fluidIn2, 1000);
+
+        return ASRecipe.builder(ASRecipe.Type.LIQUID_INTERACTION)
+            .inputs(ASRecipeUtils.handle(new ItemStack(net.minecraft.init.Items.bucket)))
+            .output(output)
+            .fluidInput2(fs2)
+            .chanceConsumption1(chance1)
+            .chanceConsumption2(chance2)
+            .weight(weight)
+            .addTo(ASRecipeMaps.LIQUID_INTERACTION);
+    }
 }

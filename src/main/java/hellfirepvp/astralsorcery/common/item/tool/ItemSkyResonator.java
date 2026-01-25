@@ -8,8 +8,7 @@
 
 package hellfirepvp.astralsorcery.common.item.tool;
 
-import java.awt.*;
-import java.util.ArrayList;
+import java.awt.Color;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -36,6 +35,7 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
 import cpw.mods.fml.relauncher.Side;
@@ -48,7 +48,6 @@ import hellfirepvp.astralsorcery.common.constellation.distribution.Constellation
 import hellfirepvp.astralsorcery.common.data.research.ProgressionTier;
 import hellfirepvp.astralsorcery.common.data.research.ResearchManager;
 import hellfirepvp.astralsorcery.common.item.base.ISpecialInteractItem;
-import hellfirepvp.astralsorcery.common.item.base.render.INBTModel;
 import hellfirepvp.astralsorcery.common.network.PacketChannel;
 import hellfirepvp.astralsorcery.common.network.packet.server.PktPlayLiquidSpring;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
@@ -66,8 +65,10 @@ import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
  * Class: ItemSkyResonator
  * Created by HellFirePvP
  * Date: 17.01.2017 / 00:53
+ *
+ * 1.7.10: INBTModel implementation removed (ModelResourceLocation doesn't exist)
  */
-public class ItemSkyResonator extends Item implements INBTModel, ISpecialInteractItem {
+public class ItemSkyResonator extends Item implements ISpecialInteractItem {
 
     private static Random rand = new Random();
 
@@ -78,10 +79,10 @@ public class ItemSkyResonator extends Item implements INBTModel, ISpecialInterac
     }
 
     @Override
-    public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> items) {
+    public void getSubItems(Item item, CreativeTabs tab, List list) {
         // 1.7.10: Use tab == this.getCreativeTab() instead of isInCreativeTab()
         if (tab == this.getCreativeTab()) {
-            items.add(new ItemStack(this));
+            list.add(new ItemStack(this));
 
             ItemStack enhanced;
 
@@ -92,13 +93,13 @@ public class ItemSkyResonator extends Item implements INBTModel, ISpecialInterac
                     setUpgradeUnlocked(enhanced, upgrade);
                 }
             }
-            items.add(enhanced);
+            list.add(enhanced);
         }
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip) {
+    public void addInformation(ItemStack stack, EntityPlayer player, List tooltip, boolean advanced) {
         if (!isEnhanced(stack)) return;
 
         ResonatorUpgrade current = getCurrentUpgrade(null, stack);
@@ -171,15 +172,18 @@ public class ItemSkyResonator extends Item implements INBTModel, ISpecialInterac
                     BlockPos pos = new BlockPos(entityIn).add(oX, 0, oZ);
                     int topY = worldIn.getTopSolidOrLiquidBlock(pos.getX(), pos.getZ());
                     pos = new BlockPos(pos.getX(), topY, pos.getZ());
-                    if (pos.getDistance(
-                        WrapMathHelper.floor(entityIn.posX),
-                        WrapMathHelper.floor(entityIn.posY),
-                        WrapMathHelper.floor(entityIn.posZ)) > 75) {
+                    // 1.7.10: BlockPos.getDistance() doesn't exist, calculate manually
+                    double dx = pos.getX() - WrapMathHelper.floor(entityIn.posX);
+                    double dy = pos.getY() - WrapMathHelper.floor(entityIn.posY);
+                    double dz = pos.getZ() - WrapMathHelper.floor(entityIn.posZ);
+                    double distSq = dx * dx + dy * dy + dz * dz;
+                    if (distSq > 75 * 75) {
                         return;
                     }
 
                     FluidRarityRegistry.ChunkFluidEntry at = FluidRarityRegistry
-                        .getChunkEntry(worldIn.getChunkFromBlockCoords(pos));
+                        .getChunkEntry(worldIn.getChunkFromBlockCoords(pos.getX(), pos.getZ()));
+                    // 1.7.10: tryDrain takes boolean simulate parameter
                     FluidStack display = at == null ? new FluidStack(FluidRegistry.WATER, 1) : at.tryDrain(1, false);
                     if (display == null || display.getFluid() == null) display = new FluidStack(FluidRegistry.WATER, 1);
                     PktPlayLiquidSpring pkt = new PktPlayLiquidSpring(
@@ -192,32 +196,8 @@ public class ItemSkyResonator extends Item implements INBTModel, ISpecialInterac
         }
     }
 
-    @Override
-    public ModelResourceLocation getModelLocation(ItemStack stack, ModelResourceLocation defaultModelPath) {
-        if (!isEnhanced(stack)) {
-            return defaultModelPath;
-        }
-        String path = defaultModelPath.getResourcePath() + "_upgraded";
-        ResonatorUpgrade upgrade = getCurrentUpgrade(getCurrentClientPlayer(), stack);
-        path += "_" + upgrade.appendixUpgrade;
-        return new ModelResourceLocation(
-            new ResourceLocation(defaultModelPath.getResourceDomain(), path),
-            defaultModelPath.getVariant());
-    }
-
-    @Override
-    public List<ResourceLocation> getAllPossibleLocations(ModelResourceLocation defaultLocation) {
-        List<ResourceLocation> out = new LinkedList<>();
-        out.add(defaultLocation);
-        for (ResonatorUpgrade upgrade : ResonatorUpgrade.values()) {
-            if (!upgrade.obtainable()) continue;
-            out.add(
-                new ResourceLocation(
-                    defaultLocation.getResourceDomain(),
-                    defaultLocation.getResourcePath() + "_upgraded_" + upgrade.appendixUpgrade));
-        }
-        return out;
-    }
+    // 1.7.10: INBTModel methods removed - ModelResourceLocation doesn't exist in 1.7.10
+    // Model loading is handled differently in 1.7.10
 
     public static boolean isEnhanced(ItemStack stack) {
         if ((stack == null || stack.stackSize <= 0) || !(stack.getItem() instanceof ItemSkyResonator)) return false;
@@ -359,13 +339,25 @@ public class ItemSkyResonator extends Item implements INBTModel, ISpecialInterac
             int id = ordinal();
             NBTTagCompound cmp = NBTHelper.getPersistentData(stack);
             if (cmp.hasKey("upgrades", Constants.NBT.TAG_LIST)) {
-                NBTTagList list = cmp.getTagList("upgrades", Constants.NBT.TAG_LIST);
-                for (int i = 0; i < list.tagCount(); i++) {
-                    // 1.7.10: Use getCompoundTagAt or access tagList directly
-                    NBTTagInt tagInt = (NBTTagInt) list.tagList.get(i);
-                    if (tagInt.func_150287_d() == id) {
-                        return true;
+                // 1.7.10: getTagList() takes name and type parameters
+                NBTTagList list = cmp.getTagList("upgrades", Constants.NBT.TAG_INT);
+                // 1.7.10: Need to use reflection to access the private tagList field
+                try {
+                    java.lang.reflect.Field tagListField = NBTTagList.class.getDeclaredField("tagList");
+                    tagListField.setAccessible(true);
+                    java.util.List tagList = (java.util.List) tagListField.get(list);
+                    for (int i = 0; i < tagList.size(); i++) {
+                        Object nbtbase = tagList.get(i);
+                        if (nbtbase instanceof NBTTagInt) {
+                            Integer intId = ((NBTTagInt) nbtbase).func_150287_d();
+                            if (intId == id) {
+                                return true;
+                            }
+                        }
                     }
+                } catch (Exception e) {
+                    // Reflection failed, return false
+                    return false;
                 }
             }
             return false;
@@ -382,6 +374,7 @@ public class ItemSkyResonator extends Item implements INBTModel, ISpecialInterac
             if (!cmp.hasKey("upgrades", Constants.NBT.TAG_LIST)) {
                 cmp.setTag("upgrades", new NBTTagList());
             }
+            // 1.7.10: getTagList() takes name and type parameters
             NBTTagList list = cmp.getTagList("upgrades", Constants.NBT.TAG_INT);
             list.appendTag(new NBTTagInt(ordinal()));
         }
@@ -399,10 +392,10 @@ public class ItemSkyResonator extends Item implements INBTModel, ISpecialInterac
 
         @SideOnly(Side.CLIENT)
         private void playStarlightFieldEffect() {
-            // 1.7.10: Optional doesn't exist, use nullable check
-            Long seed = ConstellationSkyHandler.getInstance()
+            // 1.7.10: Use Guava's Optional
+            Optional<Long> seedOpt = ConstellationSkyHandler.getInstance()
                 .getSeedIfPresent(Minecraft.getMinecraft().theWorld);
-            if (seed == null) return;
+            if (!seedOpt.isPresent()) return;
 
             float nightPerc = ConstellationSkyHandler.getInstance()
                 .getCurrentDaytimeDistribution(Minecraft.getMinecraft().theWorld);
@@ -411,7 +404,6 @@ public class ItemSkyResonator extends Item implements INBTModel, ISpecialInterac
                 BlockPos center = new BlockPos(Minecraft.getMinecraft().thePlayer);
                 int offsetX = center.getX();
                 int offsetZ = center.getZ();
-                BlockPos.PooledMutableBlockPos pos = BlockPos.PooledMutableBlockPos.retain(center);
 
                 for (int xx = -30; xx <= 30; xx++) {
                     for (int zz = -30; zz <= 30; zz++) {
@@ -419,10 +411,11 @@ public class ItemSkyResonator extends Item implements INBTModel, ISpecialInterac
                         int topY = Minecraft.getMinecraft().theWorld
                             .getTopSolidOrLiquidBlock(offsetX + xx, offsetZ + zz);
                         BlockPos top = new BlockPos(offsetX + xx, topY, offsetZ + zz);
-                        // 1.7.10: Optional doesn't exist, use nullable check
-                        Float opF = SkyCollectionHelper
+                        // 1.7.10: getSkyNoiseDistributionClient returns Float directly, not Optional
+                        Float opFOpt = SkyCollectionHelper
                             .getSkyNoiseDistributionClient(Minecraft.getMinecraft().theWorld, top);
-                        if (opF == null) continue;
+                        if (opFOpt == null) continue;
+                        float opF = opFOpt;
 
                         float fPerc = (float) Math.pow((opF - 0.4F) * 1.65F, 2);
                         if (opF >= 0.4F && rand.nextFloat() <= fPerc) {
@@ -452,8 +445,6 @@ public class ItemSkyResonator extends Item implements INBTModel, ISpecialInterac
                         }
                     }
                 }
-
-                pos.release();
             }
         }
     }

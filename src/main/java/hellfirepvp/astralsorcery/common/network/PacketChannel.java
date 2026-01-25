@@ -114,11 +114,12 @@ public class PacketChannel {
     }
 
     public static NetworkRegistry.TargetPoint pointFromPos(World world, ChunkCoordinates pos, double range) {
+        // 1.7.10: ChunkCoordinates uses posX, posY, posZ instead of chunkPosX, chunkPosY, chunkPosZ
         return new NetworkRegistry.TargetPoint(
             world.provider.dimensionId,
-            pos.chunkPosX,
-            pos.chunkPosY,
-            pos.chunkPosZ,
+            pos.posX,
+            pos.posY,
+            pos.posZ,
             range);
     }
 

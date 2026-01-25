@@ -84,7 +84,7 @@ public class TESRAltar extends TileEntitySpecialRenderer {
                     if (act != null && act.getRecipeToCraft() instanceof TraitRecipe) {
                         Collection<ItemHandle> requiredHandles = ((TraitRecipe) act.getRecipeToCraft())
                             .getTraitItemHandles();
-                        if (!requiredHandles.isEmpty()) {
+                        if (!requiredHandles == null || requiredHandles.stackSize <= 0) {
                             int amt = 60 / requiredHandles.size();
                             for (ItemHandle outer : requiredHandles) {
                                 ArrayList<ItemStack> stacksApplicable = outer.getApplicableItemsForRender();

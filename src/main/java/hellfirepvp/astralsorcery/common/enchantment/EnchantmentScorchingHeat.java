@@ -20,10 +20,10 @@ import net.minecraft.enchantment.EnumEnchantmentType;
 public class EnchantmentScorchingHeat extends EnchantmentBase {
 
     public EnchantmentScorchingHeat() {
+        // 1.7.10: Use int weight instead of Rarity enum, lowercase 'digger', no slot parameter
         super(
             "as.smelting",
-            Rarity.VERY_RARE,
-            EnumEnchantmentType.DIGGER,
-            net.minecraft.inventory.EntityEquipmentSlot.MAINHAND);
+            1, // VERY_RARE equivalent (rare enchantments have lower weight values)
+            EnumEnchantmentType.digger);
     }
 }

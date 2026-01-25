@@ -14,7 +14,7 @@ import java.util.Random;
 import javax.annotation.Nullable;
 
 import net.minecraft.world.WorldServer;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.BiomeDictionary;
 
 import com.google.common.collect.Lists;
@@ -63,7 +63,7 @@ public class StructureFinder {
     @Nullable
     public static BlockPos tryFindClosestBiomeType(WorldServer world, BlockPos playerPos,
         BiomeDictionary.Type biomeType) {
-        List<Biome> fitting = Lists.newArrayList(BiomeDictionary.getBiomes(biomeType));
+        List<BiomeGenBase> fitting = Lists.newArrayList(BiomeDictionary.getBiomes(biomeType));
         if ((fitting == null || fitting.stackSize <= 0)) {
             return null;
         }

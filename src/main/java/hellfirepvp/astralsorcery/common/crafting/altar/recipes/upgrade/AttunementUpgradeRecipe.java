@@ -13,6 +13,7 @@ import java.util.Random;
 import javax.annotation.Nonnull;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.particle.EffectRenderer;
 import net.minecraft.item.ItemStack;
 
 import cpw.mods.fml.relauncher.Side;
@@ -24,6 +25,7 @@ import hellfirepvp.astralsorcery.common.crafting.INighttimeRecipe;
 import hellfirepvp.astralsorcery.common.crafting.ISpecialCraftingEffects;
 import hellfirepvp.astralsorcery.common.crafting.ItemHandle;
 import hellfirepvp.astralsorcery.common.crafting.altar.AbstractAltarRecipe;
+import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.crafting.altar.ActiveCraftingTask;
 import hellfirepvp.astralsorcery.common.crafting.altar.recipes.DiscoveryRecipe;
 import hellfirepvp.astralsorcery.common.crafting.helper.ShapeMap;
@@ -89,9 +91,11 @@ public class AttunementUpgradeRecipe extends DiscoveryRecipe
         super.onCraftClientTick(altar, state, tick, rand);
 
         if (state == ActiveCraftingTask.CraftingState.ACTIVE) {
-            ParticleManager pm = Minecraft.getMinecraft().effectRenderer;
+            EffectRenderer pm = Minecraft.getMinecraft().effectRenderer;
             if (rand.nextInt(6) == 0) {
-                pm.addBlockDestroyEffects(altar.getPos(), BlocksAS.blockMarble);
+                // 1.7.10: addBlockDestroyEffects signature is (x, y, z, block, metadata)
+                BlockPos pos = altar.getPos();
+                pm.addBlockDestroyEffects(pos.getX(), pos.getY(), pos.getZ(), BlocksAS.blockMarble, 0);
             }
         }
     }

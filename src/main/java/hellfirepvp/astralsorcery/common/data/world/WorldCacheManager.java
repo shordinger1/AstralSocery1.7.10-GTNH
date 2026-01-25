@@ -58,7 +58,7 @@ public class WorldCacheManager implements ITickHandler {
     }
 
     private synchronized static DataFileSet getDataFile(World world, String key) {
-        if (getWorld().isRemote) throw new IllegalArgumentException(
+        if (world.isRemote) throw new IllegalArgumentException(
             "Tried to access data structure on clientside. This is a severe implementation error!");
         if (saveDir == null) {
             saveDir = new File(
@@ -222,7 +222,7 @@ public class WorldCacheManager implements ITickHandler {
     @Override
     public void tick(TickEvent.Type type, Object... context) {
         World world = (World) context[0];
-        if (getWorld().isRemote) return;
+        if (world.isRemote) return;
         int dimId = world.provider.dimensionId;
         Map<SaveKey, CachedWorldData> dataMap = cachedData.get(dimId);
         if (dataMap == null) return;

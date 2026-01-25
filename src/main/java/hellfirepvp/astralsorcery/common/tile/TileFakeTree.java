@@ -60,7 +60,7 @@ public class TileFakeTree extends TileEntityTick {
                 if (ta != null) {
                     ta.update(this);
                 }
-                if (fakedState == null || fakedState.equals(Blocks.AIR)) {
+                if (fakedState == null || fakedState.equals(Blocks.air)) {
                     cleanUp();
                 }
             }

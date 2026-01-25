@@ -8,86 +8,116 @@
 
 package hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.tweaks;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 
 import hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry;
 import hellfirepvp.astralsorcery.common.constellation.IConstellation;
 import hellfirepvp.astralsorcery.common.constellation.IWeakConstellation;
+import hellfirepvp.astralsorcery.common.crafting.registry.ASRecipe;
+import hellfirepvp.astralsorcery.common.crafting.registry.ASRecipeMaps;
+import hellfirepvp.astralsorcery.common.crafting.registry.ASRecipeUtils;
 import hellfirepvp.astralsorcery.common.integrations.ModIntegrationCrafttweaker;
-import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.BaseTweaker;
-import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.network.LightTransmutationAdd;
-import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.network.LightTransmutationRemove;
 import hellfirepvp.astralsorcery.common.util.ItemUtils;
-import stanhebben.zenscript.annotations.ZenClass;
-import stanhebben.zenscript.annotations.ZenMethod;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: LightTransmutations
- * Created by HellFirePvP
- * Date: 27.02.2017 / 11:32
+ * Light Transmutation Recipe helpers using ASRecipe system
+ * Replaces CraftTweaker-based LightTransmutations class
+ *
+ * Usage:
+ *   LightTransmutations.add(new ItemStack(Blocks.cobblestone), new ItemStack(Blocks.sand), 1.0);
  */
-@ZenClass("mods.astralsorcery.LightTransmutation")
-public class LightTransmutations extends BaseTweaker {
+public final class LightTransmutations {
 
-    protected static final String name = "AstralSorcery Starlight Transmutation";
+    private LightTransmutations() {}
 
-    @ZenMethod
-    public static void addTransmutation(IItemStack stackIn, IItemStack stackOut, double cost,
-        String requiredConstellation) {
-        ItemStack in = convertToItemStack(stackIn);
-        ItemStack out = convertToItemStack(stackOut);
-        if ((in == null || in.stackSize <= 0) || (out == null || out.stackSize <= 0)) {
-            CraftTweakerAPI.logError("[" + name + "] Skipping recipe due to invalid input/output.");
+    /**
+     * Adds a light transmutation recipe
+     *
+     * @param input  The input item (must be a block)
+     * @param output The output item (must be a block)
+     * @param cost   Starlight cost
+     */
+    public static void add(@Nullable ItemStack input, @Nullable ItemStack output, double cost) {
+        add(input, output, cost, null);
+    }
+
+    /**
+     * Adds a light transmutation recipe with constellation requirement
+     *
+     * @param input               The input item (must be a block)
+     * @param output              The output item (must be a block)
+     * @param cost                Starlight cost
+     * @param constellationName   Required constellation (can be null)
+     */
+    public static void add(@Nullable ItemStack input, @Nullable ItemStack output, double cost,
+        @Nullable String constellationName) {
+        if (!ASRecipeUtils.isOutputValid(output)) {
+            return;
+        }
+        if (input == null || input.stackSize <= 0) {
             return;
         }
 
-        Block state = ItemUtils.createBlockState(in);
-        if (state == null) {
-            CraftTweakerAPI
-                .logError("[" + name + "] Skipping recipe - Can't create a valid BlockState from given Input");
+        Block stateIn = ItemUtils.createBlockState(input);
+        if (stateIn == null) {
             return;
         }
-        state = ItemUtils.createBlockState(out);
-        if (state == null) {
-            CraftTweakerAPI
-                .logError("[" + name + "] Skipping recipe - Can't create a valid BlockState from given Output");
+        Block stateOut = ItemUtils.createBlockState(output);
+        if (stateOut == null) {
             return;
         }
 
         IWeakConstellation req = null;
-        if (requiredConstellation != null && !(requiredConstellation == null || requiredConstellation.stackSize <= 0)) {
-            IConstellation cst = ConstellationRegistry.getConstellationByName(requiredConstellation);
+        if (constellationName != null && !constellationName == null || constellationName.stackSize <= 0) {
+            IConstellation cst = ConstellationRegistry.getConstellationByName(constellationName);
             if (cst != null && cst instanceof IWeakConstellation) {
                 req = (IWeakConstellation) cst;
             } else {
-                CraftTweakerAPI.logError(
-                    "[" + name
-                        + "] Skipping recipe - Unknown or Non-Bright/Non-Dim constellation: "
-                        + requiredConstellation);
-                return;
+                return; // Invalid constellation
             }
         }
 
-        ModIntegrationCrafttweaker.recipeModifications.add(new LightTransmutationAdd(in, out, cost, req));
+        cost = Math.max(0, cost);
+
+        ASRecipe recipe = ASRecipe.builder(ASRecipe.Type.LIGHT_TRANSMUTATION)
+            .inputs(ASRecipeUtils.handle(input))
+            .output(output)
+            .transmutationCost(cost)
+            .constellation(req)
+            .build();
+
+        ModIntegrationCrafttweaker.recipeQueue.add(recipe);
     }
 
-    @ZenMethod
-    public static void addTransmutation(IItemStack stackIn, IItemStack stackOut, double cost) {
-        addTransmutation(stackIn, stackOut, cost, null);
-    }
-
-    @ZenMethod
-    public static void removeTransmutation(IItemStack stackToRemove, boolean matchMeta) {
-        ItemStack removeMatch = convertToItemStack(stackToRemove);
-        if ((removeMatch == null || removeMatch.stackSize <= 0)) {
-            CraftTweakerAPI.logError("[" + name + "] Skipping recipe-removal due to invalid output.");
+    /**
+     * Removes transmutation recipes matching the output
+     *
+     * @param output    The output to match
+     * @param matchMeta Whether to match metadata
+     */
+    public static void remove(@Nullable ItemStack output, boolean matchMeta) {
+        if (!ASRecipeUtils.isOutputValid(output)) {
             return;
         }
-
-        ModIntegrationCrafttweaker.recipeModifications.add(new LightTransmutationRemove(removeMatch, matchMeta));
+        ASRecipeMaps.LIGHT_TRANSMUTATION.removeRecipesByOutput(output);
     }
 
+    /**
+     * Adds a transmutation recipe directly to the recipe map
+     * This is for use in recipe loading classes
+     */
+    public static ASRecipe addToMap(ItemStack input, ItemStack output, double cost,
+        @Nullable IWeakConstellation constellation) {
+        cost = Math.max(0, cost);
+
+        return ASRecipe.builder(ASRecipe.Type.LIGHT_TRANSMUTATION)
+            .inputs(ASRecipeUtils.handle(input))
+            .output(output)
+            .transmutationCost(cost)
+            .constellation(constellation)
+            .addTo(ASRecipeMaps.LIGHT_TRANSMUTATION);
+    }
 }

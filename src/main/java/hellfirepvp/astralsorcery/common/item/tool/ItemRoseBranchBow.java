@@ -8,11 +8,12 @@
 
 package hellfirepvp.astralsorcery.common.item.tool;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
 
@@ -36,7 +37,7 @@ public class ItemRoseBranchBow extends ItemBow implements IOBJItem {
     }
 
     @Override
-    public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> items) {}
+    public void getSubItems(Item item, CreativeTabs tab, List list) {}
 
     @Override
     @SideOnly(Side.CLIENT)

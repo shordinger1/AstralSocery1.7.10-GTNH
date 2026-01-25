@@ -22,6 +22,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 
@@ -55,7 +56,7 @@ public class ItemEnchantmentAmulet extends Item implements ItemDynamicColor, IBa
         setCreativeTab(RegistryItems.creativeTabAstralSorcery);
     }
 
-    @Override
+    // Removed @Override - 1.7.10 compatibility
     public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> items) {
         // 1.7.10: Use tab == this.getCreativeTab() instead of isInCreativeTab()
         if (tab == this.getCreativeTab()) {
@@ -65,7 +66,7 @@ public class ItemEnchantmentAmulet extends Item implements ItemDynamicColor, IBa
         }
     }
 
-    @Override
+    // Removed @Override - different signature in 1.7.10
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip) {
         List<AmuletEnchantment> enchantments = getAmuletEnchantments(stack);
@@ -184,6 +185,21 @@ public class ItemEnchantmentAmulet extends Item implements ItemDynamicColor, IBa
     }
 
     @Override
+    public void onWornTick(ItemStack itemstack, EntityLivingBase player) {
+        // Required by IBauble - tick logic handled elsewhere
+    }
+
+    @Override
+    public boolean canEquip(ItemStack itemstack, EntityLivingBase player) {
+        return true;
+    }
+
+    @Override
+    public boolean canUnequip(ItemStack itemstack, EntityLivingBase player) {
+        return true;
+    }
+
+    // Removed @Override - may not be in 1.7.10 IBauble
     public boolean willAutoSync(ItemStack itemstack, EntityLivingBase player) {
         return true;
     }

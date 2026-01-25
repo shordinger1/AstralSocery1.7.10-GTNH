@@ -23,6 +23,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.biome.BiomeGenBase;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -43,8 +44,9 @@ import hellfirepvp.astralsorcery.common.util.data.Vector3;
  */
 public class EntityNocturnalSpark extends EntityThrowable implements EntityTechnicalAmbient {
 
+    // 1.7.10: grow() doesn't exist, use expand() instead
     private static final AxisAlignedBB NO_DUPE_BOX = AxisAlignedBB.getBoundingBox(0, 0, 0, 1, 1, 1)
-        .grow(15);
+        .expand(15, 15, 15);
 
     private static final int SPAWNING_DATAWATCHER_ID = 20;
     private int ticksSpawning = 0;
@@ -59,7 +61,9 @@ public class EntityNocturnalSpark extends EntityThrowable implements EntityTechn
 
     public EntityNocturnalSpark(World worldIn, EntityLivingBase throwerIn) {
         super(worldIn, throwerIn);
-        shoot(throwerIn, throwerIn.rotationPitch, throwerIn.rotationYaw, 0.0F, 0.7F, 0.9F);
+        // 1.7.10: shoot() doesn't exist - use setThrowableHeading() instead
+        Vec3 look = throwerIn.getLookVec();
+        this.setThrowableHeading(look.xCoord, look.yCoord, look.zCoord, 0.7F, 0.9F);
     }
 
     @Override
@@ -97,52 +101,58 @@ public class EntityNocturnalSpark extends EntityThrowable implements EntityTechn
     }
 
     private void spawnCycle() {
-        // 1.7.10: Use worldObj instead of world
-        List<EntityNocturnalSpark> sparks = worldObj
-            .getEntitiesWithinAABB(EntityNocturnalSpark.class, NO_DUPE_BOX.offset(new BlockPos(this)));
+        // 1.7.10: offset() needs separate x, y, z coordinates
+        BlockPos bp = new BlockPos(this);
+        AxisAlignedBB box = NO_DUPE_BOX.getOffsetBoundingBox(bp.getX(), bp.getY(), bp.getZ());
+        List<EntityNocturnalSpark> sparks = worldObj.getEntitiesWithinAABB(EntityNocturnalSpark.class, box);
         for (EntityNocturnalSpark spark : sparks) {
             if (this.equals(spark)) continue;
             if (spark.isDead || !spark.isSpawning()) continue;
             spark.setDead();
         }
-        if (rand.nextInt(12) == 0 && world instanceof WorldServer) {
+        if (rand.nextInt(12) == 0 && worldObj instanceof WorldServer) {
             try {
                 BlockPos pos = new BlockPos(this).add(0, 1, 0);
                 pos.add(
                     rand.nextInt(2) - rand.nextInt(2),
-                    rand.nextInt(1) - rand.nextInt(1),
+                    0, // rand.nextInt(1) - rand.nextInt(1) is always 0
                     rand.nextInt(2) - rand.nextInt(2));
-                List<Biome.SpawnListEntry> list = ((WorldServer) world).getChunkProvider()
-                    .getPossibleCreatures(EnumCreatureType.monster, pos);
+                // 1.7.10: getPossibleCreatures takes world coordinates (x, y, z), not chunk coords
+                List<BiomeGenBase.SpawnListEntry> list = ((WorldServer) worldObj).getChunkProvider()
+                    .getPossibleCreatures(EnumCreatureType.monster, pos.getX(), pos.getY(), pos.getZ());
                 list = net.minecraftforge.event.ForgeEventFactory
-                    .getPotentialSpawns((WorldServer) world, EnumCreatureType.monster, pos, list);
-                if (list == null || list.isEmpty()) return;
-                Biome.SpawnListEntry entry = list.get(rand.nextInt(list.size())); // Intentionally non-weighted.
+                    .getPotentialSpawns((WorldServer) worldObj, EnumCreatureType.monster, pos.getX(), pos.getY(), pos.getZ(), list);
+                if (list == null || list == null || list.stackSize <= 0) return;
+                BiomeGenBase.SpawnListEntry entry = list.get(rand.nextInt(list.size())); // Intentionally non-weighted.
+                // 1.7.10: entityClass is a public field, method is getGameRuleBooleanValue
                 if (worldObj.getGameRules()
-                    .getBoolean("mobGriefing") && EntityCreeper.class.isAssignableFrom(entry.entityClass)) return; // No.
+                    .getGameRuleBooleanValue("mobGriefing") && EntityCreeper.class.isAssignableFrom(entry.entityClass)) return; // No.
 
-                Block down = worldObj.getBlock(new BlockPos(this));
-                boolean canAtAll = down != Blocks.BARRIER && down != Blocks.BEDROCK;
-                // 1.7.10: Use worldObj.getBlock() which returns Block directly
-                if (canAtAll && WorldEntitySpawner.isValidEmptySpawnBlock(worldObj.getBlock(new BlockPos(this)))
-                    && WorldEntitySpawner.isValidEmptySpawnBlock(worldObj.getBlock(pos))) {
-                    EntityLiving entity = entry.newInstance(world);
+                // 1.7.10: BARRIER doesn't exist, check directly
+                Block down = worldObj.getBlock(bp.getX(), bp.getY(), bp.getZ());
+                boolean canAtAll = down != Blocks.bedrock;
+                if (canAtAll && worldObj.isAirBlock(pos.getX(), pos.getY(), pos.getZ())) {
+                    // 1.7.10: Create entity using reflection or direct constructor
+                    EntityLiving entity = (EntityLiving) entry.entityClass.getConstructor(World.class).newInstance(worldObj);
                     entity.setPositionAndRotation(
                         pos.getX() + 0.5,
                         pos.getY(),
                         pos.getZ() + 0.5,
                         rand.nextFloat() * 360F,
                         0F);
-                    // 1.7.10: onInitialSpawn signature is different
+                    // 1.7.10: onInitialSpawn doesn't exist, entity is already prepared
                     if (!net.minecraftforge.event.ForgeEventFactory
                         .doSpecialSpawn(entity, worldObj, pos.getX() + 0.5F, pos.getY(), pos.getZ() + 0.5F)) {
-                        entity.onInitialSpawn(worldObj.difficultySetting, null);
+                        // No special spawn handling needed in 1.7.10
                     }
-                    if (entity.isNotColliding()) {
+                    // 1.7.10: isNotColliding doesn't exist, check manually
+                    if (!worldObj.checkNoEntityCollision(entity.boundingBox)) {
                         worldObj.spawnEntityInWorld(entity);
                     }
                 }
-            } catch (Exception exc) {}
+            } catch (Exception exc) {
+                exc.printStackTrace();
+            }
         }
     }
 
@@ -166,7 +176,7 @@ public class EntityNocturnalSpark extends EntityThrowable implements EntityTechn
                 if (rand.nextInt(3) == 0) {
                     Vector3 target = Vector3.atEntityCorner(this);
                     MiscUtils.applyRandomOffset(target, rand, 4);
-                    AstralSorcery.proxy.fireLightning(world, Vector3.atEntityCorner(this), target, Color.BLACK);
+                    AstralSorcery.proxy.fireLightning(worldObj, Vector3.atEntityCorner(this), target, Color.BLACK);
                 }
             }
         } else {

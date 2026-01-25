@@ -79,7 +79,7 @@ public class PktAttunementAltarState
                     World w = DimensionManager.getWorld(message.worldId);
                     TileAttunementAltar ta = MiscUtils.getTileAt(w, message.at, TileAttunementAltar.class, true);
                     if (ta != null) {
-                        EntityPlayer pl = ctx.getServerHandler().player;
+                        EntityPlayer pl = ctx.getServerHandler().playerEntity;
                         ta.markPlayerStartCameraFlight(pl);
                     }
                 });

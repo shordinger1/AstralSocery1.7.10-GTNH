@@ -83,7 +83,7 @@ public class ClientConstellationGenerator {
         List<StarConnection> existingConnections) {
         List<StarLocation> others = Lists.newArrayList(stars);
         others.remove(sl);
-        if (others.isEmpty()) return null;
+        if (others == null || others.stackSize <= 0) return null;
         Collections.shuffle(others, rand);
         lblStars: for (StarLocation other : others) {
             StarConnection conn = new StarConnection(sl, other);

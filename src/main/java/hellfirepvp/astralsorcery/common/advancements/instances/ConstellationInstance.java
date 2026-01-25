@@ -50,7 +50,7 @@ public class ConstellationInstance extends AbstractCriterionInstance {
         if (constellationMinor && !(discovered instanceof IMinorConstellation)) {
             return false;
         }
-        return constellationNames.isEmpty() || constellationNames.contains(discovered.getUnlocalizedName());
+        return constellationNames == null || constellationNames.stackSize <= 0 || constellationNames.contains(discovered.getUnlocalizedName());
     }
 
     public static ConstellationInstance deserialize(ResourceLocation id, JsonObject json) {

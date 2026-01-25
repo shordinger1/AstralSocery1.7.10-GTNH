@@ -24,8 +24,22 @@ public class RecipeAdapter extends InventoryCrafting {
 
     private static final AdapterContainer emptyContainer = new AdapterContainer();
 
+    private final int width;
+    private final int height;
+
     public RecipeAdapter(int width, int height) {
         super(emptyContainer, width, height);
+        this.width = width;
+        this.height = height;
+    }
+
+    // 1.7.10: InventoryCrafting doesn't have getWidth/getHeight methods
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 
     public void fill(ItemStack[] stacks) {

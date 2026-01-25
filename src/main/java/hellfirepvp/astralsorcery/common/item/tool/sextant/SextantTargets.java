@@ -119,7 +119,7 @@ public class SextantTargets {
         16D / 312D,
         16D / 280D);
 
-    public static final SextantFinder.Biome TARGET_BIOME_PLAINS = new SextantFinder.Biome(
+    public static final SextantFinder.BiomeGenBase TARGET_BIOME_PLAINS = new SextantFinder.Biome(
         AssetLoader.TextureLocation.GUI,
         "gridsextant",
         "biome_plains",
@@ -131,7 +131,7 @@ public class SextantTargets {
         16D / 312D,
         16D / 280D);
 
-    public static final SextantFinder.Biome TARGET_BIOME_FOREST = new SextantFinder.Biome(
+    public static final SextantFinder.BiomeGenBase TARGET_BIOME_FOREST = new SextantFinder.Biome(
         AssetLoader.TextureLocation.GUI,
         "gridsextant",
         "biome_forest",
@@ -143,7 +143,7 @@ public class SextantTargets {
         16D / 312D,
         16D / 280D);
 
-    public static final SextantFinder.Biome TARGET_BIOME_DESERT = new SextantFinder.Biome(
+    public static final SextantFinder.BiomeGenBase TARGET_BIOME_DESERT = new SextantFinder.Biome(
         AssetLoader.TextureLocation.GUI,
         "gridsextant",
         "biome_desert",
@@ -155,7 +155,7 @@ public class SextantTargets {
         16D / 312D,
         16D / 280D);
 
-    public static final SextantFinder.Biome TARGET_BIOME_JUNGLE = new SextantFinder.Biome(
+    public static final SextantFinder.BiomeGenBase TARGET_BIOME_JUNGLE = new SextantFinder.Biome(
         AssetLoader.TextureLocation.GUI,
         "gridsextant",
         "biome_jungle",
@@ -167,7 +167,7 @@ public class SextantTargets {
         16D / 312D,
         16D / 280D);
 
-    public static final SextantFinder.Biome TARGET_BIOME_MOUNTAINS = new SextantFinder.Biome(
+    public static final SextantFinder.BiomeGenBase TARGET_BIOME_MOUNTAINS = new SextantFinder.Biome(
         AssetLoader.TextureLocation.GUI,
         "gridsextant",
         "biome_mountains",
@@ -179,7 +179,7 @@ public class SextantTargets {
         16D / 312D,
         16D / 280D);
 
-    public static final SextantFinder.Biome TARGET_BIOME_COLD = new SextantFinder.Biome(
+    public static final SextantFinder.BiomeGenBase TARGET_BIOME_COLD = new SextantFinder.Biome(
         AssetLoader.TextureLocation.GUI,
         "gridsextant",
         "biome_cold",
@@ -191,7 +191,7 @@ public class SextantTargets {
         16D / 312D,
         16D / 280D);
 
-    public static final SextantFinder.Biome TARGET_BIOME_MESA = new SextantFinder.Biome(
+    public static final SextantFinder.BiomeGenBase TARGET_BIOME_MESA = new SextantFinder.Biome(
         AssetLoader.TextureLocation.GUI,
         "gridsextant",
         "biome_mesa",
@@ -203,7 +203,7 @@ public class SextantTargets {
         16D / 312D,
         16D / 280D);
 
-    public static final SextantFinder.Biome TARGET_BIOME_OCEAN = new SextantFinder.Biome(
+    public static final SextantFinder.BiomeGenBase TARGET_BIOME_OCEAN = new SextantFinder.Biome(
         AssetLoader.TextureLocation.GUI,
         "gridsextant",
         "biome_ocean",

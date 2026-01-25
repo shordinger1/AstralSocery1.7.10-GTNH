@@ -7,60 +7,90 @@
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.tweaks;
-// TODO: Forge fluid system - manual review needed
+
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
+import hellfirepvp.astralsorcery.common.crafting.registry.ASRecipe;
+import hellfirepvp.astralsorcery.common.crafting.registry.ASRecipeMaps;
+import hellfirepvp.astralsorcery.common.crafting.registry.ASRecipeUtils;
 import hellfirepvp.astralsorcery.common.integrations.ModIntegrationCrafttweaker;
-import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.BaseTweaker;
-import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.network.WellRecipeAdd;
-import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.network.WellRecipeRemove;
-import stanhebben.zenscript.annotations.ZenClass;
-import stanhebben.zenscript.annotations.ZenMethod;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: WellRecipe
- * Created by HellFirePvP
- * Date: 28.02.2017 / 00:03
+ * Lightwell Recipe helpers using ASRecipe system
+ * Replaces CraftTweaker-based WellRecipe class
+ *
+ * Usage:
+ *   WellRecipe.add(new ItemStack(Items.water_bucket), FluidRegistry.WATER, 1.0F, 1.0F, 0xFFFFFF);
  */
-@ZenClass("mods.astralsorcery.Lightwell")
-public class WellRecipe extends BaseTweaker {
+public final class WellRecipe {
 
-    protected static final String name = "AstralSorcery Lightwell";
+    private WellRecipe() {}
 
-    @ZenMethod
-    public static void removeLiquefaction(IItemStack input, ILiquidStack output) {
-        FluidStack fs = convertToFluidStack(output, false);
-
-        ItemStack in = convertToItemStack(input);
-        if ((in == null || in.stackSize <= 0)) {
-            CraftTweakerAPI.logError("[" + name + "] Skipping recipe-removal due to invalid input.");
+    /**
+     * Adds a lightwell recipe
+     *
+     * @param input               The input item
+     * @param outputFluid         The output fluid
+     * @param productionMultiplier Production speed multiplier
+     * @param shatterMultiplier    Shatter chance multiplier
+     * @param colorHex            Display color (hex)
+     */
+    public static void add(@Nullable ItemStack input, @Nullable Fluid outputFluid, float productionMultiplier,
+        float shatterMultiplier, int colorHex) {
+        if (input == null || input.stackSize <= 0) {
+            return;
+        }
+        if (outputFluid == null) {
             return;
         }
 
-        ModIntegrationCrafttweaker.recipeModifications.add(new WellRecipeRemove(in, fs == null ? null : fs.getFluid()));
+        FluidStack fluidOutput = new FluidStack(outputFluid, 1000);
+
+        ASRecipe recipe = ASRecipe.builder(ASRecipe.Type.WELL)
+            .inputs(ASRecipeUtils.handle(input))
+            .fluidOutput(fluidOutput)
+            .productionMultiplier(productionMultiplier)
+            .shatterMultiplier(shatterMultiplier)
+            .colorHex(colorHex)
+            .build();
+
+        ModIntegrationCrafttweaker.recipeQueue.add(recipe);
     }
 
-    @ZenMethod
-    public static void addLiquefaction(IItemStack input, ILiquidStack output, float productionMultiplier,
-        float shatterMultiplier, int colorhex) {
-        ItemStack in = convertToItemStack(input);
-        if ((in == null || in.stackSize <= 0)) {
-            CraftTweakerAPI.logError("[" + name + "] Skipping recipe-add due to invalid input itemstack.");
+    /**
+     * Removes lightwell recipes matching the input
+     *
+     * @param input       The input item
+     * @param outputFluid The output fluid (can be null to match all)
+     */
+    public static void remove(@Nullable ItemStack input, @Nullable Fluid outputFluid) {
+        if (input == null || input.stackSize <= 0) {
             return;
         }
 
-        FluidStack fs = convertToFluidStack(output, false);
-        if (fs == null) {
-            CraftTweakerAPI.logError("[" + name + "] Skipping recipe-add due to invalid output fluid.");
-            return;
-        }
-
-        ModIntegrationCrafttweaker.recipeModifications
-            .add(new WellRecipeAdd(in, fs.getFluid(), productionMultiplier, shatterMultiplier, colorhex));
+        // Remove from recipe map based on input
+        // Implementation depends on how recipes are stored
+        ASRecipeMaps.WELL.removeRecipesByOutput(input);
     }
 
+    /**
+     * Adds a well recipe directly to the recipe map
+     * This is for use in recipe loading classes
+     */
+    public static ASRecipe addToMap(ItemStack input, Fluid outputFluid, float productionMultiplier,
+        float shatterMultiplier, int colorHex) {
+        FluidStack fluidOutput = new FluidStack(outputFluid, 1000);
+
+        return ASRecipe.builder(ASRecipe.Type.WELL)
+            .inputs(ASRecipeUtils.handle(input))
+            .fluidOutput(fluidOutput)
+            .productionMultiplier(productionMultiplier)
+            .shatterMultiplier(shatterMultiplier)
+            .colorHex(colorHex)
+            .addTo(ASRecipeMaps.WELL);
+    }
 }

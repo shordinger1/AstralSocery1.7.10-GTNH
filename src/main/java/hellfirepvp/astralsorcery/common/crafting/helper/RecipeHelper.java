@@ -15,8 +15,6 @@ import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.oredict.ShapedOreRecipe;
 
 import hellfirepvp.astralsorcery.common.migration.Ingredient;
 
@@ -28,6 +26,11 @@ import hellfirepvp.astralsorcery.common.migration.Ingredient;
  * Date: 22.09.2016 / 15:56
  */
 public class RecipeHelper {
+
+    // Added in for future ease of change, but hard coded for now.
+    // 1.7.10 compatibility: ShapedOreRecipe has these as private
+    private static final int MAX_CRAFT_GRID_WIDTH = 3;
+    private static final int MAX_CRAFT_GRID_HEIGHT = 3;
 
     public static BasePlainRecipe getShapelessOreDictRecipe(ResourceLocation name, ItemStack output,
         ArrayList<Ingredient> craftingComponents) {
@@ -73,7 +76,7 @@ public class RecipeHelper {
                 }
             }
 
-            return required.isEmpty();
+            return required == null || required.stackSize <= 0;
         }
 
         @Override
@@ -81,9 +84,13 @@ public class RecipeHelper {
             return out.copy();
         }
 
-        @Override
         public boolean canFit(int width, int height) {
             return width * height >= inputs.size();
+        }
+
+        @Override
+        public int getRecipeSize() {
+            return inputs.size();
         }
 
         @Override
@@ -91,12 +98,11 @@ public class RecipeHelper {
             return out.copy();
         }
 
-        @Override
         public ArrayList<ItemStack> getRemainingItems(InventoryCrafting inv) {
-            return ForgeHooks.defaultRecipeGetRemainingItems(inv);
+            // 1.7.10: defaultRecipeGetRemainingItems doesn't exist in ForgeHooks
+            return new ArrayList<>();
         }
 
-        @Override
         public ArrayList<Ingredient> getIngredients() {
             return inputs;
         }
@@ -116,8 +122,8 @@ public class RecipeHelper {
 
         @Override
         public boolean matches(InventoryCrafting inv, World worldIn) {
-            for (int x = 0; x <= ShapedOreRecipe.MAX_CRAFT_GRID_WIDTH - grid.getWidth(); x++) {
-                for (int y = 0; y <= ShapedOreRecipe.MAX_CRAFT_GRID_HEIGHT - grid.getHeight(); ++y) {
+            for (int x = 0; x <= MAX_CRAFT_GRID_WIDTH - grid.getWidth(); x++) {
+                for (int y = 0; y <= MAX_CRAFT_GRID_HEIGHT - grid.getHeight(); ++y) {
                     if (checkMatch(inv, x, y)) {
                         return true;
                     }
@@ -128,8 +134,8 @@ public class RecipeHelper {
         }
 
         protected boolean checkMatch(InventoryCrafting inv, int startX, int startY) {
-            for (int x = 0; x < ShapedOreRecipe.MAX_CRAFT_GRID_WIDTH; x++) {
-                for (int y = 0; y < ShapedOreRecipe.MAX_CRAFT_GRID_HEIGHT; y++) {
+            for (int x = 0; x < MAX_CRAFT_GRID_WIDTH; x++) {
+                for (int y = 0; y < MAX_CRAFT_GRID_HEIGHT; y++) {
                     int subX = x - startX;
                     int subY = y - startY;
                     Ingredient target = Ingredient.EMPTY;
@@ -153,9 +159,13 @@ public class RecipeHelper {
             return out.copy();
         }
 
-        @Override
         public boolean canFit(int width, int height) {
             return width >= grid.getWidth() && height >= grid.getHeight();
+        }
+
+        @Override
+        public int getRecipeSize() {
+            return grid.getWidth() * grid.getHeight();
         }
 
         @Override
@@ -163,12 +173,11 @@ public class RecipeHelper {
             return out.copy();
         }
 
-        @Override
         public ArrayList<ItemStack> getRemainingItems(InventoryCrafting inv) {
-            return ForgeHooks.defaultRecipeGetRemainingItems(inv);
+            // 1.7.10: defaultRecipeGetRemainingItems doesn't exist in ForgeHooks
+            return new ArrayList<>();
         }
 
-        @Override
         public ArrayList<Ingredient> getIngredients() {
             return grid.getRawIngredientList();
         }

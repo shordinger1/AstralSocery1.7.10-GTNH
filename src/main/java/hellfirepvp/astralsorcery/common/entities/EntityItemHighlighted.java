@@ -45,15 +45,8 @@ public class EntityItemHighlighted extends EntityItem {
         applyColor(Color.WHITE);
     }
 
-    @Override
-    public void setItem(ItemStack stack) {
-        super.setItem(stack);
-
-        applyColor(
-            (!(stack == null || stack.stackSize <= 0) && stack.getItem() instanceof ItemHighlighted)
-                ? ((ItemHighlighted) stack.getItem()).getHightlightColor(stack)
-                : Color.WHITE);
-    }
+    // 1.7.10: EntityItem doesn't have setItem() method to override
+    // If you need to update the item after creation, use reflection or recreate the entity
 
     @Override
     protected void entityInit() {

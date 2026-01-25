@@ -159,7 +159,7 @@ public class ClientProxy extends CommonProxy {
      * Block block = f.getBlock();
      * if (block != null) {
      * Item item = Item.getItemFromBlock(block);
-     * if (item != Items.AIR) {
+     * if (item != null) {
      * ModelLoader.registerItemVariants(item);
      * ModelLoader.setCustomMeshDefinition(item, mapper);
      * } else {
@@ -414,7 +414,7 @@ public class ClientProxy extends CommonProxy {
         ArrayList<ItemStack> list = new ArrayList<>();
         // 1.7.10: getSubItems takes 3 parameters: Item, CreativeTabs, List
         item.getSubItems(item, item.getCreativeTab(), list);
-        if (!list.isEmpty()) {
+        if (!list == null || list.stackSize <= 0) {
             for (ItemStack i : list) {
                 registerItemRender(item, i.getItemDamage(), name);
             }

@@ -13,6 +13,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 
 /**
@@ -27,21 +28,21 @@ public class EnchantmentNightVision extends EnchantmentPlayerWornTick {
     public EnchantmentNightVision() {
         super(
             "as.nightvision",
-            Rarity.VERY_RARE,
-            EnumEnchantmentType.ARMOR_HEAD,
-            net.minecraft.inventory.EntityEquipmentSlot.HEAD);
+            2, // In 1.7.10: rarity is int (0=common, 1=uncommon, 2=rare)
+            EnumEnchantmentType.armor_head); // In 1.7.10: armor_head
     }
 
     @Override
     public void onWornTick(boolean isClient, EntityPlayer base, int level) {
-        base.addPotionEffect(new PotionEffect(Potion.nightVision, 300, level - 1, true, false));
+        // In 1.7.10, PotionEffect takes (int potionId, int duration, int amplifier)
+        // Night vision potion ID is typically 16 in vanilla
+        base.addPotionEffect(new PotionEffect(Potion.nightVision.id, 300, level - 1));
     }
 
-    @Override
     public void onEntityDamaged(EntityLivingBase user, Entity target, int level) {
         if (target instanceof EntityLivingBase) {
             ((EntityLivingBase) target)
-                .addPotionEffect(new PotionEffect(Potion.nightVision, 300, level - 1, true, false));
+                .addPotionEffect(new PotionEffect(Potion.nightVision.id, 300, level - 1));
         }
     }
 

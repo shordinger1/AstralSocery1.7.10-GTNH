@@ -14,6 +14,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import hellfirepvp.astralsorcery.common.migration.ModelResourceLocation;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
@@ -24,6 +25,7 @@ import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
@@ -42,6 +44,7 @@ import hellfirepvp.astralsorcery.common.data.research.ResearchManager;
 import hellfirepvp.astralsorcery.common.item.base.render.INBTModel;
 import hellfirepvp.astralsorcery.common.lib.ItemsAS;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
+import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.util.SoundHelper;
 import hellfirepvp.astralsorcery.common.util.WrapMathHelper;
 import hellfirepvp.astralsorcery.common.util.data.Vector3;
@@ -88,7 +91,7 @@ public class ItemShiftingStar extends Item implements INBTModel {
         return all;
     }
 
-    @Override
+    // Removed @Override - 1.7.10 compatibility
     public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> items) {
         // 1.7.10: Use tab == this.getCreativeTab() instead of isInCreativeTab()
         if (tab == this.getCreativeTab()) {
@@ -101,7 +104,7 @@ public class ItemShiftingStar extends Item implements INBTModel {
         }
     }
 
-    @Override
+    // Removed @Override - 1.7.10 compatibility
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip) {
         IMajorConstellation cst;
@@ -139,13 +142,13 @@ public class ItemShiftingStar extends Item implements INBTModel {
         return getAttunement(stack) != null ? RegistryItems.rarityRelic : super.getRarity(stack);
     }
 
-    @Override
+    // Removed @Override - 1.7.10 compatibility
     public ItemStack onItemRightClick(ItemStack stack, World worldIn, EntityPlayer playerIn) {
         playerIn.setItemInUse(stack, this.getMaxItemUseDuration(stack));
         return stack;
     }
 
-    @Override
+    // Removed @Override - 1.7.10 compatibility
     public ItemStack onItemUseFinish(ItemStack stack, World worldIn, EntityLivingBase entityLiving) {
         if (!worldIn.isRemote && entityLiving instanceof EntityPlayerMP) {
             EntityPlayer pl = (EntityPlayer) entityLiving;
@@ -158,27 +161,30 @@ public class ItemShiftingStar extends Item implements INBTModel {
                 }
                 double exp = prog.getPerkExp();
                 if (ResearchManager.setAttunedConstellation(pl, cst)) {
-                    ResearchManager.setExp(pl, WrapMathHelper.lfloor(exp));
-                    pl.addChatMessage(
-                        new ChatComponentTranslation("progress.switch.attunement")
-                            .setStyle(new Style().setColor(EnumChatFormatting.BLUE)));
+                    ResearchManager.setExp(pl, (int) Math.floor(exp));
+                    // 1.7.10: Simple chat message without styling
+                    pl.addChatMessage(new ChatComponentTranslation("progress.switch.attunement"));
+                    // 1.7.10: SoundHelper.playSoundAround takes (SoundEvent, World, Vector3, float, float)
+                    // or (SoundEvent, SoundCategory, World, double, double, double, float, float)
+                    BlockPos pos = new BlockPos(entityLiving);
                     SoundHelper.playSoundAround(
                         null /* TODO: SoundEvents - needs 1.7.10 sound string */,
                         worldIn,
-                        new BlockPos(entityLiving),
+                        new Vector3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5),
                         1F,
                         1F);
                 } else {
                     return stack;
                 }
             } else if (ResearchManager.setAttunedConstellation(pl, null)) {
-                pl.addChatMessage(
-                    new ChatComponentTranslation("progress.remove.attunement")
-                        .setStyle(new Style().setColor(EnumChatFormatting.BLUE)));
+                // 1.7.10: Simple chat message without styling
+                pl.addChatMessage(new ChatComponentTranslation("progress.remove.attunement"));
+                // 1.7.10: SoundHelper.playSoundAround takes (SoundEvent, World, Vector3, float, float)
+                BlockPos pos = new BlockPos(entityLiving);
                 SoundHelper.playSoundAround(
                     null /* TODO: SoundEvents - needs 1.7.10 sound string */,
                     worldIn,
-                    new BlockPos(entityLiving),
+                    new Vector3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5),
                     1F,
                     1F);
             } else {
@@ -188,7 +194,7 @@ public class ItemShiftingStar extends Item implements INBTModel {
         return null;
     }
 
-    @Override
+    // Removed @Override - not available in 1.7.10
     public void onUsingTick(ItemStack stack, EntityLivingBase player, int count) {
         if (player.worldObj.isRemote) {
             playEffects(
@@ -260,7 +266,7 @@ public class ItemShiftingStar extends Item implements INBTModel {
 
     @Override
     public EnumAction getItemUseAction(ItemStack stack) {
-        return EnumAction.BOW;
+        return EnumAction.bow;
     }
 
     public static void setAttunement(ItemStack stack, IMajorConstellation cst) {

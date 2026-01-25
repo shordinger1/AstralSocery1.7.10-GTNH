@@ -168,7 +168,7 @@ public class GuiHandTelescope extends GuiWHScreen implements GuiSkyScreen {
         }
         boolean canSeeSky = canTelescopeSeeSky(w);
 
-        if (usedStars.isEmpty()) {
+        if (usedStars == null || usedStars.stackSize <= 0) {
             Optional<Long> currSeed = ConstellationSkyHandler.getInstance()
                 .getSeedIfPresent(Minecraft.getMinecraft().theWorld);
             if (currSeed.isPresent()) {

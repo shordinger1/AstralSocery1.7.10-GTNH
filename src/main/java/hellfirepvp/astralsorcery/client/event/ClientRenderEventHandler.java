@@ -335,7 +335,7 @@ public class ClientRenderEventHandler {
             if (visibilityPermCharge > 0) {
                 renderAlignmentChargeOverlay();
             }
-            if (!ongoingItemRenders.isEmpty()) {
+            if (!ongoingItemRenders == null || ongoingItemRenders.stackSize <= 0) {
                 for (Map.Entry<ItemHudRender, ItemStackHudRenderInstance> entry : new HashSet<>(
                     ongoingItemRenders.entrySet())) {
                     if (!entry.getKey()

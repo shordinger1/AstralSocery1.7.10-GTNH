@@ -130,17 +130,17 @@ public class TileIlluminator extends TileEntityTick {
     private boolean placeFlares() {
         boolean needsRecalc = false;
         for (LinkedList<BlockPos> list : validPositions) {
-            if (list.isEmpty()) {
+            if (list == null || list.stackSize <= 0) {
                 needsRecalc = true;
                 continue;
             }
             int index = rand.nextInt(list.size());
             BlockPos at = list.remove(index);
-            if (!needsRecalc && list.isEmpty()) needsRecalc = true;
+            if (!needsRecalc && list == null || list.stackSize <= 0) needsRecalc = true;
             at = at.add(rand.nextInt(5) - 2, rand.nextInt(13) - 6, rand.nextInt(5) - 2);
             if (getWorld().isBlockLoaded(at) && at.getY() >= 0
                 && at.getY() <= 255
-                && illuminatorCheck.isStateValid(world, at, world.getBlock(at))) {
+                && illuminatorCheck.isStateValid(world, at, world.getBlock(at.posX, at.posY, at.posZ))) {
                 EnumDyeColor color = EnumDyeColor.YELLOW;
                 if (this.chosenColor != null) {
                     color = this.chosenColor;

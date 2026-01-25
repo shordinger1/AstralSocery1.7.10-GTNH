@@ -13,7 +13,10 @@ import java.awt.*;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+
+import net.minecraftforge.common.util.ForgeDirection;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -41,14 +44,16 @@ public class EntityIlluminationSpark extends EntityThrowable implements EntityTe
 
     public EntityIlluminationSpark(World worldIn, EntityLivingBase throwerIn) {
         super(worldIn, throwerIn);
-        shoot(throwerIn, throwerIn.rotationPitch, throwerIn.rotationYaw, 0.0F, 0.7F, 0.9F);
+        // 1.7.10: shoot() doesn't exist - use setThrowableHeading() instead
+        Vec3 look = throwerIn.getLookVec();
+        this.setThrowableHeading(look.xCoord, look.yCoord, look.zCoord, 0.7F, 0.9F);
     }
 
     @Override
     public void onUpdate() {
         super.onUpdate();
 
-        if (getWorld().isRemote) {
+        if (worldObj.isRemote) {
             playEffects();
         }
     }
@@ -93,17 +98,20 @@ public class EntityIlluminationSpark extends EntityThrowable implements EntityTe
 
     @Override
     protected void onImpact(MovingObjectPosition result) {
-        if (!getWorld().isRemote) {
+        if (!worldObj.isRemote) {
             if (result.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                // 1.7.10: canPlaceEntityOnSide needs separate x, y, z coordinates (8 parameters)
+                BlockPos placePos = new BlockPos(result.blockX, result.blockY, result.blockZ)
+                    .offset(ForgeDirection.getOrientation(result.sideHit));
                 if (worldObj.canPlaceEntityOnSide(
                     BlocksAS.blockVolatileLight,
-                    new BlockPos(result.blockX, result.blockY, result.blockZ).offset(result.sideHit),
+                    placePos.getX(),
+                    placePos.getY(),
+                    placePos.getZ(),
                     false,
                     result.sideHit,
                     null,
                     null)) {
-                    BlockPos placePos = new BlockPos(result.blockX, result.blockY, result.blockZ)
-                        .offset(result.sideHit);
                     worldObj
                         .setBlock(placePos.getX(), placePos.getY(), placePos.getZ(), BlocksAS.blockVolatileLight, 0, 3);
                 }

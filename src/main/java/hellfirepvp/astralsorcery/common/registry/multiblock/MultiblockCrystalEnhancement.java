@@ -5,28 +5,18 @@
  * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
  * For further details, see the License file there.
  ******************************************************************************/
-
 package hellfirepvp.astralsorcery.common.registry.multiblock;
-// TODO: Forge fluid system - manual review needed
 
-import java.util.Random;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.transpose;
 
-import net.minecraft.block.Block;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.IBlockAccess;
-import net.minecraftforge.fluids.BlockFluidBase;
+
+import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
+import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 
 import hellfirepvp.astralsorcery.AstralSorcery;
-import hellfirepvp.astralsorcery.common.block.BlockMarble;
-import hellfirepvp.astralsorcery.common.block.network.BlockCollectorCrystalBase;
-import hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry;
-import hellfirepvp.astralsorcery.common.constellation.IWeakConstellation;
-import hellfirepvp.astralsorcery.common.item.crystal.CrystalProperties;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
-import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
-import hellfirepvp.astralsorcery.common.tile.network.TileCollectorCrystal;
-import hellfirepvp.astralsorcery.common.util.BlockPos;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -35,77 +25,56 @@ import hellfirepvp.astralsorcery.common.util.BlockPos;
  * Created by HellFirePvP
  * Date: 22.04.2017 / 11:23
  */
-public class MultiblockCrystalEnhancement extends PatternBlockArray {
+public class MultiblockCrystalEnhancement {
+
+    private static final String STRUCTURE_ID = "pattern_collector_crystal_enhanced";
+    private static IStructureDefinition<MultiblockCrystalEnhancement> STRUCTURE_DEFINITION = null;
 
     public MultiblockCrystalEnhancement() {
-        super(new ResourceLocation(AstralSorcery.MODID, "pattern_collector_crystal_enhanced"));
-        load();
+        // Structure defined via getStructureDefinition()
     }
 
-    private void load() {
-        Block mru = BlockMarble.MarbleBlockType.RUNED.asBlock();
-        Block mpl = BlockMarble.MarbleBlockType.PILLAR.asBlock();
-        Block mch = BlockMarble.MarbleBlockType.CHISELED.asBlock();
-        Block mgr = BlockMarble.MarbleBlockType.ENGRAVED.asBlock();
-        Block mrw = BlockMarble.MarbleBlockType.RAW.asBlock();
-
-        addBlockCube(mrw, -1, -5, -1, 1, -5, 1);
-        for (BlockPos offset : TileCollectorCrystal.offsetsLiquidStarlight) {
-            addBlock(
-                offset,
-                BlocksAS.blockLiquidStarlight,
-                (state) -> state.equals(BlocksAS.blockLiquidStarlight) && state.getValue(BlockFluidBase.LEVEL) == 0);
+    public IStructureDefinition<MultiblockCrystalEnhancement> getStructureDefinition() {
+        if (STRUCTURE_DEFINITION == null) {
+            STRUCTURE_DEFINITION = StructureDefinition.<MultiblockCrystalEnhancement>builder()
+                .addShape(STRUCTURE_ID, transpose(shape))
+                .addElement('A', ofBlock(BlocksAS.celestialCollectorCrystal, 0))
+                .addElement('R', ofBlock(BlocksAS.blockMarble, 0)) // RAW
+                .addElement('U', ofBlock(BlocksAS.blockMarble, 4)) // RUNED
+                .addElement('P', ofBlock(BlocksAS.blockMarble, 5)) // PILLAR
+                .addElement('H', ofBlock(BlocksAS.blockMarble, 1)) // CHISELED
+                .addElement('G', ofBlock(BlocksAS.blockMarble, 7)) // ENGRAVED
+                .addElement('L', ofBlock(BlocksAS.blockLiquidStarlight, 0))
+                .build();
         }
-        addAirCube(1, 1, 1, -1, -1, -1);
-        addBlock(0, 0, 0, BlocksAS.celestialCollectorCrystal);
-        addTileCallback(BlockPos.ORIGIN, new TileEntityCallback() {
-
-            @Override
-            public boolean isApplicable(TileEntity te) {
-                return te instanceof TileCollectorCrystal;
-            }
-
-            @Override
-            public void onPlace(IBlockAccess access, BlockPos at, TileEntity te) {
-                IWeakConstellation rand = ConstellationRegistry.getWeakConstellations()
-                    .get(
-                        new Random().nextInt(
-                            ConstellationRegistry.getWeakConstellations()
-                                .size()));
-                ((TileCollectorCrystal) te).onPlace(
-                    rand,
-                    null,
-                    CrystalProperties.getMaxCelestialProperties(),
-                    null,
-                    BlockCollectorCrystalBase.CollectorCrystalType.CELESTIAL_CRYSTAL);
-            }
-        });
-
-        addBlock(0, -2, 0, mch);
-        addBlock(0, -3, 0, mpl);
-        addBlock(0, -4, 0, mgr);
-
-        addBlock(-2, -4, -2, mch);
-        addBlock(-2, -4, 2, mch);
-        addBlock(2, -4, 2, mch);
-        addBlock(2, -4, -2, mch);
-        addBlock(-2, -3, -2, mgr);
-        addBlock(-2, -3, 2, mgr);
-        addBlock(2, -3, 2, mgr);
-        addBlock(2, -3, -2, mgr);
-
-        addBlock(-2, -4, -1, mru);
-        addBlock(-2, -4, 0, mru);
-        addBlock(-2, -4, 1, mru);
-        addBlock(2, -4, -1, mru);
-        addBlock(2, -4, 0, mru);
-        addBlock(2, -4, 1, mru);
-        addBlock(-1, -4, -2, mru);
-        addBlock(0, -4, -2, mru);
-        addBlock(1, -4, -2, mru);
-        addBlock(-1, -4, 2, mru);
-        addBlock(0, -4, 2, mru);
-        addBlock(1, -4, 2, mru);
+        return STRUCTURE_DEFINITION;
     }
+
+    public ResourceLocation getStructureId() {
+        return new ResourceLocation(AstralSorcery.MODID, STRUCTURE_ID);
+    }
+
+    private final String[][] shape = new String[][] {
+        // Y = -5 (Bottom base)
+        {"   R   "},
+
+        // Y = -4 (Main platform)
+        {" HUGUH ", "HUGGUGH", "HUGGUGH", " HUGUH "},
+
+        // Y = -3
+        {"   H   ", " HGGH ", "HGGGGH", " HGGH ", "   H   "},
+
+        // Y = -2
+        {"   P   "},
+
+        // Y = -1
+        {"   H   "},
+
+        // Y = 0 (Crystal at center)
+        {"   A   "},
+
+        // Y = 1 (Air)
+        {"       "},
+    };
 
 }

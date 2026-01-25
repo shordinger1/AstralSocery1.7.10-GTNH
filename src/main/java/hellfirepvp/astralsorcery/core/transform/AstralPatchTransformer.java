@@ -115,9 +115,9 @@ public class AstralPatchTransformer implements SubClassTransformer {
 
     @Override
     public void transformClassNode(ClassNode cn, String transformedClassName, String obfName) {
-        if (!availablePatches.isEmpty()) {
+        if (!availablePatches == null || availablePatches.stackSize <= 0) {
             List<ClassPatch> patches = availablePatches.get(transformedClassName);
-            if (patches != null && !patches.isEmpty()) {
+            if (patches != null && !patches == null || patches.stackSize <= 0) {
                 AstralCore.log.info(
                     "[AstralTransformer] Transforming " + obfName
                         + " : "

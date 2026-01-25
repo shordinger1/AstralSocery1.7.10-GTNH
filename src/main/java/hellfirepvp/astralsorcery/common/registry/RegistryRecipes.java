@@ -23,6 +23,7 @@ import java.util.Map;
 
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -152,26 +153,26 @@ public class RegistryRecipes {
             ItemCraftingComponent.MetaType.AQUAMARINE.asStack());
         registerLowConsumptionInfusion(
             ItemCraftingComponent.MetaType.GLASS_LENS.asStack(),
-            new ItemStack(Blocks.GLASS_PANE, 1, 0));
-        registerLowConsumptionInfusion(new ItemStack(Blocks.CLAY, 1, 0), new ItemStack(Blocks.SAND, 1, 0));
-        registerLowConsumptionInfusion(new ItemStack(Blocks.GRASS, 1, 0), new ItemStack(Blocks.DIRT, 1, 0));
-        registerLowConsumptionInfusion(new ItemStack(Items.ENDER_EYE, 1, 0), new ItemStack(Items.ENDER_PEARL, 1, 0));
-        registerLowConsumptionInfusion(new ItemStack(Items.GLOWSTONE_DUST, 1, 0), new ItemStack(Items.GUNPOWDER, 1, 0));
-        registerLowConsumptionInfusion(new ItemStack(Items.GUNPOWDER, 1, 0), new ItemStack(Items.REDSTONE, 1, 0));
-        registerLowConsumptionInfusion(new ItemStack(Items.DYE, 4, 15), new ItemStack(Items.BONE, 1, 0));
-        registerLowConsumptionInfusion(new ItemStack(Items.BLAZE_POWDER, 4, 0), new ItemStack(Items.BLAZE_ROD, 1, 0));
-        registerLowConsumptionInfusion(new ItemStack(Items.MAGMA_CREAM, 1, 0), new ItemStack(Items.SLIME_BALL, 1, 0));
-        registerLowConsumptionInfusion(new ItemStack(Items.GOLDEN_CARROT, 1, 0), new ItemStack(Items.CARROT, 1, 0));
-        registerLowConsumptionInfusion(new ItemStack(Items.SPECKLED_MELON, 1, 0), new ItemStack(Items.MELON, 1, 0));
-        registerLowConsumptionInfusion(new ItemStack(Items.IRON_INGOT, 3, 0), new ItemStack(Blocks.IRON_ORE, 1, 0));
-        registerLowConsumptionInfusion(new ItemStack(Items.GOLD_INGOT, 3, 0), new ItemStack(Blocks.GOLD_ORE, 1, 0));
-        registerLowConsumptionInfusion(new ItemStack(Blocks.LAPIS_BLOCK, 1, 0), new ItemStack(Blocks.LAPIS_ORE, 1, 0));
+            new ItemStack(Blocks.glass_pane, 1, 0));
+        registerLowConsumptionInfusion(new ItemStack(Blocks.clay, 1, 0), new ItemStack(Blocks.sand, 1, 0));
+        registerLowConsumptionInfusion(new ItemStack(Blocks.grass, 1, 0), new ItemStack(Blocks.dirt, 1, 0));
+        registerLowConsumptionInfusion(new ItemStack(Items.ender_eye, 1, 0), new ItemStack(Items.ender_pearl, 1, 0));
+        registerLowConsumptionInfusion(new ItemStack(Items.glowstone_dust, 1, 0), new ItemStack(Items.gunpowder, 1, 0));
+        registerLowConsumptionInfusion(new ItemStack(Items.gunpowder, 1, 0), new ItemStack(Items.redstone, 1, 0));
+        registerLowConsumptionInfusion(new ItemStack(Items.dye, 4, 15), new ItemStack(Items.bone, 1, 0));
+        registerLowConsumptionInfusion(new ItemStack(Items.blaze_powder, 4, 0), new ItemStack(Items.blaze_rod, 1, 0));
+        registerLowConsumptionInfusion(new ItemStack(Items.magma_cream, 1, 0), new ItemStack(Items.slime_ball, 1, 0));
+        registerLowConsumptionInfusion(new ItemStack(Items.golden_carrot, 1, 0), new ItemStack(Items.carrot, 1, 0));
+        registerLowConsumptionInfusion(new ItemStack(Items.speckled_melon, 1, 0), new ItemStack(Items.melon, 1, 0));
+        registerLowConsumptionInfusion(new ItemStack(Items.iron_ingot, 3, 0), new ItemStack(Blocks.iron_ore, 1, 0));
+        registerLowConsumptionInfusion(new ItemStack(Items.gold_ingot, 3, 0), new ItemStack(Blocks.gold_ore, 1, 0));
+        registerLowConsumptionInfusion(new ItemStack(Blocks.lapis_block, 1, 0), new ItemStack(Blocks.lapis_ore, 1, 0));
         registerLowConsumptionInfusion(
-            new ItemStack(Blocks.REDSTONE_BLOCK, 1, 0),
-            new ItemStack(Blocks.REDSTONE_ORE, 1, 0));
-        registerLowConsumptionInfusion(new ItemStack(Items.DIAMOND, 4, 0), new ItemStack(Blocks.DIAMOND_ORE, 1, 0));
-        registerLowConsumptionInfusion(new ItemStack(Items.EMERALD, 4, 0), new ItemStack(Blocks.EMERALD_ORE, 1, 0));
-        registerLowConsumptionInfusion(new ItemStack(Blocks.ICE, 1, 0), new ItemStack(Blocks.GLASS, 1, 0));
+            new ItemStack(Blocks.redstone_block, 1, 0),
+            new ItemStack(Blocks.redstone_ore, 1, 0));
+        registerLowConsumptionInfusion(new ItemStack(Items.diamond, 4, 0), new ItemStack(Blocks.diamond_ore, 1, 0));
+        registerLowConsumptionInfusion(new ItemStack(Items.emerald, 4, 0), new ItemStack(Blocks.emerald_ore, 1, 0));
+        registerLowConsumptionInfusion(new ItemStack(Blocks.ice, 1, 0), new ItemStack(Blocks.glass, 1, 0));
         registerLowConsumptionInfusion(
             BlockInfusedWood.WoodType.INFUSED.asStack(),
             BlockInfusedWood.WoodType.RAW.asStack());
@@ -216,32 +217,27 @@ public class RegistryRecipes {
 
         ArrayList<ItemStack> inputs = ItemUtils.getStacksOfOredict(nameIn);
         ItemStack output = Iterables.getFirst(ItemUtils.getStacksOfOredict(nameOut), null);
-        if (!inputs.isEmpty() && !(output == null || output.stackSize <= 0)) {
-            if (output.getItemDamage() == OreDictionary.WILDCARD_VALUE) {
-                ArrayList<ItemStack> st = new ArrayList<>();
-                output.getItem()
-                    .getSubItems(
-                        output.getItem()
-                            .getCreativeTab(),
-                        st);
-                if (!(st == null || st.stackSize <= 0)) {
-                    output = Iterables.getFirst(st, null);
-                }
+        if (output.getItemDamage() == OreDictionary.WILDCARD_VALUE) {
+            ArrayList<ItemStack> st = new ArrayList<>();
+            // 1.7.10: getSubItems signature is getSubItems(Item, CreativeTabs, List)
+            output.getItem().getSubItems(output.getItem(), output.getItem().getCreativeTab(), st);
+            if (!(st == null || st.isEmpty())) {
+                output = Iterables.getFirst(st, null);
             }
-
-            if (!(output == null || output.stackSize <= 0)) {
-                output = ItemUtils.copyStackWithSize(output, output.stackSize);
-                if (multi) {
-                    output.stackSize = output.stackSize * 4;
-                }
-            }
-            registerGrindstoneRecipe(
-                new hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipe(
-                    new ItemHandle(inputs),
-                    output,
-                    12,
-                    doubleChance));
         }
+
+        if (!(output == null || output.stackSize <= 0)) {
+            output = ItemUtils.copyStackWithSize(output, output.stackSize);
+            if (multi) {
+                output.stackSize = output.stackSize * 4;
+            }
+        }
+        registerGrindstoneRecipe(
+            new hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipe(
+                new ItemHandle(inputs),
+                output,
+                12,
+                doubleChance));
     }
 
     private static void initVanilla() {
@@ -279,7 +275,7 @@ public class RegistryRecipes {
 
         rRJournal = newShapedRecipe("journal", ItemsAS.journal)
             .addPart(ItemCraftingComponent.MetaType.PARCHMENT.asStack(), ShapedRecipeSlot.UPPER_CENTER)
-            .addPart(Items.BOOK, ShapedRecipeSlot.CENTER)
+            .addPart(Items.book, ShapedRecipeSlot.CENTER)
             .addPart(
                 OreDictAlias.ITEM_AQUAMARINE,
                 ShapedRecipeSlot.LEFT,
@@ -291,7 +287,7 @@ public class RegistryRecipes {
             ItemUtils.copyStackWithSize(ItemCraftingComponent.MetaType.PARCHMENT.asStack(), 4))
                 .addPart(OreDictAlias.ITEM_AQUAMARINE, ShapedRecipeSlot.CENTER)
                 .addPart(
-                    Items.PAPER,
+                    Items.paper,
                     ShapedRecipeSlot.UPPER_CENTER,
                     ShapedRecipeSlot.LOWER_CENTER,
                     ShapedRecipeSlot.LEFT,
@@ -302,7 +298,7 @@ public class RegistryRecipes {
             "marble_black_raw",
             new ItemStack(BlocksAS.blockBlackMarble, 8, BlockBlackMarble.BlackMarbleBlockType.RAW.ordinal()))
                 .addPart(OreDictAlias.BLOCK_MARBLE, ShapedRecipeSlot.values())
-                .addPart(Items.COAL, ShapedRecipeSlot.CENTER)
+                .addPart(Items.coal, ShapedRecipeSlot.CENTER)
                 .buildAndRegisterShapedRecipe();
         rBlackMarbleArch = newShapedRecipe(
             "black_marble_arch",
@@ -601,10 +597,10 @@ public class RegistryRecipes {
         rEnchAmuletOriginal = registerAltarRecipe(
             new EnchantmentAmuletRecipe(
                 newShapedRecipe("internal/altar/enchantment_amulet_craft", ItemsAS.enchantmentAmulet)
-                    .addPart(Items.STRING, ShapedRecipeSlot.UPPER_CENTER)
+                    .addPart(Items.string, ShapedRecipeSlot.UPPER_CENTER)
                     .addPart(OreDictAlias.ITEM_GOLD_INGOT, ShapedRecipeSlot.UPPER_LEFT, ShapedRecipeSlot.UPPER_RIGHT)
                     .addPart(ItemsAS.shiftingStar, ShapedRecipeSlot.CENTER)
-                    .addPart(Items.ENDER_EYE, ShapedRecipeSlot.LOWER_CENTER)
+                    .addPart(Items.ender_eye, ShapedRecipeSlot.LOWER_CENTER)
                     .addPart(OreDictAlias.ITEM_STARMETAL_DUST, ShapedRecipeSlot.LEFT, ShapedRecipeSlot.RIGHT)
                     .unregisteredAccessibleShapedRecipe()) {
 
@@ -710,13 +706,13 @@ public class RegistryRecipes {
 
         for (IConstellation c : ConstellationRegistry.getAllConstellations()) {
             List<ItemHandle> signature = c.getConstellationSignatureItems();
-            if (!(signature == null || signature.stackSize <= 0)) {
+            if (!(signature == null || signature.isEmpty())) {
                 AccessibleRecipeAdapater shapedPaper = newShapedRecipe(
                     "internal/altar/constellationpaper/" + c.getSimpleName()
                         .toLowerCase(),
                     ItemsAS.constellationPaper)
                         .addPart(ItemCraftingComponent.MetaType.PARCHMENT.asStack(), ShapedRecipeSlot.CENTER)
-                        .addPart(Items.FEATHER, ShapedRecipeSlot.UPPER_CENTER)
+                        .addPart(Items.feather, ShapedRecipeSlot.UPPER_CENTER)
                         .addPart(OreDictAlias.getDyeOreDict(EnumDyeColor.BLACK), ShapedRecipeSlot.LOWER_CENTER)
                         .addPart(OreDictAlias.ITEM_STARMETAL_DUST, ShapedRecipeSlot.LEFT, ShapedRecipeSlot.RIGHT)
                         .unregisteredAccessibleShapedRecipe();
@@ -753,7 +749,7 @@ public class RegistryRecipes {
             TraitRecipe.TraitRecipeSlot.LEFT_CENTER,
             TraitRecipe.TraitRecipeSlot.RIGHT_CENTER);
         rWandAugmentAevitas.setInnerTraitItem(
-            Items.PRISMARINE_CRYSTALS,
+            Items.fish, // 1.7.10: prismarine_shard doesn't exist, using fish as water-related item
             TraitRecipe.TraitRecipeSlot.LOWER_CENTER,
             TraitRecipe.TraitRecipeSlot.UPPER_CENTER);
         ItemHandle first = Iterables.getFirst(Constellations.aevitas.getConstellationSignatureItems(), null);
@@ -780,11 +776,11 @@ public class RegistryRecipes {
             ConstellationRecipe.ConstellationAtlarSlot.DOWN_RIGHT_RIGHT,
             ConstellationRecipe.ConstellationAtlarSlot.DOWN_LEFT_LEFT);
         rWandAugmentArmara.setInnerTraitItem(
-            Items.LEATHER,
+            Items.leather,
             TraitRecipe.TraitRecipeSlot.LEFT_CENTER,
             TraitRecipe.TraitRecipeSlot.RIGHT_CENTER);
         rWandAugmentArmara.setInnerTraitItem(
-            Items.NETHERBRICK,
+            Items.netherbrick,
             TraitRecipe.TraitRecipeSlot.LOWER_CENTER,
             TraitRecipe.TraitRecipeSlot.UPPER_CENTER);
         first = Iterables.getFirst(Constellations.armara.getConstellationSignatureItems(), null);
@@ -815,7 +811,7 @@ public class RegistryRecipes {
             TraitRecipe.TraitRecipeSlot.LEFT_CENTER,
             TraitRecipe.TraitRecipeSlot.RIGHT_CENTER);
         rWandAugmentDiscidia.setInnerTraitItem(
-            Items.BLAZE_ROD,
+            Items.blaze_rod,
             TraitRecipe.TraitRecipeSlot.LOWER_CENTER,
             TraitRecipe.TraitRecipeSlot.UPPER_CENTER);
         first = Iterables.getFirst(Constellations.discidia.getConstellationSignatureItems(), null);
@@ -842,11 +838,11 @@ public class RegistryRecipes {
             ConstellationRecipe.ConstellationAtlarSlot.DOWN_RIGHT_RIGHT,
             ConstellationRecipe.ConstellationAtlarSlot.DOWN_LEFT_LEFT);
         rWandAugmentEvorsio.setInnerTraitItem(
-            Items.FLINT,
+            Items.flint,
             TraitRecipe.TraitRecipeSlot.LEFT_CENTER,
             TraitRecipe.TraitRecipeSlot.RIGHT_CENTER);
         rWandAugmentEvorsio.setInnerTraitItem(
-            Items.BLAZE_POWDER,
+            Items.blaze_powder,
             TraitRecipe.TraitRecipeSlot.LOWER_CENTER,
             TraitRecipe.TraitRecipeSlot.UPPER_CENTER);
         first = Iterables.getFirst(Constellations.evorsio.getConstellationSignatureItems(), null);
@@ -870,11 +866,11 @@ public class RegistryRecipes {
             ConstellationRecipe.ConstellationAtlarSlot.DOWN_RIGHT_RIGHT,
             ConstellationRecipe.ConstellationAtlarSlot.DOWN_LEFT_LEFT);
         rWandAugmentVicio.setInnerTraitItem(
-            Items.FEATHER,
+            Items.feather,
             TraitRecipe.TraitRecipeSlot.LEFT_CENTER,
             TraitRecipe.TraitRecipeSlot.RIGHT_CENTER);
         rWandAugmentVicio.setInnerTraitItem(
-            Items.ARROW,
+            Items.arrow,
             TraitRecipe.TraitRecipeSlot.LOWER_CENTER,
             TraitRecipe.TraitRecipeSlot.UPPER_CENTER);
         first = Iterables.getFirst(Constellations.vicio.getConstellationSignatureItems(), null);
@@ -886,7 +882,7 @@ public class RegistryRecipes {
 
         rCapeBase = registerTraitRecipe(
             newShapedRecipe("internal/altar/capebase", ItemsAS.armorImbuedCape)
-                .addPart(Items.LEATHER_CHESTPLATE, ShapedRecipeSlot.CENTER)
+                .addPart(Items.leather_chestplate, ShapedRecipeSlot.CENTER)
                 .addPart(ItemHandle.getCrystalVariant(false, false), ShapedRecipeSlot.UPPER_CENTER)
                 .addPart(
                     ItemUsableDust.DustType.ILLUMINATION.asStack(),
@@ -911,15 +907,15 @@ public class RegistryRecipes {
             ItemCraftingComponent.MetaType.STARDUST.asStack(),
             AttunementRecipe.AttunementAltarSlot.LOWER_LEFT,
             AttunementRecipe.AttunementAltarSlot.LOWER_RIGHT);
-        rCapeBase.addOuterTraitItem(Items.FEATHER)
-            .addOuterTraitItem(Items.ENDER_PEARL)
+        rCapeBase.addOuterTraitItem(Items.feather)
+            .addOuterTraitItem(Items.ender_pearl)
             .addOuterTraitItem(ItemCraftingComponent.MetaType.STARDUST.asStack())
             .addOuterTraitItem(ItemCraftingComponent.MetaType.STARMETAL_INGOT.asStack());
 
         rKnowledgeShare = registerAttenuationRecipe(
             newShapedRecipe("internal/altar/knowledgeshare", ItemsAS.knowledgeShare)
                 .addPart(ItemCraftingComponent.MetaType.PARCHMENT.asStack(), ShapedRecipeSlot.CENTER)
-                .addPart(Items.FEATHER, ShapedRecipeSlot.UPPER_CENTER)
+                .addPart(Items.feather, ShapedRecipeSlot.UPPER_CENTER)
                 .addPart(OreDictAlias.getDyeOreDict(EnumDyeColor.BLACK), ShapedRecipeSlot.LOWER_CENTER)
                 .addPart(OreDictAlias.ITEM_STARMETAL_DUST, ShapedRecipeSlot.LEFT, ShapedRecipeSlot.RIGHT)
                 .unregisteredAccessibleShapedRecipe());
@@ -977,10 +973,10 @@ public class RegistryRecipes {
             newShapedRecipe(
                 "internal/altar/nocturnalpowder",
                 ItemUtils.copyStackWithSize(ItemUsableDust.DustType.NOCTURNAL.asStack(), 4))
-                    .addPart(Items.COAL, ShapedRecipeSlot.LEFT, ShapedRecipeSlot.RIGHT)
+                    .addPart(Items.coal, ShapedRecipeSlot.LEFT, ShapedRecipeSlot.RIGHT)
                     .addPart(OreDictAlias.getDyeOreDict(EnumDyeColor.BLACK), ShapedRecipeSlot.UPPER_CENTER)
                     .addPart(
-                        new ItemStack(Items.DYE, 1, EnumDyeColor.BLUE.getDyeDamage()),
+                        new ItemStack(Items.dye, 1, EnumDyeColor.BLUE.getDyeDamage()),
                         ShapedRecipeSlot.LOWER_CENTER)
                     .addPart(ItemUsableDust.DustType.ILLUMINATION.asStack(), ShapedRecipeSlot.CENTER)
                     .unregisteredAccessibleShapedRecipe());
@@ -1164,9 +1160,9 @@ public class RegistryRecipes {
                 .addPart(OreDictAlias.ITEM_AQUAMARINE, ShapedRecipeSlot.UPPER_CENTER, ShapedRecipeSlot.LOWER_CENTER)
                 .forceEmptySpaces()
                 .unregisteredAccessibleShapedRecipe());
-        rGlassLensFire.setAttItem(Items.BLAZE_POWDER, AttunementRecipe.AttunementAltarSlot.values());
+        rGlassLensFire.setAttItem(Items.blaze_powder, AttunementRecipe.AttunementAltarSlot.values());
         rGlassLensFire.setCstItem(
-            Items.BLAZE_POWDER,
+            Items.blaze_powder,
             ConstellationRecipe.ConstellationAtlarSlot.UP_LEFT_LEFT,
             ConstellationRecipe.ConstellationAtlarSlot.UP_RIGHT_RIGHT,
             ConstellationRecipe.ConstellationAtlarSlot.DOWN_LEFT_LEFT,
@@ -1176,7 +1172,7 @@ public class RegistryRecipes {
             newShapedRecipe("internal/altar/lens_break", ItemColoredLens.ColorType.BREAK.asStack())
                 .addPart(ItemCraftingComponent.MetaType.GLASS_LENS.asStack(), ShapedRecipeSlot.CENTER)
                 .addPart(OreDictAlias.ITEM_DIAMOND, ShapedRecipeSlot.UPPER_CENTER)
-                .addPart(Items.IRON_PICKAXE, ShapedRecipeSlot.LOWER_CENTER)
+                .addPart(Items.iron_pickaxe, ShapedRecipeSlot.LOWER_CENTER)
                 .forceEmptySpaces()
                 .unregisteredAccessibleShapedRecipe());
         rGlassLensBreak.setAttItem(
@@ -1191,7 +1187,7 @@ public class RegistryRecipes {
         rGlassLensDamage = registerConstellationRecipe(
             newShapedRecipe("internal/altar/lens_damage", ItemColoredLens.ColorType.DAMAGE.asStack())
                 .addPart(ItemCraftingComponent.MetaType.GLASS_LENS.asStack(), ShapedRecipeSlot.CENTER)
-                .addPart(Items.FLINT, ShapedRecipeSlot.LOWER_LEFT, ShapedRecipeSlot.LOWER_RIGHT)
+                .addPart(Items.flint, ShapedRecipeSlot.LOWER_LEFT, ShapedRecipeSlot.LOWER_RIGHT)
                 .addPart(OreDictAlias.ITEM_DIAMOND, ShapedRecipeSlot.UPPER_CENTER)
                 .addPart(OreDictAlias.ITEM_IRON_INGOT, ShapedRecipeSlot.LEFT, ShapedRecipeSlot.RIGHT)
                 .forceEmptySpaces()
@@ -1218,14 +1214,14 @@ public class RegistryRecipes {
             ConstellationRecipe.ConstellationAtlarSlot.UP_UP_RIGHT,
             ConstellationRecipe.ConstellationAtlarSlot.UP_UP_LEFT);
         rGlassLensGrowth.setCstItem(
-            Items.WHEAT_SEEDS,
+            Items.wheat_seeds,
             ConstellationRecipe.ConstellationAtlarSlot.DOWN_DOWN_RIGHT,
             ConstellationRecipe.ConstellationAtlarSlot.DOWN_DOWN_LEFT);
 
         rGlassLensRegeneration = registerConstellationRecipe(
             newShapedRecipe("internal/altar/lens_regen", ItemColoredLens.ColorType.REGEN.asStack())
                 .addPart(ItemCraftingComponent.MetaType.GLASS_LENS.asStack(), ShapedRecipeSlot.CENTER)
-                .addPart(Items.GHAST_TEAR, ShapedRecipeSlot.UPPER_CENTER)
+                .addPart(Items.ghast_tear, ShapedRecipeSlot.UPPER_CENTER)
                 .addPart(OreDictAlias.ITEM_DIAMOND, ShapedRecipeSlot.LOWER_CENTER)
                 .forceEmptySpaces()
                 .unregisteredAccessibleShapedRecipe());
@@ -1241,7 +1237,7 @@ public class RegistryRecipes {
         rGlassLensPush = registerConstellationRecipe(
             newShapedRecipe("internal/altar/lens_push", ItemColoredLens.ColorType.PUSH.asStack())
                 .addPart(ItemCraftingComponent.MetaType.GLASS_LENS.asStack(), ShapedRecipeSlot.CENTER)
-                .addPart(Blocks.PISTON, ShapedRecipeSlot.UPPER_LEFT, ShapedRecipeSlot.UPPER_RIGHT)
+                .addPart(Blocks.piston, ShapedRecipeSlot.UPPER_LEFT, ShapedRecipeSlot.UPPER_RIGHT)
                 .forceEmptySpaces()
                 .unregisteredAccessibleShapedRecipe());
         rGlassLensPush.setAttItem(OreDictAlias.ITEM_GLOWSTONE_DUST, AttunementRecipe.AttunementAltarSlot.values());
@@ -1323,7 +1319,7 @@ public class RegistryRecipes {
                     ShapedRecipeSlot.LEFT,
                     ShapedRecipeSlot.RIGHT,
                     ShapedRecipeSlot.LOWER_CENTER)
-                .addPart(Items.BOOK, ShapedRecipeSlot.CENTER)
+                .addPart(Items.book, ShapedRecipeSlot.CENTER)
                 .addPart(ItemCraftingComponent.MetaType.PARCHMENT.asStack(), ShapedRecipeSlot.UPPER_CENTER)
                 .unregisteredAccessibleShapedRecipe());
         rJournal.setPassiveStarlightRequirement(20);
@@ -1351,7 +1347,7 @@ public class RegistryRecipes {
                 "internal/altar/marble_black_raw",
                 new ItemStack(BlocksAS.blockBlackMarble, 8, BlockBlackMarble.BlackMarbleBlockType.RAW.ordinal()))
                     .addPart(OreDictAlias.BLOCK_MARBLE, ShapedRecipeSlot.values())
-                    .addPart(Items.COAL, ShapedRecipeSlot.CENTER)
+                    .addPart(Items.coal, ShapedRecipeSlot.CENTER)
                     .unregisteredAccessibleShapedRecipe()).setPassiveStarlightRequirement(20);
 
         registerAltarRecipe(
@@ -1580,7 +1576,7 @@ public class RegistryRecipes {
             if (c instanceof IMinorConstellation) continue;
 
             List<ItemHandle> signature = c.getConstellationSignatureItems();
-            if (!(signature == null || signature.stackSize <= 0)) {
+            if (!(signature == null || signature.isEmpty())) {
                 ItemHandle first = Iterables.getFirst(signature, null); // Never null.
                 AccessibleRecipeAdapater ar = newShapedRecipe(
                     "internal/cape/att/" + c.getSimpleName()

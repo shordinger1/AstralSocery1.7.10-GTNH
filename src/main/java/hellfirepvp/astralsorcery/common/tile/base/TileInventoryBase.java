@@ -17,7 +17,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 
-import hellfirepvp.astralsorcery.common.util.ItemStackHandler;
+import com.cleanroommc.modularui.utils.item.ItemStackHandler;
 import hellfirepvp.astralsorcery.common.util.ItemUtils;
 
 /**

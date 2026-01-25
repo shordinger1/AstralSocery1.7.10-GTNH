@@ -10,6 +10,7 @@ package hellfirepvp.astralsorcery.common.integrations;
 
 import net.minecraft.item.ItemStack;
 
+import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -33,6 +34,7 @@ public class ModIntegrationNEI {
     /**
      * Called during FML initialization to set up NEI integration
      */
+    @Optional.Method(modid = "NotEnoughItems")
     public static void init() {
         if (!initialized) {
             registerNEIRecipeHandlers();
@@ -44,6 +46,7 @@ public class ModIntegrationNEI {
     /**
      * Register all Astral Sorcery recipe handlers with NEI
      */
+    @Optional.Method(modid = "NotEnoughItems")
     private static void registerNEIRecipeHandlers() {
         try {
             // Register Light Well handler
@@ -84,34 +87,31 @@ public class ModIntegrationNEI {
     private static void registerCatalysts() {
         try {
             // Light Well catalyst
-            codechicken.nei.api.API.addItemRecipeHandler(new ItemStack(BlocksAS.blockWell), "astralsorcery.lightwell");
+            codechicken.nei.api.API.addRecipeCatalyst(new ItemStack(BlocksAS.blockWell), "astralsorcery.lightwell");
 
             // Grindstone catalyst
-            codechicken.nei.api.API.addItemRecipeHandler(
+            codechicken.nei.api.API.addRecipeCatalyst(
                 hellfirepvp.astralsorcery.common.block.BlockMachine.MachineType.GRINDSTONE.asStack(),
                 "astralsorcery.grindstone");
 
             // Starlight Infuser catalyst
-            codechicken.nei.api.API
-                .addItemRecipeHandler(new ItemStack(BlocksAS.starlightInfuser), "astralsorcery.infuser");
+            codechicken.nei.api.API.addRecipeCatalyst(new ItemStack(BlocksAS.starlightInfuser), "astralsorcery.infuser");
 
             // Transmutation catalysts (lens items)
-            codechicken.nei.api.API
-                .addItemRecipeHandler(new ItemStack(BlocksAS.lens), "astralsorcery.lightTransmutation");
-            codechicken.nei.api.API
-                .addItemRecipeHandler(new ItemStack(BlocksAS.lensPrism), "astralsorcery.lightTransmutation");
+            codechicken.nei.api.API.addRecipeCatalyst(new ItemStack(BlocksAS.lens), "astralsorcery.lightTransmutation");
+            codechicken.nei.api.API.addRecipeCatalyst(new ItemStack(BlocksAS.lensPrism), "astralsorcery.lightTransmutation");
 
             // Altar catalysts for each tier
-            codechicken.nei.api.API.addItemRecipeHandler(
+            codechicken.nei.api.API.addRecipeCatalyst(
                 new ItemStack(BlocksAS.blockAltar, 1, BlockAltar.AltarType.ALTAR_1.ordinal()),
                 "astralsorcery.altar.discovery");
-            codechicken.nei.api.API.addItemRecipeHandler(
+            codechicken.nei.api.API.addRecipeCatalyst(
                 new ItemStack(BlocksAS.blockAltar, 1, BlockAltar.AltarType.ALTAR_2.ordinal()),
                 "astralsorcery.altar.attunement");
-            codechicken.nei.api.API.addItemRecipeHandler(
+            codechicken.nei.api.API.addRecipeCatalyst(
                 new ItemStack(BlocksAS.blockAltar, 1, BlockAltar.AltarType.ALTAR_3.ordinal()),
                 "astralsorcery.altar.constellation");
-            codechicken.nei.api.API.addItemRecipeHandler(
+            codechicken.nei.api.API.addRecipeCatalyst(
                 new ItemStack(BlocksAS.blockAltar, 1, BlockAltar.AltarType.ALTAR_4.ordinal()),
                 "astralsorcery.altar.trait");
 
@@ -125,16 +125,16 @@ public class ModIntegrationNEI {
      */
     private static void hideNEIItems() {
         // Hide items from NEI using IMC
-        hideItem(ItemsAS.knowledgeFragment);
-        hideItem(ItemsAS.fragmentCapsule);
-        hideItem(BlocksAS.blockFakeTree);
-        hideItem(BlocksAS.translucentBlock);
-        hideItem(BlocksAS.blockVanishing);
-        hideItem(BlocksAS.blockStructural);
-        hideItem(BlocksAS.blockPortalNode);
+        hideItem(new ItemStack(ItemsAS.knowledgeFragment));
+        hideItem(new ItemStack(ItemsAS.fragmentCapsule));
+        hideItem(new ItemStack(BlocksAS.blockFakeTree));
+        hideItem(new ItemStack(BlocksAS.translucentBlock));
+        hideItem(new ItemStack(BlocksAS.blockVanishing));
+        hideItem(new ItemStack(BlocksAS.blockStructural));
+        hideItem(new ItemStack(BlocksAS.blockPortalNode));
 
         // Hide the T4 altar (metadata 4)
-        hideItemWithMeta(BlocksAS.blockAltar, 4);
+        hideItemWithMeta(new ItemStack(BlocksAS.blockAltar, 1, 4), 4);
     }
 
     private static void hideItem(ItemStack stack) {
@@ -180,6 +180,7 @@ public class ModIntegrationNEI {
      */
     public static class NEICompat {
 
+        @Optional.Method(modid = "NotEnoughItems")
         public static void init() {
             if (!initialized && isNEILoaded()) {
                 ModIntegrationNEI.init();

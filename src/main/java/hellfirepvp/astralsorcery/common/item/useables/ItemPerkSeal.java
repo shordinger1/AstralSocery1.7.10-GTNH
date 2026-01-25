@@ -42,7 +42,7 @@ public class ItemPerkSeal extends Item {
     public static int getPlayerSealCount(IItemHandler inv) {
         int count = 0;
         for (ItemStack stack : ItemUtils.findItemsInInventory(inv, new ItemStack(ItemsAS.perkSeal), false)) {
-            count += stack.getCount();
+            count += stack.stackSize;
         }
         return count;
     }

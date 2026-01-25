@@ -19,6 +19,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.common.crafting.IGatedRecipe;
 import hellfirepvp.astralsorcery.common.crafting.ItemHandle;
+import hellfirepvp.astralsorcery.common.migration.FluidActionResult;
 import hellfirepvp.astralsorcery.common.tile.TileStarlightInfuser;
 import hellfirepvp.astralsorcery.common.util.ItemUtils;
 
@@ -37,7 +38,7 @@ public abstract class AbstractInfusionRecipe {
     private boolean acceptsChalices = true;
 
     @Nonnull
-    protected ItemStack output = null;
+    protected ItemStack output;
     @Nonnull
     protected ItemHandle input;
 
@@ -127,12 +128,15 @@ public abstract class AbstractInfusionRecipe {
 
     public boolean matches(TileStarlightInfuser infuser) {
         if (this instanceof IGatedRecipe) {
-            if (infuser.worldObj.isRemote) {
+            // In 1.7.10, use getWorldObj() instead of direct field access
+            if (infuser.getWorldObj().isRemote) {
                 if (!((IGatedRecipe) this).hasProgressionClient()) return false;
             }
         }
 
-        return infuser.hasMultiblock() && !infuser.getInputStack()
-            .isEmpty() && input.matchCrafting(infuser.getInputStack());
+        ItemStack inputStack = infuser.getInputStack();
+        // In 1.7.10, ItemStack == null || ItemStack.stackSize <= 0 doesn't exist, use stackSize check
+        return infuser.hasMultiblock() && !(inputStack == null || inputStack.stackSize <= 0)
+            && input.matchCrafting(infuser.getInputStack());
     }
 }

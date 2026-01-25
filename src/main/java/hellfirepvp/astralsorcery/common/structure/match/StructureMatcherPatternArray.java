@@ -9,10 +9,12 @@
 package hellfirepvp.astralsorcery.common.structure.match;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import hellfirepvp.astralsorcery.common.migration.Vec3i;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;

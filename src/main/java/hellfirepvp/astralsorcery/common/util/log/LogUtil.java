@@ -71,7 +71,7 @@ public class LogUtil {
                 }
             }
 
-            loggingEnabled = !loggedCategories.isEmpty();
+            loggingEnabled = !loggedCategories == null || loggedCategories.stackSize <= 0;
         }
     }
 

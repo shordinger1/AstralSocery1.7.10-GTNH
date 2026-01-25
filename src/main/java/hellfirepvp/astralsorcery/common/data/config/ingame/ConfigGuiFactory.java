@@ -29,20 +29,27 @@ import hellfirepvp.astralsorcery.common.data.config.ingame.screen.GuiConfigOverv
 public class ConfigGuiFactory implements IModGuiFactory {
 
     @Override
-    public void initialize(Minecraft minecraftInstance) {}
-
-    @Override
-    public boolean hasConfigGui() {
-        return true;
+    public void initialize(Minecraft minecraftInstance) {
+        // Initialization if needed
     }
 
+    /**
+     * In 1.7.10, return the class of the main config GUI instead of creating instances
+     */
     @Override
-    public GuiScreen createConfigGui(GuiScreen parentScreen) {
-        return new GuiConfigOverview(parentScreen);
+    public Class<? extends GuiScreen> mainConfigGuiClass() {
+        return GuiConfigOverview.class;
     }
 
     @Override
     public Set<RuntimeOptionCategoryElement> runtimeGuiCategories() {
+        // No runtime GUI categories for this mod
+        return null;
+    }
+
+    @Override
+    public RuntimeOptionGuiHandler getHandlerFor(RuntimeOptionCategoryElement element) {
+        // No runtime GUI handlers
         return null;
     }
 

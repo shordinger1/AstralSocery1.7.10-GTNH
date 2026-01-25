@@ -40,10 +40,14 @@ import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
 public abstract class ItemBlockStorage extends Item {
 
     public static void tryStoreBlock(ItemStack storeIn, World w, BlockPos pos) {
-        if (w.getTileEntity(pos) != null) return;
-        Block stateToStore = w.getBlock(pos);
-        if (Item.getItemFromBlock(stateToStore) == Items.AIR) return; // Can't charge the player anyway.
-        if (stateToStore.getBlockHardness(w, pos) == -1) return;
+        // 1.7.10: getTileEntity() takes x, y, z parameters
+        if (w.getTileEntity(pos.getX(), pos.getY(), pos.getZ()) != null) return;
+        // 1.7.10: getBlock() takes x, y, z parameters
+        Block stateToStore = w.getBlock(pos.getX(), pos.getY(), pos.getZ());
+        // 1.7.10: Check if Item.getItemFromBlock returns null (no item for this block)
+        if (Item.getItemFromBlock(stateToStore) == null) return; // Can't charge the player anyway.
+        // 1.7.10: getBlockHardness() takes (world, x, y, z)
+        if (stateToStore.getBlockHardness(w, pos.getX(), pos.getY(), pos.getZ()) == -1) return;
         NBTTagCompound stateTag = NBTHelper.getBlockStateNBTTag(stateToStore);
 
         NBTTagCompound cmp = NBTHelper.getPersistentData(storeIn);

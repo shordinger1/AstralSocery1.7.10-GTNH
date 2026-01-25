@@ -5,18 +5,18 @@
  * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
  * For further details, see the License file there.
  ******************************************************************************/
-
 package hellfirepvp.astralsorcery.common.registry.multiblock;
 
-import static hellfirepvp.astralsorcery.common.block.BlockMarble.MARBLE_TYPE;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.transpose;
 
-import net.minecraft.block.Block;
 import net.minecraft.util.ResourceLocation;
 
+import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
+import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+
 import hellfirepvp.astralsorcery.AstralSorcery;
-import hellfirepvp.astralsorcery.common.block.MarbleBlockType;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
-import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -25,104 +25,53 @@ import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
  * Created by HellFirePvP
  * Date: 02.10.2016 / 16:48
  */
-public class MultiblockRitualPedestal extends PatternBlockArray {
+public class MultiblockRitualPedestal {
+
+    private static final String STRUCTURE_ID = "pattern_ritual_pedestal";
+    private static IStructureDefinition<MultiblockRitualPedestal> STRUCTURE_DEFINITION = null;
 
     public MultiblockRitualPedestal() {
-        super(new ResourceLocation(AstralSorcery.MODID, "pattern_ritual_pedestal"));
-        load();
+        // Structure defined via getStructureDefinition()
     }
 
-    public MultiblockRitualPedestal(ResourceLocation name) {
-        super(name);
-        load();
+    public IStructureDefinition<MultiblockRitualPedestal> getStructureDefinition() {
+        if (STRUCTURE_DEFINITION == null) {
+            STRUCTURE_DEFINITION = StructureDefinition.<MultiblockRitualPedestal>builder()
+                .addShape(STRUCTURE_ID, transpose(shape))
+                .addElement('P', ofBlock(BlocksAS.ritualPedestal, 0))
+                .addElement('H', ofBlock(BlocksAS.blockMarble, 1)) // CHISELED
+                .addElement('B', ofBlock(BlocksAS.blockMarble, 2)) // BRICKS
+                .addElement('R', ofBlock(BlocksAS.blockMarble, 0)) // RAW
+                .addElement('A', ofBlock(BlocksAS.blockMarble, 3)) // ARCH
+                .build();
+        }
+        return STRUCTURE_DEFINITION;
     }
 
-    private void load() {
-        Block marble = BlocksAS.blockMarble;
-
-        addAirCube(-2, 0, -2, 2, 2, 2);
-        addAirCube(-3, 0, -1, 3, 2, 1);
-        addAirCube(-1, 0, -3, 1, 2, 3);
-
-        addBlock(0, 0, 0, BlocksAS.ritualPedestal);
-
-        Block mch = marble.withProperty(MARBLE_TYPE, MarbleBlockType.CHISELED);
-        Block mbr = marble.withProperty(MARBLE_TYPE, MarbleBlockType.BRICKS);
-        Block mrw = marble.withProperty(MARBLE_TYPE, MarbleBlockType.RAW);
-        Block mar = marble.withProperty(MARBLE_TYPE, MarbleBlockType.ARCH);
-
-        addBlock(0, -1, 0, mch);
-
-        addBlock(0, -1, 1, mbr);
-        addBlock(0, -1, 2, mbr);
-        addBlock(0, -1, 3, mbr);
-        addBlock(1, -1, 3, mbr);
-        addBlock(-1, -1, 3, mbr);
-
-        addBlock(0, -1, -1, mbr);
-        addBlock(0, -1, -2, mbr);
-        addBlock(0, -1, -3, mbr);
-        addBlock(1, -1, -3, mbr);
-        addBlock(-1, -1, -3, mbr);
-
-        addBlock(1, -1, 0, mbr);
-        addBlock(2, -1, 0, mbr);
-        addBlock(3, -1, 0, mbr);
-        addBlock(3, -1, 1, mbr);
-        addBlock(3, -1, -1, mbr);
-
-        addBlock(-1, -1, 0, mbr);
-        addBlock(-2, -1, 0, mbr);
-        addBlock(-3, -1, 0, mbr);
-        addBlock(-3, -1, 1, mbr);
-        addBlock(-3, -1, -1, mbr);
-
-        addBlock(2, -1, 2, mbr);
-        addBlock(-2, -1, 2, mbr);
-        addBlock(2, -1, -2, mbr);
-        addBlock(-2, -1, -2, mbr);
-
-        addBlock(1, -1, 1, mrw);
-        addBlock(1, -1, 2, mrw);
-        addBlock(2, -1, 1, mrw);
-
-        addBlock(-1, -1, 1, mrw);
-        addBlock(-1, -1, 2, mrw);
-        addBlock(-2, -1, 1, mrw);
-
-        addBlock(1, -1, -1, mrw);
-        addBlock(1, -1, -2, mrw);
-        addBlock(2, -1, -1, mrw);
-
-        addBlock(-1, -1, -1, mrw);
-        addBlock(-1, -1, -2, mrw);
-        addBlock(-2, -1, -1, mrw);
-
-        addBlock(0, -1, 4, mar);
-        addBlock(1, -1, 4, mar);
-        addBlock(-1, -1, 4, mar);
-
-        addBlock(0, -1, -4, mar);
-        addBlock(1, -1, -4, mar);
-        addBlock(-1, -1, -4, mar);
-
-        addBlock(4, -1, 0, mar);
-        addBlock(4, -1, 1, mar);
-        addBlock(4, -1, -1, mar);
-
-        addBlock(-4, -1, 0, mar);
-        addBlock(-4, -1, 1, mar);
-        addBlock(-4, -1, -1, mar);
-
-        addBlock(3, -1, 2, mar);
-        addBlock(3, -1, -2, mar);
-        addBlock(-3, -1, 2, mar);
-        addBlock(-3, -1, -2, mar);
-
-        addBlock(2, -1, 3, mar);
-        addBlock(-2, -1, 3, mar);
-        addBlock(2, -1, -3, mar);
-        addBlock(-2, -1, -3, mar);
+    public ResourceLocation getStructureId() {
+        return new ResourceLocation(AstralSorcery.MODID, STRUCTURE_ID);
     }
+
+    private final String[][] shape = new String[][] {
+        // Y = -1 (Base layer - complex pattern)
+        {"A     A", "A     A", "A     A", "BB   BB", "B  H  B", "BB   BB", "BB   BB", "B  H  B", "BB   BB"},
+        {"    B  ", "   BBB ", "  BBBBB", " BBBBB ", "BBHBBHBB", " BBBBB ", " BBBBB ", "  BBBBB", "   BBB "},
+        {"    B  ", "   BBB ", "  BBBBB", " BBBBB ", "BBHBBHBB", " BBBBB ", " BBBBB ", "  BBBBB", "   BBB "},
+        {"    B  ", "   BBB ", "  BBBBB", " BBBBB ", "BBHBBHBB", " BBBBB ", " BBBBB ", "  BBBBB", "   BBB "},
+        {"    B  ", "   BBB ", "  BBBBB", " BBBBB ", "BBHBBHBB", " BBBBB ", " BBBBB ", "  BBBBB", "   BBB "},
+        {"A     A", "A     A", "A     A", "BB   BB", "B  H  B", "BB   BB", "BB   BB", "B  H  B", "BB   BB"},
+        {"AAA AAA", "AAA AAA", "AAA AAA", "BB   BB", "B  H  B", "BB   BB", "BB   BB", "B  H  B", "BB   BB"},
+        {"B     B", "B     B", "BB   BB", " B RRB ", " BRH RB", " BRRB  ", " B RRB ", " BRH RB", " BRRB  "},
+        {"B     B", "B     B", "BB   BB", " B RRB ", " BRH RB", " BRRB  ", " B RRB ", " BRH RB", " BRRB  "},
+
+        // Y = 0 (Pedestal at center)
+        {"        ", "        ", "        ", "        ", "   P    ", "        ", "        ", "        ", "        "},
+
+        // Y = 1 (Air)
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
+
+        // Y = 2 (Air)
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
+    };
 
 }

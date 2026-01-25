@@ -38,19 +38,22 @@ public class AmuletEnchantmentRegistry implements ConfigDataAdapter<WeightedAmul
     @Override
     public Iterable<WeightedAmuletEnchantment> getDefaultDataSets() {
         List<WeightedAmuletEnchantment> enchantments = new LinkedList<>();
-        for (Enchantment e : ForgeRegistries.ENCHANTMENTS.getValues()) {
-            // if (!e.isCurse()) { // Cause fck curses on this.
-            // Enchantment.Rarity rarity = e.getRarity();
-            // enchantments.add(new WeightedAmuletEnchantment(e, rarity == null ? 5 : rarity.getWeight()));
-            // }
-            enchantments.add(new WeightedAmuletEnchantment(e, 5));
+        // 1.7.10: Iterate through Enchantment.enchantmentsList instead of ForgeRegistries
+        for (Enchantment e : Enchantment.enchantmentsList) {
+            if (e != null) {
+                // if (!e.isCurse()) { // Cause fck curses on this.
+                // Enchantment.Rarity rarity = e.getRarity();
+                // enchantments.add(new WeightedAmuletEnchantment(e, rarity == null ? 5 : rarity.getWeight()));
+                // }
+                enchantments.add(new WeightedAmuletEnchantment(e, 5));
+            }
         }
         return enchantments;
     }
 
     @Nullable
     public static Enchantment getRandomEnchant() {
-        if (possibleEnchants.isEmpty()) {
+        if (possibleEnchants == null || possibleEnchants.stackSize <= 0) {
             return null;
         }
         return WeightedRandom.getRandomItem(rand, possibleEnchants)

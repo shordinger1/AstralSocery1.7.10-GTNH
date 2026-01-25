@@ -12,8 +12,9 @@ import java.util.*;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.PlayerControllerMP;
-import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
@@ -24,6 +25,7 @@ import net.minecraft.world.World;
 
 import org.lwjgl.opengl.GL11;
 
+import com.cleanroommc.modularui.utils.item.InvWrapper;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
@@ -32,6 +34,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.client.event.ClientRenderEventHandler;
 import hellfirepvp.astralsorcery.client.util.AirBlockRenderWorld;
 import hellfirepvp.astralsorcery.client.util.Blending;
+import hellfirepvp.astralsorcery.client.util.RenderItemAccessor;
 import hellfirepvp.astralsorcery.client.util.RenderingUtils;
 import hellfirepvp.astralsorcery.client.util.TextureHelper;
 import hellfirepvp.astralsorcery.common.base.Mods;
@@ -40,7 +43,9 @@ import hellfirepvp.astralsorcery.common.integrations.ModIntegrationBotania;
 import hellfirepvp.astralsorcery.common.item.ItemBlockStorage;
 import hellfirepvp.astralsorcery.common.item.base.render.ItemAlignmentChargeConsumer;
 import hellfirepvp.astralsorcery.common.item.base.render.ItemHandRender;
+import hellfirepvp.astralsorcery.common.item.base.render.ItemHandRenderHelper;
 import hellfirepvp.astralsorcery.common.item.base.render.ItemHudRender;
+import hellfirepvp.astralsorcery.common.migration.RayTraceResult;
 import hellfirepvp.astralsorcery.common.network.PacketChannel;
 import hellfirepvp.astralsorcery.common.network.packet.server.PktParticleEvent;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
@@ -75,14 +80,9 @@ public class ItemExchangeWand extends ItemBlockStorage
         return ct == ChargeType.TEMP;
     }
 
-    @Override
-    public float getDestroySpeed(ItemStack stack, Block state) {
+    // 1.7.10: getDestroySpeed doesn't exist as overrideable method
+    public float func_150893_a(ItemStack stack, Block state) {
         return 0;
-    }
-
-    @Override
-    public boolean canHarvestBlock(Block blockIn) {
-        return true;
     }
 
     @Override
@@ -94,7 +94,7 @@ public class ItemExchangeWand extends ItemBlockStorage
     @SideOnly(Side.CLIENT)
     public void onRenderInHandHUD(ItemStack lastCacheInstance, float fadeAlpha, float pTicks) {
         Collection<ItemStack> stored = getMappedStoredStates(lastCacheInstance).values();
-        if ((stored == null || stored.isEmpty())) return;
+        if ((stored == null || stored == null || stored.stackSize <= 0)) return;
 
         Map<ItemStack, Integer> amountMap = new LinkedHashMap<>();
         for (ItemStack stack : stored) {
@@ -165,13 +165,15 @@ public class ItemExchangeWand extends ItemBlockStorage
         TextureHelper.refreshTextureBindState();
         TextureHelper.setActiveTextureToAtlasSprite();
         RenderHelper.enableGUIStandardItemLighting();
-        RenderItem ri = Minecraft.getMinecraft()
-            .getRenderItem();
+        RenderItem ri = RenderItemAccessor.getRenderItem();
+        Minecraft mc = Minecraft.getMinecraft();
 
         tempOffsetY = offsetY;
         for (Map.Entry<ItemStack, Integer> entry : amountMap.entrySet()) {
+            // 1.7.10: renderItemAndEffectIntoGUI takes 5 parameters
             ri.renderItemAndEffectIntoGUI(
-                Minecraft.getMinecraft().thePlayer,
+                mc.fontRenderer,
+                mc.renderEngine,
                 entry.getKey(),
                 offsetX + 5,
                 tempOffsetY + 5);
@@ -198,31 +200,33 @@ public class ItemExchangeWand extends ItemBlockStorage
     @SideOnly(Side.CLIENT)
     public void onRenderWhileInHand(ItemStack stack, float pTicks) {
         Map<Block, ItemStack> storedStates = getMappedStoredStates(stack);
-        if (storedStates.isEmpty()) return;
+        if (storedStates == null || storedStates.stackSize <= 0) return;
         World world = Minecraft.getMinecraft().theWorld;
         Random r = getPreviewRandomFromWorld(world);
 
         EntityPlayer pl = Minecraft.getMinecraft().thePlayer;
-        PlayerControllerMP ctrl = Minecraft.getMinecraft().thePlayerController;
-        if (ctrl == null || pl == null) return;
-        RayTraceResult rtr = getLookBlock(pl, false, true, ctrl.getBlockReachDistance());
+        if (pl == null) return;
+        // 1.7.10: Use fixed range instead of playerController
+        RayTraceResult rtr = ItemHandRenderHelper.getLookBlock(pl, false, true, 5.0D);
         if (rtr == null || rtr.typeOfHit != hellfirepvp.astralsorcery.common.migration.RayTraceResult.Type.BLOCK)
             return;
 
+        // 1.7.10: AirBlockRenderWorld only takes BiomeGenBase parameter
         IBlockAccess airWorld = new AirBlockRenderWorld(
-            net.minecraft.world.biome.BiomeGenBase.plains,
-            world.getWorldType());
-        BlockPos origin = rtr.getBlockPos();
-        Block atOrigin = world.getBlock(origin);
+            net.minecraft.world.biome.BiomeGenBase.plains);
+        // 1.7.10: RayTraceResult doesn't have getBlockPos(), construct manually
+        BlockPos origin = new BlockPos(rtr.blockX, rtr.blockY, rtr.blockZ);
+        Block atOrigin = world.getBlock(origin.getX(), origin.getY(), origin.getZ());
         Block match = MiscUtils.getMatchingState(storedStates.keySet(), atOrigin);
         if (match != null && storedStates.keySet()
             .size() <= 1) {
             storedStates.remove(match);
         }
-        if (storedStates.isEmpty()) {
+        if (storedStates == null || storedStates.stackSize <= 0) {
             return;
         }
-        float hardness = atOrigin.getBlockHardness(world, origin);
+        // 1.7.10: getBlockHardness takes (World, x, y, z) instead of (World, BlockPos)
+        float hardness = atOrigin.getBlockHardness(world, origin.getX(), origin.getY(), origin.getZ());
         if (Config.exchangeWandMaxHardness != -1) {
             if (hardness > Config.exchangeWandMaxHardness) {
                 return;
@@ -263,7 +267,7 @@ public class ItemExchangeWand extends ItemBlockStorage
         }
         BlockArray found = BlockDiscoverer
             .discoverBlocksWithSameStateAround(world, origin, true, searchDepth, total, false);
-        if (found.isEmpty()) return;
+        if (found == null || found.stackSize <= 0) return;
 
         List<Block> applicableStates = Lists.newArrayList(storedStates.keySet());
 
@@ -308,7 +312,7 @@ public class ItemExchangeWand extends ItemBlockStorage
             .size() <= 1) {
             storedStates.remove(match);
         }
-        if (storedStates.isEmpty()) return true;
+        if (storedStates == null || storedStates.stackSize <= 0) return true;
 
         float hardness = atOrigin.getBlockHardness(world, x, y, z);
         if (Config.exchangeWandMaxHardness != -1) {
@@ -347,10 +351,16 @@ public class ItemExchangeWand extends ItemBlockStorage
         }
         BlockArray found = BlockDiscoverer
             .discoverBlocksWithSameStateAround(world, origin, true, searchDepth, total, false);
-        if (found.isEmpty()) return true;
+        if (found == null || found.stackSize <= 0) return true;
 
-        List<Tuple<Block, ItemStack>> shuffleable = MiscUtils
-            .flatten(storedStates, (block, stack) -> new Tuple<>(block, stack));
+        // 1.7.10: Replace lambda with anonymous class to avoid variable collision
+        List<Tuple<Block, ItemStack>> shuffleable = MiscUtils.flatten(storedStates,
+            new hellfirepvp.astralsorcery.common.migration.BiFunction<Block, ItemStack, Tuple<Block, ItemStack>>() {
+                @Override
+                public Tuple<Block, ItemStack> apply(Block block, ItemStack stackItem) {
+                    return new Tuple<>(block, stackItem);
+                }
+            });
         Random r = getPreviewRandomFromWorld(world);
         for (BlockPos placePos : found.getPattern()
             .keySet()) {
@@ -370,11 +380,12 @@ public class ItemExchangeWand extends ItemBlockStorage
             if (applicable == null) break; // No more blocks. LUL
 
             if (drainTempCharge(playerIn, Config.exchangeWandUseCost, true)) {
-                if (((EntityPlayerMP) playerIn).interactionManager
+                // 1.7.10: Use theItemInWorldManager instead of playerController
+                if (((EntityPlayerMP) playerIn).theItemInWorldManager
                     .tryHarvestBlock(placePos.getX(), placePos.getY(), placePos.getZ())) {
                     Block place = applicable.key;
-                    // 1.7.10: No getStateForPlacement, use block directly
-                    if (MiscUtils.canPlayerPlaceBlockPos(playerIn, side, place, placePos, EnumFacing.getFront(side))) {
+                    // 1.7.10: canPlayerPlaceBlockPos takes 4 parameters
+                    if (MiscUtils.canPlayerPlaceBlockPos(playerIn, place, placePos, side)) {
                         if (world.setBlock(
                             placePos.getX(),
                             placePos.getY(),

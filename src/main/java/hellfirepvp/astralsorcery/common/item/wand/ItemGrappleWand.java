@@ -44,7 +44,7 @@ public class ItemGrappleWand extends Item implements ItemAlignmentChargeConsumer
 
     @Override
     public EnumAction getItemUseAction(ItemStack stack) {
-        return EnumAction.BLOCK;
+        return EnumAction.block;
     }
 
     @Override

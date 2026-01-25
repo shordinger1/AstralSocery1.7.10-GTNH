@@ -41,7 +41,7 @@ public class RenderSpectralTool extends Render {
         EntitySpectralTool ent = (EntitySpectralTool) entity;
 
         ItemStack is = ent.getItem();
-        // 1.7.10: ItemStack.isEmpty() doesn't exist, use stackSize check
+        // 1.7.10: ItemStack == null || ItemStack.stackSize <= 0 doesn't exist, use stackSize check
         if (is == null || is.stackSize <= 0) {
             return;
         }

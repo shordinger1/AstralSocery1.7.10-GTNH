@@ -118,7 +118,7 @@ public class SyncDataHolder implements ITickHandler {
 
     @Override
     public void tick(TickEvent.Type type, Object... context) {
-        if ((dirtyData == null || dirtyData.stackSize <= 0)) return;
+        if ((dirtyData == null || dirtyData.size() <= 0)) return;
         Map<String, AbstractData> pktData = new HashMap<>();
         synchronized (dirtyLock) {
             for (String s : dirtyData) {

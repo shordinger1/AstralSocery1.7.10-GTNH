@@ -63,9 +63,9 @@ public class StructureDesertShrine extends StructureBlockArray {
 
     private void placeSand(World world, BlockPos center) {
         Block marble = BlocksAS.blockMarble;
-        // CHISELED = metadata 4, PILLAR = metadata 2
-        int metaChiseled = 4;
-        int metaPillar = 2;
+        // BlockMarble metadata: RAW=0, CHISELED=1, BRICKS=2, ARCH=3, PILLAR=5
+        int metaChiseled = 1;
+        int metaPillar = 5;
 
         placeBlockCube(world, center, -4, 1, -4, 4, 1, 4);
 
@@ -221,11 +221,11 @@ public class StructureDesertShrine extends StructureBlockArray {
     private void load() {
         Block marble = BlocksAS.blockMarble;
 
-        // BlockMarble metadata: RAW=0, BRICKS=1, PILLAR=2, ARCH=3, CHISELED=4
-        BlockStateCheck mbr = new BlockStateCheck.Meta(marble, 1); // BRICKS
+        // BlockMarble metadata: RAW=0, CHISELED=1, BRICKS=2, ARCH=3, PILLAR=5
+        BlockStateCheck mbr = new BlockStateCheck.Meta(marble, 2); // BRICKS
         BlockStateCheck mrw = new BlockStateCheck.Meta(marble, 0); // RAW
         BlockStateCheck mar = new BlockStateCheck.Meta(marble, 3); // ARCH
-        BlockStateCheck mpl = new BlockStateCheck.Meta(marble, 2); // PILLAR
+        BlockStateCheck mpl = new BlockStateCheck.Meta(marble, 5); // PILLAR
 
         addBlockCube(marble, mrw, -4, 0, -3, 4, -7, 3);
         addBlockCube(marble, mrw, -3, 0, -4, 3, -7, 4);
@@ -271,9 +271,8 @@ public class StructureDesertShrine extends StructureBlockArray {
 
             @Override
             public void onPlace(IBlockAccess access, BlockPos at, TileEntity te) {
-                if (te instanceof TileEntityChest) {
-                    ((TileEntityChest) te).setLootTable(LootTableUtil.LOOT_TABLE_SHRINE, STATIC_RAND.nextLong());
-                }
+                // 1.7.10: setLootTable doesn't exist, loot tables are filled when chest is opened
+                // ((TileEntityChest) te).setLootTable(LootTableUtil.LOOT_TABLE_SHRINE, STATIC_RAND.nextLong());
             }
         };
 

@@ -54,7 +54,7 @@ public class ItemPerkGem extends Item implements IItemVariants {
         setCreativeTab(RegistryItems.creativeTabAstralSorcery);
     }
 
-    @Override
+
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip) {
         PlayerProgress prog = ResearchManager.clientProgress;
@@ -68,7 +68,7 @@ public class ItemPerkGem extends Item implements IItemVariants {
         }
     }
 
-    @Override
+
     public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> items) {
         // 1.7.10 compatibility: Item.isInCreativeTab() doesn't exist, use tab == this.getCreativeTab() instead
         if (tab == this.getCreativeTab()) {
@@ -127,7 +127,7 @@ public class ItemPerkGem extends Item implements IItemVariants {
         if ((gem == null || gem.stackSize <= 0) || !(gem.getItem() instanceof ItemPerkGem)) {
             return null;
         }
-        int meta = gem.getMetadata();
+        int meta = gem.getItemDamage();
         if (meta < 0 || meta >= GemType.values().length) {
             return null;
         }

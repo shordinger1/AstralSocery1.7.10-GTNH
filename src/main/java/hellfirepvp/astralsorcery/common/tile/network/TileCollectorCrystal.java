@@ -9,6 +9,7 @@
 package hellfirepvp.astralsorcery.common.tile.network;
 
 import java.awt.*;
+import net.minecraft.util.EnumChatFormatting;
 import java.util.Random;
 import java.util.UUID;
 

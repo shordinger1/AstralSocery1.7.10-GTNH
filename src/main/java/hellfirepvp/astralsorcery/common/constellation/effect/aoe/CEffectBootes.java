@@ -64,7 +64,7 @@ public class CEffectBootes extends CEffectEntityCollect<EntityLivingBase> {
         }
         boolean did = false;
         List<EntityLivingBase> entities = collectEntities(world, pos, modified);
-        if (!entities.isEmpty()) {
+        if (!entities == null || entities.stackSize <= 0) {
             for (EntityLivingBase e : entities) {
                 HerdableAnimal herd = HerdableAnimal.getHerdable(e);
                 if (herd == null) continue;

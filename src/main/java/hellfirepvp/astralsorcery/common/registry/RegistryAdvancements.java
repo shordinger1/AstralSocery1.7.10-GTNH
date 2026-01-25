@@ -22,11 +22,11 @@ import hellfirepvp.astralsorcery.common.advancements.*;
 public class RegistryAdvancements {
 
     public static void init() {
-        register(DISCOVER_CONSTELLATION = new DiscoverConstellationTrigger());
-        register(ATTUNE_SELF = new AttuneSelfTrigger());
-        register(ATTUNE_CRYSTAL = new AttuneCrystalTrigger());
-        register(ALTAR_CRAFT = new AltarCraftTrigger());
-        register(PERK_LEVEL = new PerkLevelTrigger());
+        DISCOVER_CONSTELLATION = new DiscoverConstellationTrigger();
+        ATTUNE_SELF = new AttuneSelfTrigger();
+        ATTUNE_CRYSTAL = new AttuneCrystalTrigger();
+        ALTAR_CRAFT = new AltarCraftTrigger();
+        PERK_LEVEL = new PerkLevelTrigger();
     }
 
 }

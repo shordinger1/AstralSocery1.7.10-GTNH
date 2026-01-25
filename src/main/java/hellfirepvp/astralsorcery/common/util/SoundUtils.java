@@ -8,8 +8,8 @@
 
 package hellfirepvp.astralsorcery.common.util;
 
+import hellfirepvp.astralsorcery.common.migration.SoundEvent;
 import net.minecraft.client.audio.SoundCategory;
-import net.minecraft.client.audio.SoundEvent;
 import net.minecraft.util.ResourceLocation;
 
 /**

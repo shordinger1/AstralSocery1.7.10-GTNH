@@ -8,7 +8,8 @@
 
 package hellfirepvp.astralsorcery.common.tile.base;
 
-import java.util.LinkedList;
+
+import net.minecraft.util.EnumChatFormatting;import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Nonnull;

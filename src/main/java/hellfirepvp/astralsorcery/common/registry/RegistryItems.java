@@ -73,22 +73,22 @@ public class RegistryItems {
         creativeTabAstralSorcery = new CreativeTabs(AstralSorcery.MODID) {
 
             @Override
-            public ItemStack getTabIconItem() {
-                return new ItemStack(journal);
+            public Item getTabIconItem() {
+                return new ItemStack(journal).getItem();
             }
         };
         creativeTabAstralSorceryPapers = new CreativeTabs(AstralSorcery.MODID + ".papers") {
 
             @Override
-            public ItemStack getTabIconItem() {
-                return new ItemStack(constellationPaper);
+            public Item getTabIconItem() {
+                return new ItemStack(constellationPaper).getItem();
             }
         };
         creativeTabAstralSorceryTunedCrystals = new CreativeTabs(AstralSorcery.MODID + ".crystals") {
 
             @Override
-            public ItemStack getTabIconItem() {
-                return new ItemStack(tunedRockCrystal);
+            public Item getTabIconItem() {
+                return new ItemStack(tunedRockCrystal).getItem();
             }
         };
 

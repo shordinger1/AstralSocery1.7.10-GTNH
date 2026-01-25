@@ -10,6 +10,7 @@ package hellfirepvp.astralsorcery.client.gui;
 
 import java.awt.*;
 import java.util.*;
+import net.minecraft.util.EnumChatFormatting;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
@@ -605,7 +606,7 @@ public class GuiTelescope extends GuiTileBase<TileTelescope> implements GuiSkySc
         RotationConstellationInformation infos = currentInformation.informationMap.get(rotation);
         if (infos == null) return;
         List<ConstellationInformation> renderInfos = infos.informations;
-        if (renderInfos.isEmpty()) return;
+        if (renderInfos == null || renderInfos.stackSize <= 0) return;
 
         lblInfos: for (ConstellationInformation info : renderInfos) {
             IConstellation c = info.constellation;

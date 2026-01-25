@@ -8,11 +8,8 @@
 
 package hellfirepvp.astralsorcery.common.registry.structures;
 
-import static hellfirepvp.astralsorcery.common.block.BlockMarble.MARBLE_TYPE;
-
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.world.IBlockAccess;
 
 import hellfirepvp.astralsorcery.common.block.BlockMarble;
@@ -21,6 +18,7 @@ import hellfirepvp.astralsorcery.common.lib.BlocksAS;
 import hellfirepvp.astralsorcery.common.structure.array.StructureBlockArray;
 import hellfirepvp.astralsorcery.common.tile.TileStructController;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
+import hellfirepvp.astralsorcery.common.util.BlockStateCheck;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -37,20 +35,23 @@ public class StructureSmallRuin extends StructureBlockArray {
 
     private void load() {
         Block marble = BlocksAS.blockMarble;
-        Block mrw = marble.withProperty(MARBLE_TYPE, BlockMarble.MarbleBlockType.RAW);
-        Block mch = marble.withProperty(MARBLE_TYPE, BlockMarble.MarbleBlockType.CHISELED);
-        Block mar = marble.withProperty(MARBLE_TYPE, BlockMarble.MarbleBlockType.ARCH);
-        Block mbr = marble.withProperty(MARBLE_TYPE, BlockMarble.MarbleBlockType.BRICKS);
 
-        Block stairsSouth = BlocksAS.blockMarbleStairs.withProperty(BlockMarbleStairs.FACING, EnumFacing.SOUTH);
-        Block stairsNorth = BlocksAS.blockMarbleStairs.withProperty(BlockMarbleStairs.FACING, EnumFacing.NORTH);
+        // BlockMarble metadata: RAW=0, CHISELED=1, BRICKS=2, ARCH=3, PILLAR=5
+        BlockStateCheck mrw = new BlockStateCheck.Meta(marble, 0); // RAW
+        BlockStateCheck mch = new BlockStateCheck.Meta(marble, 1); // CHISELED
+        BlockStateCheck mar = new BlockStateCheck.Meta(marble, 3); // ARCH
+        BlockStateCheck mbr = new BlockStateCheck.Meta(marble, 2); // BRICKS
+
+        // 1.7.10 stairs use metadata for facing: 0=EAST, 1=WEST, 2=SOUTH, 3=NORTH
+        BlockStateCheck stairsSouth = new BlockStateCheck.Meta(BlocksAS.blockMarbleStairs, 2); // SOUTH
+        BlockStateCheck stairsNorth = new BlockStateCheck.Meta(BlocksAS.blockMarbleStairs, 3); // NORTH
 
         addBlock(0, 3, 0, BlocksAS.blockPortalNode);
         addTileCallback(new BlockPos(0, 3, 0), new TileEntityCallback() {
 
             @Override
             public boolean isApplicable(TileEntity te) {
-                return te != null && te instanceof TileStructController;
+                return te instanceof TileStructController;
             }
 
             @Override
@@ -61,60 +62,60 @@ public class StructureSmallRuin extends StructureBlockArray {
             }
         });
 
-        addBlock(1, 0, 0, mrw);
-        addBlock(1, 0, 1, mrw);
-        addBlock(1, 0, 2, mrw);
-        addBlock(1, 0, 3, mrw);
-        addBlock(2, 0, 2, mrw);
-        addBlock(0, 0, 2, mrw);
-        addBlock(-1, 0, 2, mrw);
-        addBlock(0, 0, 3, mrw);
-        addBlock(-1, 0, 3, mrw);
-        addBlock(0, 0, 4, mrw);
-        addBlock(-1, 0, 4, mrw);
-        addBlock(0, 0, 5, mrw);
+        addBlock(1, 0, 0, marble, mrw);
+        addBlock(1, 0, 1, marble, mrw);
+        addBlock(1, 0, 2, marble, mrw);
+        addBlock(1, 0, 3, marble, mrw);
+        addBlock(2, 0, 2, marble, mrw);
+        addBlock(0, 0, 2, marble, mrw);
+        addBlock(-1, 0, 2, marble, mrw);
+        addBlock(0, 0, 3, marble, mrw);
+        addBlock(-1, 0, 3, marble, mrw);
+        addBlock(0, 0, 4, marble, mrw);
+        addBlock(-1, 0, 4, marble, mrw);
+        addBlock(0, 0, 5, marble, mrw);
 
-        addBlock(0, 0, -2, mrw);
-        addBlock(0, 0, -3, mrw);
-        addBlock(0, 0, -4, mrw);
-        addBlock(0, 0, -5, mrw);
-        addBlock(0, 0, -6, mrw);
-        addBlock(1, 0, -1, mrw);
-        addBlock(1, 0, -2, mbr);
-        addBlock(1, 0, -3, mrw);
-        addBlock(1, 0, -4, mrw);
-        addBlock(2, 0, -2, mrw);
-        addBlock(2, 0, -3, mrw);
-        addBlock(-1, 0, -3, mbr);
-        addBlock(-1, 0, -4, mrw);
-        addBlock(-2, 0, -4, mrw);
+        addBlock(0, 0, -2, marble, mrw);
+        addBlock(0, 0, -3, marble, mrw);
+        addBlock(0, 0, -4, marble, mrw);
+        addBlock(0, 0, -5, marble, mrw);
+        addBlock(0, 0, -6, marble, mrw);
+        addBlock(1, 0, -1, marble, mrw);
+        addBlock(1, 0, -2, marble, mbr);
+        addBlock(1, 0, -3, marble, mrw);
+        addBlock(1, 0, -4, marble, mrw);
+        addBlock(2, 0, -2, marble, mrw);
+        addBlock(2, 0, -3, marble, mrw);
+        addBlock(-1, 0, -3, marble, mbr);
+        addBlock(-1, 0, -4, marble, mrw);
+        addBlock(-2, 0, -4, marble, mrw);
 
-        addBlock(0, 1, 1, stairsSouth);
-        addBlock(0, 1, -1, stairsNorth);
+        addBlock(0, 1, 1, BlocksAS.blockMarbleStairs, stairsSouth);
+        addBlock(0, 1, -1, BlocksAS.blockMarbleStairs, stairsNorth);
 
-        addBlock(0, 1, -2, mrw);
-        addBlock(0, 1, -3, mrw);
-        addBlock(0, 1, -4, mrw);
-        addBlock(1, 1, -2, mrw);
-        addBlock(-1, 1, -2, mrw);
-        addBlock(1, 1, 0, mar);
-        addBlock(1, 1, -1, mar);
-        addBlock(1, 1, -3, stairsSouth);
+        addBlock(0, 1, -2, marble, mrw);
+        addBlock(0, 1, -3, marble, mrw);
+        addBlock(0, 1, -4, marble, mrw);
+        addBlock(1, 1, -2, marble, mrw);
+        addBlock(-1, 1, -2, marble, mrw);
+        addBlock(1, 1, 0, marble, mar);
+        addBlock(1, 1, -1, marble, mar);
+        addBlock(1, 1, -3, BlocksAS.blockMarbleStairs, stairsSouth);
 
-        addBlock(-1, 1, 1, mar);
-        addBlock(-1, 1, 2, mrw);
-        addBlock(0, 1, 2, mrw);
-        addBlock(1, 1, 2, mbr);
-        addBlock(1, 1, 3, stairsNorth);
-        addBlock(0, 1, 3, mrw);
+        addBlock(-1, 1, 1, marble, mar);
+        addBlock(-1, 1, 2, marble, mrw);
+        addBlock(0, 1, 2, marble, mrw);
+        addBlock(1, 1, 2, marble, mbr);
+        addBlock(1, 1, 3, BlocksAS.blockMarbleStairs, stairsNorth);
+        addBlock(0, 1, 3, marble, mrw);
 
-        addBlock(0, 2, 2, mch);
-        addBlock(0, 3, 2, mrw);
-        addBlock(0, 2, -2, mrw);
-        addBlock(0, 3, -2, mch);
+        addBlock(0, 2, 2, marble, mch);
+        addBlock(0, 3, 2, marble, mrw);
+        addBlock(0, 2, -2, marble, mrw);
+        addBlock(0, 3, -2, marble, mch);
 
-        addBlock(0, 4, 2, stairsNorth);
-        addBlock(0, 4, -2, stairsSouth);
+        addBlock(0, 4, 2, BlocksAS.blockMarbleStairs, stairsNorth);
+        addBlock(0, 4, -2, BlocksAS.blockMarbleStairs, stairsSouth);
     }
 
 }

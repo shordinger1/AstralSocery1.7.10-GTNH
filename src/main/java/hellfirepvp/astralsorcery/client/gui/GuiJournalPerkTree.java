@@ -291,7 +291,7 @@ public class GuiJournalPerkTree extends GuiScreenJournal {
                     && s.getItem() instanceof ItemPerkGem
                     && !ItemPerkGem.getModifiers(s)
                         .isEmpty());
-            if (found.isEmpty()) { // Close then.
+            if (found == null || found.stackSize <= 0) { // Close then.
                 closeSocketMenu();
                 return;
             }
@@ -482,7 +482,7 @@ public class GuiJournalPerkTree extends GuiScreenJournal {
 
         GL11.glDisable(GL11.GL_DEPTH_TEST);
 
-        // 1.7.10: ItemStack.isEmpty() doesn't exist, use stackSize check
+        // 1.7.10: ItemStack == null || ItemStack.stackSize <= 0 doesn't exist, use stackSize check
         if (this.foundSeals != null && this.foundSeals.stackSize > 0
             && rectSealBox.contains(mouseX - guiLeft, mouseY - guiTop)) {
             List<String> toolTip = this.foundSeals.getTooltip(
@@ -1133,7 +1133,7 @@ public class GuiJournalPerkTree extends GuiScreenJournal {
             }
 
             if (rectSealBox.contains(mouseX - guiLeft, mouseY - guiTop)) {
-                // 1.7.10: ItemStack.isEmpty() doesn't exist, use stackSize check
+                // 1.7.10: ItemStack == null || ItemStack.stackSize <= 0 doesn't exist, use stackSize check
                 if (this.foundSeals != null && this.foundSeals.stackSize > 0) {
                     this.mouseSealStack = new ItemStack(ItemsAS.perkSeal);
                 }

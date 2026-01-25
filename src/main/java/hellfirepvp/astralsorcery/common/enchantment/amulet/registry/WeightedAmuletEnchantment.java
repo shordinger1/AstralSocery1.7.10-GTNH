@@ -41,8 +41,8 @@ public class WeightedAmuletEnchantment extends WeightedRandom.Item implements Co
     @Nonnull
     @Override
     public String serialize() {
-        return this.enchantment.getRegistryName()
-            .toString() + ":" + itemWeight;
+        // In 1.7.10, use getName() instead of getRegistryName()
+        return this.enchantment.getName() + ":" + itemWeight;
     }
 
     @Nullable
@@ -55,7 +55,7 @@ public class WeightedAmuletEnchantment extends WeightedRandom.Item implements Co
         String weight = spl[spl.length - 1];
         StringBuilder path = new StringBuilder();
         for (int i = 1; i < spl.length - 1; i++) {
-            if (path.length() > 0) {
+            if (!path == null || path.stackSize <= 0) {
                 path.append(":"); // Cause that vanishes when splitting...
             }
             path.append(spl[i]);
@@ -73,7 +73,8 @@ public class WeightedAmuletEnchantment extends WeightedRandom.Item implements Co
                     + "' as dungeontactic's enchantments generated through the prism are prone to cause issues.");
             return null;
         }
-        Enchantment ench = ForgeRegistries.ENCHANTMENTS.getValue(new ResourceLocation(registryName));
+        // In 1.7.10, find enchantment by iterating through enchantmentsList
+        Enchantment ench = findEnchantmentByName(registryName);
         if (ench == null) {
             AstralSorcery.log
                 .info("Ignoring whitelist entry " + str + " for amulet enchantments - Enchantment does not exist!");
@@ -89,6 +90,18 @@ public class WeightedAmuletEnchantment extends WeightedRandom.Item implements Co
             return null;
         }
         return new WeightedAmuletEnchantment(ench, w);
+    }
+
+    /**
+     * Find an enchantment by its registry name in 1.7.10
+     */
+    private static Enchantment findEnchantmentByName(String registryName) {
+        for (Enchantment ench : Enchantment.enchantmentsList) {
+            if (ench != null && registryName.equals(ench.getName())) {
+                return ench;
+            }
+        }
+        return null;
     }
 
 }

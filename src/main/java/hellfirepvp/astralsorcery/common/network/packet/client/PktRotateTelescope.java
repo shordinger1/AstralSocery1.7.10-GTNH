@@ -76,7 +76,7 @@ public class PktRotateTelescope
                             : tt.getRotation()
                                 .nextCounterClockWise());
                     PktRotateTelescope pkt = new PktRotateTelescope(message.isClockwise, message.dimId, message.pos);
-                    PacketChannel.CHANNEL.sendTo(pkt, ctx.getServerHandler().player);
+                    PacketChannel.CHANNEL.sendTo(pkt, ctx.getServerHandler().playerEntity);
                 }
             }
         } else {

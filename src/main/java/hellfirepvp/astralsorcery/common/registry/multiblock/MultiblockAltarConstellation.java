@@ -8,17 +8,16 @@
 
 package hellfirepvp.astralsorcery.common.registry.multiblock;
 
-import static hellfirepvp.astralsorcery.common.block.BlockMarble.MARBLE_TYPE;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.transpose;
 
-import net.minecraft.block.Block;
 import net.minecraft.util.ResourceLocation;
 
+import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
+import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+
 import hellfirepvp.astralsorcery.AstralSorcery;
-import hellfirepvp.astralsorcery.common.block.BlockBlackMarble;
-import hellfirepvp.astralsorcery.common.block.BlockMarble;
-import hellfirepvp.astralsorcery.common.block.network.BlockAltar;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
-import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -27,90 +26,53 @@ import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
  * Created by HellFirePvP
  * Date: 22.10.2016 / 12:48
  */
-public class MultiblockAltarConstellation extends PatternBlockArray {
+public class MultiblockAltarConstellation {
+
+    private static final String STRUCTURE_ID = "pattern_altar_t3";
+    private static IStructureDefinition<MultiblockAltarConstellation> STRUCTURE_DEFINITION = null;
 
     public MultiblockAltarConstellation() {
-        super(new ResourceLocation(AstralSorcery.MODID, "pattern_altar_t3"));
-        load();
+        // Structure defined via getStructureDefinition()
     }
 
-    private void load() {
-        Block marble = BlocksAS.blockMarble;
-        Block mch = marble.withProperty(MARBLE_TYPE, BlockMarble.MarbleBlockType.CHISELED);
-        Block mbr = marble.withProperty(MARBLE_TYPE, BlockMarble.MarbleBlockType.BRICKS);
-        Block mrw = marble.withProperty(MARBLE_TYPE, BlockMarble.MarbleBlockType.RAW);
-        Block mru = marble.withProperty(MARBLE_TYPE, BlockMarble.MarbleBlockType.RUNED);
-        Block mpl = marble.withProperty(MARBLE_TYPE, BlockMarble.MarbleBlockType.PILLAR);
-        Block bml = BlocksAS.blockBlackMarble
-            .withProperty(BlockBlackMarble.BLACK_MARBLE_TYPE, BlockBlackMarble.BlackMarbleBlockType.RAW);
-
-        // addBlockCube(air, -4, 0, -4, 4, 3, 4);
-        addBlockCube(mbr, -4, -1, -4, 4, -1, 4);
-        addBlockCube(bml, -3, -1, -3, 3, -1, 3);
-
-        addBlock(0, 0, 0, BlocksAS.blockAltar.withProperty(BlockAltar.ALTAR_TYPE, BlockAltar.AltarType.ALTAR_3));
-
-        addBlock(-4, -1, -4, mrw);
-        addBlock(-4, -1, -3, mrw);
-        addBlock(-3, -1, -4, mrw);
-        addBlock(4, -1, -4, mrw);
-        addBlock(4, -1, -3, mrw);
-        addBlock(3, -1, -4, mrw);
-        addBlock(-4, -1, 4, mrw);
-        addBlock(-4, -1, 3, mrw);
-        addBlock(-3, -1, 4, mrw);
-        addBlock(4, -1, 4, mrw);
-        addBlock(4, -1, 3, mrw);
-        addBlock(3, -1, 4, mrw);
-
-        addBlock(-5, -1, -5, mbr);
-        addBlock(-5, -1, -4, mbr);
-        addBlock(-5, -1, -3, mbr);
-        addBlock(-4, -1, -5, mbr);
-        addBlock(-3, -1, -5, mbr);
-        addBlock(5, -1, -5, mbr);
-        addBlock(5, -1, -4, mbr);
-        addBlock(5, -1, -3, mbr);
-        addBlock(4, -1, -5, mbr);
-        addBlock(3, -1, -5, mbr);
-        addBlock(-5, -1, 5, mbr);
-        addBlock(-5, -1, 4, mbr);
-        addBlock(-5, -1, 3, mbr);
-        addBlock(-4, -1, 5, mbr);
-        addBlock(-3, -1, 5, mbr);
-        addBlock(5, -1, 5, mbr);
-        addBlock(5, -1, 4, mbr);
-        addBlock(5, -1, 3, mbr);
-        addBlock(4, -1, 5, mbr);
-        addBlock(3, -1, 5, mbr);
-
-        /*
-         * addBlock(-4, -1, -2, mbr);
-         * addBlock(-2, -1, -4, mbr);
-         * addBlock(-4, -1, 2, mbr);
-         * addBlock(-2, -1, 4, mbr);
-         * addBlock( 4, -1, -2, mbr);
-         * addBlock( 2, -1, -4, mbr);
-         * addBlock( 4, -1, 2, mbr);
-         * addBlock( 2, -1, 4, mbr);
-         */
-
-        addBlock(-4, 0, -4, mru);
-        addBlock(-4, 0, 4, mru);
-        addBlock(4, 0, -4, mru);
-        addBlock(4, 0, 4, mru);
-        addBlock(-4, 1, -4, mpl);
-        addBlock(-4, 1, 4, mpl);
-        addBlock(4, 1, -4, mpl);
-        addBlock(4, 1, 4, mpl);
-        addBlock(-4, 2, -4, mpl);
-        addBlock(-4, 2, 4, mpl);
-        addBlock(4, 2, -4, mpl);
-        addBlock(4, 2, 4, mpl);
-        addBlock(-4, 3, -4, mch);
-        addBlock(-4, 3, 4, mch);
-        addBlock(4, 3, -4, mch);
-        addBlock(4, 3, 4, mch);
+    public IStructureDefinition<MultiblockAltarConstellation> getStructureDefinition() {
+        if (STRUCTURE_DEFINITION == null) {
+            STRUCTURE_DEFINITION = StructureDefinition.<MultiblockAltarConstellation>builder()
+                .addShape(STRUCTURE_ID, transpose(shape))
+                .addElement('A', ofBlock(BlocksAS.blockAltar, 2)) // ALTAR_3
+                .addElement('B', ofBlock(BlocksAS.blockBlackMarble, 0)) // RAW
+                .addElement('C', ofBlock(BlocksAS.blockMarble, 2)) // BRICKS
+                .addElement('R', ofBlock(BlocksAS.blockMarble, 0)) // RAW
+                .addElement('U', ofBlock(BlocksAS.blockMarble, 4)) // RUNED (using metadata 4 for 1.7.10)
+                .addElement('P', ofBlock(BlocksAS.blockMarble, 5)) // PILLAR
+                .addElement('H', ofBlock(BlocksAS.blockMarble, 1)) // CHISELED
+                .build();
+        }
+        return STRUCTURE_DEFINITION;
     }
+
+    public ResourceLocation getStructureId() {
+        return new ResourceLocation(AstralSorcery.MODID, STRUCTURE_ID);
+    }
+
+    private final String[][] shape = new String[][] {
+        // Y = -1 (Base layer)
+        {"CCCCCCCC", "CCRRRCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCRRRCCC", "CCCCCCCC"},
+        {"CCCCCCCC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CCCCCCCC"},
+        {"CCCCCCCC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CCCCCCCC"},
+
+        // Y = 0 (Runed corners)
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
+        {"        ", "        ", "        ", "U       ", "        ", "        ", "        ", "        ", "        ", "U       ", "        ", "        "},
+
+        // Y = 1 (Pillars)
+        {"        ", "        ", "        ", "P       ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        "},
+
+        // Y = 2 (Pillars)
+        {"        ", "        ", "        ", "P       ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        "},
+
+        // Y = 3 (Top)
+        {"        ", "        ", "        ", "H       ", "        ", "        ", "        ", "        ", "        ", "H       ", "        ", "        "},
+    };
 
 }

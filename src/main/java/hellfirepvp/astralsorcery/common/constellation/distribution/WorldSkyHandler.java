@@ -76,7 +76,7 @@ public class WorldSkyHandler {
             return;
         }
 
-        if (initialValueMappings.isEmpty()) {
+        if (initialValueMappings == null || initialValueMappings.stackSize <= 0) {
             setupInitialFunctions();
         }
 

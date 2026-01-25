@@ -6,6 +6,8 @@
 package hellfirepvp.astralsorcery.common.migration;
 
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * Compatibility interface for 1.7.10.

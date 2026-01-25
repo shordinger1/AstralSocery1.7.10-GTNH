@@ -16,10 +16,11 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.minecraft.inventory.Ingredient;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -32,8 +33,11 @@ import it.unimi.dsi.fastutil.ints.IntList;
  * Class: FluidIngredient
  * Created by HellFirePvP
  * Date: 28.12.2018 / 15:07
+ *
+ * 1.7.10: Ingredient class doesn't exist, so this is now a standalone class
+ * for fluid-based recipe matching
  */
-public class FluidIngredient extends Ingredient {
+public class FluidIngredient {
 
     private final List<FluidStack> fluidsIn;
     private IntList itemIds = null;
@@ -49,47 +53,46 @@ public class FluidIngredient extends Ingredient {
     }
 
     public FluidIngredient(FluidStack... fluids) {
-        super(0);
         this.fluidsIn = Arrays.asList(fluids);
     }
 
     public FluidIngredient(Fluid... fluids) {
-        super(0);
         this.fluidsIn = new ArrayList<>(fluids.length);
         for (Fluid f : fluids) {
-            fluidsIn.add(new FluidStack(f, Fluid.BUCKET_VOLUME));
+            fluidsIn.add(new FluidStack(f, FluidContainerRegistry.BUCKET_VOLUME));
         }
     }
 
-    @Override
     @Nonnull
     public ItemStack[] getMatchingStacks() {
         if (itemArray == null || this.cacheItemStacks != this.fluidsIn.size()) {
             ArrayList<ItemStack> lst = new ArrayList<>();
 
             for (FluidStack fluid : this.fluidsIn) {
-                // In 1.7.10, use FluidContainerRegistry to get filled container
-                ItemStack filledContainer = FluidContainerRegistry.fillFluidContainer(fluid);
+                // In 1.7.10, try to find filled containers by testing empty buckets
+                // This is a simplified approach - primarily checks buckets
+                ItemStack emptyBucket = new ItemStack(Items.bucket);
+                ItemStack filledContainer = FluidContainerRegistry.fillFluidContainer(fluid, emptyBucket);
                 if (filledContainer != null) {
                     lst.add(filledContainer);
                 }
             }
 
-            this.itemArray = lst.toArray(new ItemStack[lst.size()]);
+            this.itemArray = lst.toArray(new ItemStack[0]);
             this.cacheItemStacks = this.fluidsIn.size();
         }
         return this.itemArray;
     }
 
-    @Override
     @Nonnull
     public IntList getValidItemStacksPacked() {
         if (this.itemIds == null || this.cacheItemIds != fluidsIn.size()) {
             this.itemIds = new IntArrayList(this.fluidsIn.size());
 
             for (FluidStack fluid : this.fluidsIn) {
-                // In 1.7.10, use FluidContainerRegistry to get filled container
-                ItemStack bucketFluid = FluidContainerRegistry.fillFluidContainer(fluid);
+                // In 1.7.10, try to find filled containers by testing empty buckets
+                ItemStack emptyBucket = new ItemStack(Items.bucket);
+                ItemStack bucketFluid = FluidContainerRegistry.fillFluidContainer(fluid, emptyBucket);
                 if (bucketFluid != null) {
                     this.itemIds.add(pack(bucketFluid));
                 }
@@ -102,7 +105,6 @@ public class FluidIngredient extends Ingredient {
         return this.itemIds;
     }
 
-    @Override
     public boolean apply(@Nullable ItemStack input) {
         if (input == null) {
             return false;
@@ -115,20 +117,19 @@ public class FluidIngredient extends Ingredient {
         }
 
         for (FluidStack target : this.fluidsIn) {
-            if (contained.fluidID == target.fluidID && contained.amount >= target.amount) {
+            // In 1.7.10, use containsFluid which checks both fluid type and amount
+            if (contained.containsFluid(target)) {
                 return true;
             }
         }
         return false;
     }
 
-    @Override
     protected void invalidate() {
         this.itemIds = null;
         this.itemArray = null;
     }
 
-    @Override
     public boolean isSimple() {
         return false;
     }

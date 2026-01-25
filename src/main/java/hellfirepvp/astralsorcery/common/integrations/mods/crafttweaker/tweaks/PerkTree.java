@@ -8,73 +8,79 @@
 
 package hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.tweaks;
 
-import java.util.List;
-import java.util.Map;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import hellfirepvp.astralsorcery.common.config.PerkTreeConfig;
 import hellfirepvp.astralsorcery.common.constellation.perk.AbstractPerk;
-import hellfirepvp.astralsorcery.common.event.APIRegistryEvent;
-import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.BaseTweaker;
-import stanhebben.zenscript.annotations.ZenClass;
-import stanhebben.zenscript.annotations.ZenMethod;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: PerkTree
- * Created by HellFirePvP
- * Date: 19.08.2018 / 21:49
+ * Perk Tree configuration helpers
+ * Replaces CraftTweaker-based PerkTree class
+ *
+ * This class now delegates to PerkTreeConfig
+ *
+ * Usage:
+ *   PerkTree.disablePerk("perk_registry_name");
+ *   PerkTree.removePerk("perk_registry_name");
+ *   PerkTree.modifyPerk("perk_registry_name", 2.0);
  */
-@ZenClass("mods.astralsorcery.PerkTree")
-public class PerkTree extends BaseTweaker {
+public final class PerkTree {
 
-    private static List<String> removedPerks = Lists.newLinkedList();
-    private static List<String> disabledPerks = Lists.newLinkedList();
-    private static Map<String, Double> perkModifiers = Maps.newHashMap();
+    private PerkTree() {}
 
-    @ZenMethod
+    /**
+     * Disables a perk so it cannot be unlocked
+     *
+     * @param perkRegistryName The registry name of the perk to disable
+     */
     public static void disablePerk(String perkRegistryName) {
-        disabledPerks.add(perkRegistryName);
+        PerkTreeConfig.disablePerk(perkRegistryName);
     }
 
-    @ZenMethod
+    /**
+     * Removes a perk from the perk tree entirely
+     *
+     * @param perkRegistryName The registry name of the perk to remove
+     */
     public static void removePerk(String perkRegistryName) {
-        removedPerks.add(perkRegistryName);
+        PerkTreeConfig.removePerk(perkRegistryName);
     }
 
-    @ZenMethod
+    /**
+     * Modifies a perk's multiplier
+     *
+     * @param perkRegistryName The registry name of the perk
+     * @param multiplier       The multiplier to apply
+     */
     public static void modifyPerk(String perkRegistryName, double multiplier) {
-        perkModifiers.put(perkRegistryName, multiplier);
+        PerkTreeConfig.modifyPerk(perkRegistryName, multiplier);
     }
 
-    @SubscribeEvent
-    public void onPerkRemoval(APIRegistryEvent.PerkPostRemove event) {
-        if (removedPerks.contains(
-            event.getPerk()
-                .getRegistryName()
-                .toString())) {
-            event.setRemoved(true);
-        }
-    }
-
-    @SubscribeEvent
-    public void onPerkDisable(APIRegistryEvent.PerkDisable event) {
-        if (disabledPerks.contains(
-            event.getPerk()
-                .getRegistryName()
-                .toString())) {
-            event.setPerkDisabled(true);
-        }
-    }
-
+    /**
+     * Gets the multiplier for a perk
+     *
+     * @param perk The perk
+     * @return The multiplier, or 1.0 if no modifier is set
+     */
     public static double getMultiplier(AbstractPerk perk) {
-        return perkModifiers.getOrDefault(
-            perk.getRegistryName()
-                .toString(),
-            1.0D);
+        return PerkTreeConfig.getMultiplier(perk);
     }
 
+    /**
+     * Checks if a perk should be removed
+     *
+     * @param perk The perk to check
+     * @return true if the perk should be removed
+     */
+    public static boolean shouldRemovePerk(AbstractPerk perk) {
+        return PerkTreeConfig.shouldRemovePerk(perk);
+    }
+
+    /**
+     * Checks if a perk should be disabled
+     *
+     * @param perk The perk to check
+     * @return true if the perk should be disabled
+     */
+    public static boolean shouldDisablePerk(AbstractPerk perk) {
+        return PerkTreeConfig.shouldDisablePerk(perk);
+    }
 }

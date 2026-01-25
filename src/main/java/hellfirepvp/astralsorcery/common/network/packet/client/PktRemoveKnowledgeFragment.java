@@ -47,7 +47,7 @@ public class PktRemoveKnowledgeFragment implements IMessage, IMessageHandler<Pkt
     @Override
     public IMessage onMessage(PktRemoveKnowledgeFragment pkt, MessageContext ctx) {
         // 1.7.10: Network packets are already handled on the main thread, no need for addScheduledTask
-        EntityPlayer pl = ctx.getServerHandler().player;
+        EntityPlayer pl = ctx.getServerHandler().playerEntity;
         if (pl != null) {
             ItemStack stack = pl.inventory.getStackInSlot(pkt.index);
             if (!(stack == null || stack.stackSize <= 0) && stack.getItem() instanceof ItemKnowledgeFragment) {

@@ -43,10 +43,11 @@ import hellfirepvp.astralsorcery.common.util.struct.TreeDiscoverer;
 public class ItemChargedCrystalAxe extends ItemCrystalAxe implements ChargedCrystalToolBase {
 
     @Override
-    public boolean onBlockStartBreak(ItemStack itemstack, BlockPos pos, EntityPlayer player) {
+    public boolean onBlockStartBreak(ItemStack itemstack, int x, int y, int z, EntityPlayer player) {
         World world = player.worldObj;
         // 1.7.10: No CooldownTracker, removed cooldown check; use world variable
         if (!world.isRemote && !player.isSneaking()) {
+            BlockPos pos = new BlockPos(x, y, z);
             BlockArray tree = TreeDiscoverer.tryCaptureTreeAt(world, pos, 9, true);
             if (tree != null) {
                 Map<BlockPos, BlockArray.BlockInformation> pattern = tree.getPattern();
@@ -83,7 +84,7 @@ public class ItemChargedCrystalAxe extends ItemCrystalAxe implements ChargedCrys
                 return true;
             }
         }
-        return super.onBlockStartBreak(itemstack, pos, player);
+        return super.onBlockStartBreak(itemstack, x, y, z, player);
     }
 
     @SideOnly(Side.CLIENT)

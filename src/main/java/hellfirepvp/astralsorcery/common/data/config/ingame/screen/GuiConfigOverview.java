@@ -9,9 +9,11 @@
 package hellfirepvp.astralsorcery.common.data.config.ingame.screen;
 
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
+import net.minecraftforge.common.config.Configuration;
 
 import com.google.common.collect.Lists;
 
@@ -41,10 +43,10 @@ public class GuiConfigOverview extends GuiConfig {
 
     private static List<IConfigElement> buildConfigList() {
         List<IConfigElement> out = Lists.newLinkedList();
-        Map<String, ConfigEntry> configs = Config.getAvailableConfigurations();
-        for (Map.Entry<String, ConfigEntry> entry : configs.entrySet()) {
+        Map<String, Configuration> configs = Config.getAvailableConfigurations();
+        for (Map.Entry<String, Configuration> entry : configs.entrySet()) {
             String key = entry.getKey();
-            ConfigEntry value = entry.getValue();
+            Configuration value = entry.getValue();
             out.add(ConfigHelper.getCategoryElement(key, value));
         }
         return out;

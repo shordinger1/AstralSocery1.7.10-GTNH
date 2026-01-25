@@ -8,9 +8,9 @@
 
 package hellfirepvp.astralsorcery.common.item.tool;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -19,6 +19,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
 import net.minecraft.nbt.NBTTagCompound;
@@ -46,6 +48,8 @@ import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
 public class ItemCrystalSword extends ItemSword implements CrystalPropertyItem {
 
     private static final Random rand = new Random();
+    // 1.7.10: ATTACK_DAMAGE_MODIFIER doesn't exist as field, need to create UUID
+    private static final UUID ATTACK_DAMAGE_MODIFIER = UUID.fromString("CB3F55D3-645C-4F38-A497-9C13A33DB5CF");
 
     public ItemCrystalSword() {
         super(RegistryItems.crystalToolMaterial);
@@ -54,22 +58,22 @@ public class ItemCrystalSword extends ItemSword implements CrystalPropertyItem {
     }
 
     @Override
-    public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> items) {
+    public void getSubItems(Item item, CreativeTabs tab, List list) {
         // 1.7.10 compatibility: Item.isInCreativeTab() doesn't exist, use tab == this.getCreativeTab() instead
         if (tab == this.getCreativeTab()) {
             CrystalProperties maxCelestial = CrystalProperties.getMaxCelestialProperties();
             ItemStack stack = new ItemStack(this);
             setToolProperties(stack, ToolCrystalProperties.merge(maxCelestial, maxCelestial));
-            items.add(stack);
+            list.add(stack);
         }
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip) {
+    public void addInformation(ItemStack stack, EntityPlayer player, List tooltip, boolean advanced) {
         ToolCrystalProperties prop = getToolProperties(stack);
         CrystalProperties.addPropertyTooltip(prop, tooltip, getMaxSize(stack));
-        super.addInformation(stack, worldIn, tooltip, flagIn);
+        super.addInformation(stack, player, tooltip, advanced);
     }
 
     @Override
@@ -106,19 +110,18 @@ public class ItemCrystalSword extends ItemSword implements CrystalPropertyItem {
     @Nullable
     @Override
     public Entity createEntity(World world, Entity ei, ItemStack itemstack) {
-        EntityCrystalTool newItem = new EntityCrystalTool(ei.world, ei.posX, ei.posY, ei.posZ, itemstack);
+        EntityCrystalTool newItem = new EntityCrystalTool(ei.worldObj, ei.posX, ei.posY, ei.posZ, itemstack);
         newItem.motionX = ei.motionX;
         newItem.motionY = ei.motionY;
         newItem.motionZ = ei.motionZ;
-        newItem.setDefaultPickupDelay();
-        if (ei instanceof EntityItem) {
-            newItem.setThrower(((EntityItem) ei).getThrower());
-            newItem.setOwner(((EntityItem) ei).getOwner());
-        }
+        // 1.7.10: setDefaultPickupDelay doesn't exist, set field directly
+        newItem.delayBeforeCanPickup = 10;
+        // 1.7.10: setThrower/setOwner don't exist in EntityItem
+        // These methods were added in later versions
         return newItem;
     }
 
-    @Override
+    // 1.7.10: isEnchantable doesn't exist as overrideable method
     public boolean isEnchantable(ItemStack stack) {
         return true;
     }
@@ -165,15 +168,15 @@ public class ItemCrystalSword extends ItemSword implements CrystalPropertyItem {
         return false;
     }
 
+    // 1.7.10: getAttributeModifiers() takes ItemStack parameter
     @Override
-    // 1.7.10: getAttributeModifiers() takes no parameters
-    public Multimap<String, AttributeModifier> getAttributeModifiers() {
+    public Multimap<String, AttributeModifier> getAttributeModifiers(ItemStack stack) {
         Multimap<String, AttributeModifier> modifiers = HashMultimap.create();
-        // In 1.7.10, we can't easily get the stack here, so return the base modifiers
-        // Custom modifiers will be applied via events
+        // In 1.7.10, we can't easily get custom modifiers based on crystal properties
+        // Return the base modifiers
         modifiers.put(
             SharedMonsterAttributes.attackDamage.getAttributeUnlocalizedName(),
-            new AttributeModifier(ATTACK_DAMAGE_MODIFIER, "Weapon modifier", 1F, 0));
+            new AttributeModifier(ATTACK_DAMAGE_MODIFIER, "Weapon modifier", 3F, 0));
         return modifiers;
     }
 

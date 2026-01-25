@@ -96,7 +96,7 @@ public class TimeoutList<V> implements ITickHandler, Iterable<V> {
     }
 
     public boolean isEmpty() {
-        return tickEntries.isEmpty();
+        return tickEntries == null || tickEntries.stackSize <= 0;
     }
 
     @Override

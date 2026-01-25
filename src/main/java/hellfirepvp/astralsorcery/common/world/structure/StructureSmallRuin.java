@@ -15,7 +15,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.config.Configuration;
 
@@ -71,9 +71,9 @@ public class StructureSmallRuin extends WorldGenAttributeStructure {
     private boolean isApplicableBiome(World world, BlockPos pos) {
         if (cfgEntry.shouldIgnoreBiomeSpecifications()) return true;
 
-        Biome b = world.getBiomeGenForCoords(pos.getX(), pos.getZ());
+        BiomeGenBase b = world.getBiomeGenForCoords(pos.getX(), pos.getZ());
         Collection<BiomeDictionary.Type> types = BiomeDictionary.getTypes(b);
-        if (types.isEmpty()) return false;
+        if (types == null || types.stackSize <= 0) return false;
         boolean applicable = false;
         for (BiomeDictionary.Type t : types) {
             if (cfgEntry.getTypes()

@@ -13,6 +13,7 @@ import java.util.Stack;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import hellfirepvp.astralsorcery.common.migration.Vec3i;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLeaves;
 import net.minecraft.block.BlockLog;
@@ -67,7 +68,7 @@ public class TreeDiscoverer {
         while (!offsetPositions.isEmpty()) {
             BlockPos offset = offsetPositions.pop();
 
-            Block atState = world.getBlock(offset);
+            Block atState = world.getBlock(offset.posX, offset.posY, offset.posZ);
             boolean successful = false;
             Tuple<BlockStateCheck, BlockStateCheck> atChecks = null;
             if (logCheck == null || leafCheck == null) {

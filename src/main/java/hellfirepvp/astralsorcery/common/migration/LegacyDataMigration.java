@@ -11,7 +11,6 @@ package hellfirepvp.astralsorcery.common.migration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
@@ -31,7 +30,15 @@ import hellfirepvp.astralsorcery.common.util.ChunkPos;
  */
 public class LegacyDataMigration {
 
-    public static void migrateRockCrystalData(Consumer<String> msgOut) {
+    /**
+     * Simple callback interface for 1.7.10 (Java 6/7 compatibility)
+     * java.util.function.Consumer doesn't exist in Java 7
+     */
+    public interface StringCallback {
+        void accept(String message);
+    }
+
+    public static void migrateRockCrystalData(StringCallback msgOut) {
         for (WorldServer world : DimensionManager.getWorlds()) {
 
             RockCrystalBuffer data = WorldCacheManager.getOrLoadData(world, WorldCacheManager.SaveKey.ROCK_CRYSTAL);
@@ -42,7 +49,8 @@ public class LegacyDataMigration {
                 msgOut.accept("Migrating rock crystal data for dimension " + world.provider.dimensionId);
                 msgOut.accept(totalChunkCount + " chunks of crystals found!");
 
-                boolean keepingLoaded = DimensionManager.keepDimensionLoaded(world.provider.dimensionId, true);
+                // 1.7.10: DimensionManager.keepDimensionLoaded doesn't exist
+                // In 1.7.10, dimension loading works differently
 
                 int chunkCount = 0;
                 int migrated = 0;
@@ -70,16 +78,8 @@ public class LegacyDataMigration {
                         msgOut.accept("Migrated " + chunkCount + "/" + totalChunkCount + " chunks...");
                     }
 
-                    if (chunkCount % 100 == 0) {
-                        world.getChunkProvider()
-                            .queueUnloadAll();
-                        world.getChunkProvider()
-                            .tick();
-                    }
-                }
-
-                if (keepingLoaded) {
-                    DimensionManager.keepDimensionLoaded(world.provider.dimensionId, false);
+                    // 1.7.10: queueUnloadAll and tick don't exist on IChunkProvider
+                    // These methods were added in later versions
                 }
 
                 msgOut.accept(

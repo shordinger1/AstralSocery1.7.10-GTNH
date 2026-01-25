@@ -14,11 +14,12 @@ import java.util.Random;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.cleanroommc.modularui.utils.item.ItemStackHandler;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidContainerRegistry;
 
 import com.cleanroommc.modularui.utils.item.IItemHandlerModifiable;
 
@@ -26,6 +27,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.common.constellation.distribution.ConstellationSkyHandler;
 import hellfirepvp.astralsorcery.common.crafting.IGatedRecipe;
+import hellfirepvp.astralsorcery.common.migration.FluidActionResult;
 import hellfirepvp.astralsorcery.common.crafting.INighttimeRecipe;
 import hellfirepvp.astralsorcery.common.crafting.ItemHandle;
 import hellfirepvp.astralsorcery.common.crafting.altar.recipes.AttunementRecipe;
@@ -106,18 +108,18 @@ public abstract class AbstractAltarRecipe {
     // Instead of calling this directly, call it via TileAltar.doesRecipeMatch() since that is more sensitive for the
     // altar.
     public boolean matches(TileAltar altar, TileReceiverBaseInventory.ItemHandlerTile invHandler,
-        boolean ignoreStarlightRequirement) {
+                           boolean ignoreStarlightRequirement) {
         if (!ignoreStarlightRequirement && !fulfillesStarlightRequirement(altar)) return false;
 
         if (this instanceof IGatedRecipe) {
-            if (altar.worldObj.isRemote) {
+            if (altar.getWorldObj() != null && altar.getWorldObj().isRemote) {
                 if (!((IGatedRecipe) this).hasProgressionClient()) return false;
             }
         }
 
         if (this instanceof INighttimeRecipe) {
             if (!ConstellationSkyHandler.getInstance()
-                .isNight(altar.worldObj)) return false;
+                .isNight(altar.getWorldObj())) return false;
         }
 
         int slotsContainRecipe = this.getNeededLevel()
@@ -125,8 +127,8 @@ public abstract class AbstractAltarRecipe {
         for (int slotId = 0; slotId < invHandler.getSlots(); slotId++) {
             if (slotId < slotsContainRecipe) continue;
 
-            if (!invHandler.getStackInSlot(slotId)
-                .isEmpty()) {
+            ItemStack stack = invHandler.getStackInSlot(slotId);
+            if (stack != null && stack.stackSize > 0) {
                 return false; // ItemStacks outside of the required slots for the recipe must be empty.
             }
         }
@@ -137,7 +139,7 @@ public abstract class AbstractAltarRecipe {
         }
         RecipeAdapter adapter = new RecipeAdapter(altar.getCraftingRecipeWidth(), altar.getCraftingRecipeHeight());
         adapter.fill(altarInv);
-        return recipe.matches(adapter, altar.worldObj);
+        return recipe.matches(adapter, altar.getWorldObj());
     }
 
     public boolean fulfillesStarlightRequirement(TileAltar altar) {
@@ -178,7 +180,8 @@ public abstract class AbstractAltarRecipe {
         return 100;
     }
 
-    public void handleInputConsumption(TileAltar ta, ActiveCraftingTask craftingTask, ItemStackHandler inventory) {}
+    public void handleInputConsumption(TileAltar ta, ActiveCraftingTask craftingTask, ItemStackHandler inventory) {
+    }
 
     // Return false and the item in the slot is not consumed.
     public boolean mayDecrement(TileAltar ta, ShapedRecipeSlot slot) {
@@ -217,10 +220,9 @@ public abstract class AbstractAltarRecipe {
 
     protected boolean requiresSpecialConsumption(ItemHandle handle, ItemStack stack) {
         return handle != null && !(stack == null || stack.stackSize <= 0)
-            && (!ForgeHooks.getContainerItem(stack)
-                .isEmpty()
-                || (handle.handleType == ItemHandle.Type.FLUID
-                    && FluidContainerRegistry.getFluidForFilledItem(stack) != null));
+            && (stack.getItem().hasContainerItem(stack) // 1.7.10: use Item.hasContainerItem()
+            || (handle.handleType == ItemHandle.Type.FLUID
+            && FluidContainerRegistry.getFluidForFilledItem(stack) != null));
     }
 
     // Called if the respective method above returns 'false' to allow for proper decrement-handling.
@@ -269,7 +271,8 @@ public abstract class AbstractAltarRecipe {
                     inv.setStackInSlot(slot, fas.getResult());
                 }
             } else {
-                inv.setStackInSlot(slot, ForgeHooks.getContainerItem(stack));
+                // 1.7.10: use Item.getContainerItem()
+                inv.setStackInSlot(slot, stack.getItem().getContainerItem(stack));
             }
         }
     }
@@ -287,19 +290,23 @@ public abstract class AbstractAltarRecipe {
     }
 
     // Can be used to applyServer modifications to items on the shapeMap.
-    public void applyOutputModificationsServer(TileAltar ta, Random rand) {}
+    public void applyOutputModificationsServer(TileAltar ta, Random rand) {
+    }
 
-    public void onCraftServerFinish(TileAltar altar, Random rand) {}
+    public void onCraftServerFinish(TileAltar altar, Random rand) {
+    }
 
     public void onCraftServerTick(TileAltar altar, ActiveCraftingTask.CraftingState state, int tick,
-        int totalCraftingTime, Random rand) {}
+                                  int totalCraftingTime, Random rand) {
+    }
 
     @SideOnly(Side.CLIENT)
     public void onCraftClientTick(TileAltar altar, ActiveCraftingTask.CraftingState state, long tick, Random rand) {
         if (specialEffectRecovery != null) {
             try {
                 specialEffectRecovery.onCraftClientTick(altar, state, tick, rand);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 
@@ -308,7 +315,8 @@ public abstract class AbstractAltarRecipe {
         if (specialEffectRecovery != null) {
             try {
                 specialEffectRecovery.onCraftTESRRender(te, x, y, z, partialTicks);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 

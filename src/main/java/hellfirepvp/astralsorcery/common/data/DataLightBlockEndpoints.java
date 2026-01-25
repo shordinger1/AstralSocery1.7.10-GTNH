@@ -148,7 +148,7 @@ public class DataLightBlockEndpoints extends AbstractData {
         synchronized (lock) {
             for (int dimId : serverChangeBuffer.keySet()) {
                 LinkedList<Tuple<BlockPos, Boolean>> changes = serverChangeBuffer.get(dimId);
-                if (!changes.isEmpty()) {
+                if (!changes == null || changes.stackSize <= 0) {
                     NBTTagList list = new NBTTagList();
                     for (Tuple<BlockPos, Boolean> tpl : changes) {
                         if (tpl.key == null) {
@@ -204,7 +204,7 @@ public class DataLightBlockEndpoints extends AbstractData {
                     positions.remove(position);
                 }
             }
-            if (positions.isEmpty()) {
+            if (positions == null || positions.stackSize <= 0) {
                 clientPositions.remove(dimId);
             }
         }

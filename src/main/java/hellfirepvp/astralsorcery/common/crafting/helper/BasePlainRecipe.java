@@ -40,26 +40,28 @@ public abstract class BasePlainRecipe implements IRecipe {
         this.group = group == null ? "" : group;
     }
 
-    @Override
     public IRecipe setRegistryName(ResourceLocation name) {
         this.registryName = name;
         return this;
     }
 
     @Nullable
-    @Override
     public ResourceLocation getRegistryName() {
         return this.registryName;
     }
 
-    @Override
     public Class<IRecipe> getRegistryType() {
         return IRecipe.class;
     }
 
-    @Override
     public String getGroup() {
         return group;
     }
+
+    /**
+     * Returns the size of the recipe area
+     * Required by 1.7.10 IRecipe interface
+     */
+    public abstract int getRecipeSize();
 
 }

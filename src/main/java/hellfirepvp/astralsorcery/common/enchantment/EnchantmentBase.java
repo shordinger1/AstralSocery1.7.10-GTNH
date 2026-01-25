@@ -20,11 +20,12 @@ import net.minecraft.enchantment.EnumEnchantmentType;
  */
 public class EnchantmentBase extends Enchantment {
 
-    protected EnchantmentBase(String unlocName, Rarity rarityIn, EnumEnchantmentType typeIn,
-        net.minecraft.inventory.EntityEquipmentSlot... slots) {
-        // 1.7.10: Enchantment constructor takes (int id, Rarity, EnumEnchantmentType)
+    // 1.7.10: Removed Rarity parameter - it doesn't exist in 1.7.10
+    // Also removed EntityEquipmentSlot... slots parameter - not needed in 1.7.10
+    protected EnchantmentBase(String unlocName, int weightIn, EnumEnchantmentType typeIn) {
+        // 1.7.10: Enchantment constructor takes (int effectId, int weight, EnumEnchantmentType)
         // We'll use a dummy ID since proper registration is handled separately
-        super(0, rarityIn, typeIn);
+        super(0, weightIn, typeIn);
         setName(unlocName);
     }
 

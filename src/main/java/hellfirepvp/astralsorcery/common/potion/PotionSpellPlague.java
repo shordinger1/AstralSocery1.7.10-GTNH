@@ -8,11 +8,7 @@
 
 package hellfirepvp.astralsorcery.common.potion;
 
-import java.util.Collections;
-import java.util.List;
-
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.ItemStack;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -57,11 +53,6 @@ public class PotionSpellPlague extends PotionCustomTexture {
     @Override
     public boolean isReady(int duration, int amplifier) {
         return duration > 0;
-    }
-
-    @Override
-    public List<ItemStack> getCurativeItems() {
-        return Collections.emptyList();
     }
 
     @Override

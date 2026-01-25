@@ -52,7 +52,7 @@ public final class BlockStateChangeSet {
     }
 
     public boolean isEmpty() {
-        return this.changes.isEmpty();
+        return this.changes == null || changes.stackSize <= 0;
     }
 
     public Collection<StateChange> getChanges() {
@@ -67,8 +67,8 @@ public final class BlockStateChangeSet {
             NBTTagCompound changeTag = changeList.getCompoundTagAt(i);
 
             BlockPos pos = NBTHelper.readBlockPosFromNBT(changeTag);
-            Block oldState = NBTHelper.getBlockStateFromTag(changeTag.getCompoundTag("oldState"), Blocks.AIR);
-            Block newState = NBTHelper.getBlockStateFromTag(changeTag.getCompoundTag("newState"), Blocks.AIR);
+            Block oldState = NBTHelper.getBlockStateFromTag(changeTag.getCompoundTag("oldState"), Blocks.air);
+            Block newState = NBTHelper.getBlockStateFromTag(changeTag.getCompoundTag("newState"), Blocks.air);
             this.changes.put(pos, new StateChange(pos, oldState, newState));
         }
     }

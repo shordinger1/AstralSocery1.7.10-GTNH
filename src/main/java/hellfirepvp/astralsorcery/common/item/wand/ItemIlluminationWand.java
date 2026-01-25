@@ -146,7 +146,7 @@ public class ItemIlluminationWand extends Item implements ItemAlignmentChargeCon
                                     atPlace.stepSound.getPitch() * 0.8F);
                             }
                         } else if (drainTempCharge(playerIn, Config.illuminationWandUseCost, true)) {
-                            if (worldIn.setBlock(placeX, placeY, placeZ, BlocksAS.blockVolatileLight, 0, 3)) {
+                            if (worldIn.setBlock(placeX.posX, placeX.posY, placeX.posZ, placeY, placeZ, BlocksAS.blockVolatileLight, 0, 3)) {
                                 // 1.7.10: Use stepSound field with getStepResourcePath(), getVolume(), getPitch()
                                 Block placedBlock = worldIn.getBlock(placeX, placeY, placeZ);
                                 worldIn.playSoundEffect(
@@ -166,7 +166,7 @@ public class ItemIlluminationWand extends Item implements ItemAlignmentChargeCon
                 if (at.isOpaqueCube()) {
                     TileEntity te = worldIn.getTileEntity(x, y, z);
                     if (te == null && drainTempCharge(playerIn, Config.illuminationWandUseCost, true)) {
-                        if (worldIn.setBlock(x, y, z, BlocksAS.translucentBlock, 0, 3)) {
+                        if (worldIn.setBlock(x.posX, x.posY, x.posZ, y, z, BlocksAS.translucentBlock, 0, 3)) {
                             TileTranslucent tt = MiscUtils.getTileAt(worldIn, pos, TileTranslucent.class, true);
                             if (tt == null) {
                                 worldIn.setBlockToAir(x, y, z);

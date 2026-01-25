@@ -14,7 +14,6 @@ import javax.annotation.Nullable;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -68,10 +67,8 @@ public class AmuletEnchantment extends DynamicEnchantment {
         cmp.setInteger("level", this.levelAddition);
         if (this.type.hasEnchantmentTag()) { // Enchantment must not be null here anyway as the type requires a ench to
                                              // begin with
-            cmp.setString(
-                "ench",
-                this.enchantment.getRegistryName()
-                    .toString());
+            // 1.7.10: Save enchantment by effectId instead of registry name
+            cmp.setInteger("ench", this.enchantment.effectId);
         }
         return cmp;
     }
@@ -82,16 +79,14 @@ public class AmuletEnchantment extends DynamicEnchantment {
         Type type = Type.values()[WrapMathHelper.clamp(typeId, 0, Type.values().length - 1)];
         int level = Math.max(0, cmp.getInteger("level"));
         if (type.hasEnchantmentTag()) {
-            ResourceLocation res = new ResourceLocation(cmp.getString("ench"));
-            // Disallow dungeontactics enchantments on the prism; see #1302
-            if (res.getResourceDomain()
-                .equals("dungeontactics")) {
-                return null;
-            }
-
-            Enchantment e = ForgeRegistries.ENCHANTMENTS.getValue(res);
-            if (e != null) {
-                return new AmuletEnchantment(type, e, level);
+            int enchId = cmp.getInteger("ench");
+            // 1.7.10: Get enchantment by effectId from enchantmentsList array
+            // Bounds check for safety
+            if (enchId >= 0 && enchId < Enchantment.enchantmentsList.length) {
+                Enchantment e = Enchantment.enchantmentsList[enchId];
+                if (e != null) {
+                    return new AmuletEnchantment(type, e, level);
+                }
             }
         } else {
             return new AmuletEnchantment(type, level);

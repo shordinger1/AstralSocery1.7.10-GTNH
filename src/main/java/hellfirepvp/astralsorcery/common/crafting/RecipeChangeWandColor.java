@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import javax.annotation.Nullable;
 
 import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
@@ -87,9 +88,13 @@ public class RecipeChangeWandColor extends BasePlainRecipe {
         }
     }
 
-    @Override
     public boolean canFit(int width, int height) {
         return width * height >= 2;
+    }
+
+    @Override
+    public int getRecipeSize() {
+        return 2;
     }
 
     @Override
@@ -97,8 +102,10 @@ public class RecipeChangeWandColor extends BasePlainRecipe {
         return new ItemStack(ItemsAS.illuminationWand);
     }
 
-    @Override
     public ArrayList<ItemStack> getRemainingItems(InventoryCrafting inv) {
-        return ForgeHooks.defaultRecipeGetRemainingItems(inv);
+        // In 1.7.10, IRecipe doesn't have getRemainingItems(), return empty list
+        // Container items (like the empty dye bottle) should be handled manually if needed
+        // For this recipe, the wand and dye are consumed
+        return new ArrayList<>();
     }
 }

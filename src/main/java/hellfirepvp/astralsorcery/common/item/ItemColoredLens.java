@@ -58,18 +58,18 @@ public class ItemColoredLens extends Item implements ItemDynamicColor {
     }
 
     @Override
-    public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> subItems) {
+    public void getSubItems(Item item, CreativeTabs tab, List list) {
         // 1.7.10 compatibility: Item.isInCreativeTab() doesn't exist, use tab == this.getCreativeTab() instead
         if (tab == this.getCreativeTab()) {
             for (ColorType ct : ColorType.values()) {
-                subItems.add(new ItemStack(this, 1, ct.getMeta()));
+                list.add(new ItemStack(this, 1, ct.getMeta()));
             }
         }
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip) {
+    public void addInformation(ItemStack stack, EntityPlayer player, List tooltip, boolean advanced) {
         if (!(stack == null || stack.stackSize <= 0) && stack.getItem() instanceof ItemColoredLens) {
             int dmg = stack.getItemDamage();
             if (dmg >= 0 && dmg < ColorType.values().length) {
@@ -104,7 +104,14 @@ public class ItemColoredLens extends Item implements ItemDynamicColor {
                             playerIn.inventory.mainInventory[playerIn.inventory.currentItem] = null;
                         }
                     }
-                    SoundHelper.playSoundAround(Sounds.clipSwitch, worldIn, pos, 0.8F, 1.5F);
+                    // 1.7.10: Use world.playSoundEffect directly
+                    worldIn.playSoundEffect(
+                        pos.getX() + 0.5,
+                        pos.getY() + 0.5,
+                        pos.getZ() + 0.5,
+                        Sounds.clipSwitch.getSoundName().toString(),
+                        0.8F,
+                        1.5F);
                     if (oldType != null) {
                         playerIn.inventory.addItemStackToInventory(oldType.asStack());
                     }

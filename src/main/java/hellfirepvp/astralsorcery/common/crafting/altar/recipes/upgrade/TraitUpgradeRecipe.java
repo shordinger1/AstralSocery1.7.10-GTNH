@@ -218,28 +218,25 @@ public class TraitUpgradeRecipe extends ConstellationRecipe
                     .setAlphaMultiplier(0.65F)
                     .setNoRotation(0);
                 pl.setColorOverlay(new Color(0x5066EC));
-                pl.setRefreshFunc(new hellfirepvp.astralsorcery.common.migration.Supplier<Boolean>() {
+                pl.setRefreshFunc(new EntityComplexFX.RefreshFunction() {
 
                     @Override
-                    public Boolean get() {
-                        return !altar.isInvalid() && altar.worldObj.getTileEntity(altar.getPos()) != null
-                            && altar.worldObj.getTileEntity(altar.getPos())
+                    public boolean shouldRefresh() {
+                        // 1.7.10: Use getWorldObj() instead of direct field access
+                        // 1.7.10: Use stack == null || stack.stackSize <= 0 instead of isEmpty()
+                        ItemStack outputStack = altar.getActiveCraftingTask()
+                                .getRecipeToCraft()
+                                .getOutputForMatching();
+                        return !altar.isInvalid()
+                            && altar.getWorldObj().getTileEntity(altar.getPos().getX(), altar.getPos().getY(), altar.getPos().getZ()) != null
+                            && altar.getWorldObj().getTileEntity(altar.getPos().getX(), altar.getPos().getY(), altar.getPos().getZ())
                                 .equals(altar)
                             && altar.getActiveCraftingTask() != null
                             && altar.getActiveCraftingTask()
                                 .getState() == ActiveCraftingTask.CraftingState.ACTIVE
-                            && !altar.getActiveCraftingTask()
-                                .getRecipeToCraft()
-                                .getOutputForMatching()
-                                .isEmpty()
-                            && altar.getActiveCraftingTask()
-                                .getRecipeToCraft()
-                                .getOutputForMatching()
-                                .getItem() instanceof ItemBlockAltar
-                            && altar.getActiveCraftingTask()
-                                .getRecipeToCraft()
-                                .getOutputForMatching()
-                                .getItemDamage() == 3;
+                            && !(outputStack == null || outputStack.stackSize <= 0)
+                            && outputStack.getItem() instanceof ItemBlockAltar
+                            && outputStack.getItemDamage() == 3;
                     }
                 });
                 sprite = pl;

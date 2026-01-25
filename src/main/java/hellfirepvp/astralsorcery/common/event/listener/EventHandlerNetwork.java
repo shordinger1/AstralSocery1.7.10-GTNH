@@ -34,10 +34,11 @@ public class EventHandlerNetwork {
     @SubscribeEvent(priority = EventPriority.LOW)
     public void onLogin(PlayerEvent.PlayerLoggedInEvent e) {
         EntityPlayerMP p = (EntityPlayerMP) e.player;
+        // 1.7.10: Use getCommandSenderName() instead of getName()
         AstralSorcery.log
-            .info("[Astral Sorcery] Waiting for server synchronization on login for " + p.getName() + "...");
+            .info("[Astral Sorcery] Waiting for server synchronization on login for " + p.getCommandSenderName() + "...");
         AstralSorcery.proxy.scheduleDelayed(() -> {
-            AstralSorcery.log.info("[Astral Sorcery] Synchronizing baseline information to " + p.getName());
+            AstralSorcery.log.info("[Astral Sorcery] Synchronizing baseline information to " + p.getCommandSenderName());
             ResearchManager.sendInitClientKnowledge(p);
             CelestialGatewaySystem.instance.syncTo(p);
             SyncDataHolder.syncAllDataTo(p);

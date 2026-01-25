@@ -92,7 +92,7 @@ public class StorageCache {
         if ((content == null || content.stackSize <= 0)) return false;
 
         List<StoredItemStack> stacks = this.content.get(key);
-        if (stacks == null || stacks.isEmpty()) {
+        if (stacks == null || stacks == null || stacks.stackSize <= 0) {
             return false;
         }
 
@@ -124,7 +124,7 @@ public class StorageCache {
         if ((content == null || content.stackSize <= 0)) return false;
 
         List<StoredItemStack> stacks = this.content.get(key);
-        if (stacks == null || stacks.isEmpty()) {
+        if (stacks == null || stacks == null || stacks.stackSize <= 0) {
             return false;
         }
 

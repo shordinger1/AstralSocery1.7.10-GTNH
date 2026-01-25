@@ -40,9 +40,8 @@ public interface ChargedCrystalToolBase {
         ItemStack inert = new ItemStack(((ChargedCrystalToolBase) stack.getItem()).getInertVariant());
         applyToolProperties(inert, prop);
         if (stack.hasTagCompound()) {
-            inert.setTagCompound(
-                stack.getTagCompound()
-                    .copy());
+            inert.setTagCompound((NBTTagCompound) stack.getTagCompound()
+                .copy());
         }
         return inert;
     }
@@ -72,7 +71,8 @@ public interface ChargedCrystalToolBase {
         if (shouldRevert(stack)) {
             ItemStack inert = getAsInertVariant(stack);
             removeChargeRevertCounter(inert);
-            player.setHeldItem(inert);
+            // 1.7.10: Use setCurrentItemOrArmor instead of setHeldItem
+            player.setCurrentItemOrArmor(0, inert);
             return true;
         }
         return false;

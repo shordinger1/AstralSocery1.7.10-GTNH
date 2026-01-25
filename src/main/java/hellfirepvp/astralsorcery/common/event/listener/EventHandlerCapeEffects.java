@@ -10,6 +10,8 @@ package hellfirepvp.astralsorcery.common.event.listener;
 
 import java.util.*;
 
+import hellfirepvp.astralsorcery.common.constellation.perk.AbstractPerk;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -158,10 +160,13 @@ public class EventHandlerCapeEffects implements ITickHandler {
                     if (faceHit >= 0 && faceHit < 6) {
                         EnumFacing enumFace = EnumFacing.getFront(faceHit);
                         BlockPos pos = new BlockPos(event.x, event.y, event.z);
+                        // 1.7.10: Convert EnumFacing to ForgeDirection for Evorsio methods
+                        net.minecraftforge.common.util.ForgeDirection dir = net.minecraftforge.common.util.ForgeDirection.getOrientation(
+                            enumFace.ordinal());
                         if (enumFace == EnumFacing.UP || enumFace == EnumFacing.DOWN) {
-                            ev.breakBlocksPlaneHorizontal((EntityPlayerMP) pl, enumFace, event.world, pos);
+                            ev.breakBlocksPlaneHorizontal((EntityPlayerMP) pl, dir, event.world, pos);
                         } else {
-                            ev.breakBlocksPlaneVertical((EntityPlayerMP) pl, enumFace, event.world, pos);
+                            ev.breakBlocksPlaneVertical((EntityPlayerMP) pl, dir, event.world, pos);
                         }
                     }
                 }
@@ -388,8 +393,9 @@ public class EventHandlerCapeEffects implements ITickHandler {
     private void tickVicioClientEffect(EntityPlayer player) {
         if (player instanceof EntityPlayerSP) {
             EntityPlayerSP spl = (EntityPlayerSP) player;
+            // 1.7.10: Check for KeyMantleFlight perk
             boolean hasFlightPerk = ResearchManager.getProgress(spl, Side.CLIENT)
-                .hasPerkEffect(p -> p instanceof KeyMantleFlight);
+                .hasPerkEffect((AbstractPerk p) -> p instanceof KeyMantleFlight);
             // 1.7.10: isInLava() doesn't exist, use isInsideOfMaterial(Material.lava)
             if (spl.movementInput.jump && !hasFlightPerk
                 && !spl.onGround
@@ -438,7 +444,8 @@ public class EventHandlerCapeEffects implements ITickHandler {
             return;
         }
         PlayerProgress prog = ResearchManager.getProgress(pl, Side.SERVER);
-        if (!prog.hasPerkEffect(p -> p instanceof KeyMantleFlight)) {
+        // 1.7.10: Check for KeyMantleFlight perk
+        if (!prog.hasPerkEffect((AbstractPerk p) -> p instanceof KeyMantleFlight)) {
             if (vicioMantleFlightPlayers.contains(pl.getUniqueID())) {
                 if (pl.capabilities.isCreativeMode) {
                     pl.capabilities.allowFlying = true;

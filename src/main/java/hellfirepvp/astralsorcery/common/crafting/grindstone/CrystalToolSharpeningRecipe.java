@@ -10,6 +10,7 @@ package hellfirepvp.astralsorcery.common.crafting.grindstone;
 
 import javax.annotation.Nonnull;
 
+import hellfirepvp.astralsorcery.common.crafting.ItemHandle;
 import net.minecraft.item.ItemStack;
 
 import hellfirepvp.astralsorcery.common.item.crystal.ToolCrystalProperties;
@@ -26,7 +27,9 @@ import hellfirepvp.astralsorcery.common.item.tool.ItemCrystalToolBase;
 public class CrystalToolSharpeningRecipe extends GrindstoneRecipe {
 
     public CrystalToolSharpeningRecipe(int chance) {
-        super(null, null, chance);
+        // 1.7.10: Parent class requires non-null input/output, but this recipe handles grinding differently
+        // Pass placeholder ItemStack with ItemHandle which accepts null
+        super(new ItemHandle((ItemStack) null), new ItemStack(net.minecraft.init.Items.apple, 0, 0), chance);
     }
 
     @Override

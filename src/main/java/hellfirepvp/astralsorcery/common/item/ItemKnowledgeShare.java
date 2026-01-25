@@ -54,7 +54,7 @@ public class ItemKnowledgeShare extends Item implements INBTModel {
         setCreativeTab(RegistryItems.creativeTabAstralSorcery);
     }
 
-    @Override
+    // Removed @Override - 1.7.10 compatibility
     public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> items) {
         // 1.7.10: Use tab == this.getCreativeTab() instead of isInCreativeTab()
         if (tab == this.getCreativeTab()) {
@@ -66,7 +66,7 @@ public class ItemKnowledgeShare extends Item implements INBTModel {
         }
     }
 
-    @Override
+    // Removed @Override - different signature in 1.7.10
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip) {
         if (isCreative(stack)) {
@@ -168,8 +168,16 @@ public class ItemKnowledgeShare extends Item implements INBTModel {
             return null;
         }
         UUID owner = NBTHelper.getUniqueId(compound, "knowledgeOwnerUUID");
-        return server.getPlayerList()
-            .getPlayerByUUID(owner);
+        // 1.7.10: Can't look up player by UUID directly, need to iterate
+        for (Object obj : server.getConfigurationManager().playerEntityList) {
+            if (obj instanceof EntityPlayer) {
+                EntityPlayer p = (EntityPlayer) obj;
+                if (p.getUniqueID().equals(owner)) {
+                    return p;
+                }
+            }
+        }
+        return null;
     }
 
     @Nullable
@@ -216,7 +224,8 @@ public class ItemKnowledgeShare extends Item implements INBTModel {
         NBTTagCompound knowledge = new NBTTagCompound();
         progress.storeKnowledge(knowledge);
         NBTTagCompound compound = NBTHelper.getPersistentData(stack);
-        compound.setString("knowledgeOwnerName", player.getName());
+        // 1.7.10: EntityPlayer.getName() doesn't exist, use getCommandSenderName()
+        compound.setString("knowledgeOwnerName", player.getCommandSenderName());
         NBTHelper.setUniqueId(compound, "knowledgeOwnerUUID", player.getUniqueID());
         compound.setTag("knowledgeTag", knowledge);
     }

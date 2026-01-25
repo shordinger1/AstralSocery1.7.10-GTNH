@@ -9,6 +9,7 @@
 package hellfirepvp.astralsorcery.common.util;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
@@ -157,7 +158,7 @@ public class EntityUtils {
 
     @Nullable
     public static <T> T selectClosest(Collection<T> elements, Function<T, Double> dstFunc) {
-        if (elements.isEmpty()) return null;
+        if (elements == null || elements.stackSize <= 0) return null;
 
         double dstClosest = Double.MAX_VALUE;
         T closestElement = null;

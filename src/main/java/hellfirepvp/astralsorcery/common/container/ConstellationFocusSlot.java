@@ -10,6 +10,7 @@ package hellfirepvp.astralsorcery.common.container;
 
 import javax.annotation.Nonnull;
 
+import com.cleanroommc.modularui.utils.item.SlotItemHandler;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -56,10 +57,11 @@ public class ConstellationFocusSlot extends SlotItemHandler {
         return true;
     }
 
-    @Override
+    // 1.12.2 method - not available in 1.7.10
+    // Functionality moved to decrStackSize
     public ItemStack onTake(EntityPlayer thePlayer, ItemStack stack) {
         ta.markForUpdate();
-        return super.onTake(thePlayer, stack);
+        return stack;
     }
 
     @Override
@@ -70,7 +72,7 @@ public class ConstellationFocusSlot extends SlotItemHandler {
     }
 
     @Override
-    public boolean isHere(IInventory inv, int slotIn) {
+    public boolean isSlotInInventory(IInventory inv, int slotIn) {
         return false;
     }
 

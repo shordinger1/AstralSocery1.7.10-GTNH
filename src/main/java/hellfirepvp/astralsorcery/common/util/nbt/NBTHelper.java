@@ -109,7 +109,7 @@ public class NBTHelper {
     @Nonnull
     public static NBTTagCompound getBlockStateNBTTag(Block state) {
         if (state.getRegistryName() == null) {
-            state = Blocks.AIR;
+            state = Blocks.air;
         }
         NBTTagCompound tag = new NBTTagCompound();
         tag.setString(
@@ -140,7 +140,7 @@ public class NBTHelper {
     public static <T extends Comparable<T>> Block getBlockStateFromTag(NBTTagCompound cmp, Block _default) {
         ResourceLocation key = new ResourceLocation(cmp.getString("registryName"));
         Block block = ForgeRegistries.BLOCKS.getValue(key);
-        if (block == null || block == Blocks.AIR) return _default;
+        if (block == null || block == Blocks.air) return _default;
         Block state = block;
         Collection<IProperty<?>> properties = state.getPropertyKeys();
         NBTTagList list = cmp.getTagList("properties", Constants.NBT.TAG_COMPOUND);

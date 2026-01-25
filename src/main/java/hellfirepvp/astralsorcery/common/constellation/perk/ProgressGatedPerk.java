@@ -8,7 +8,8 @@
 
 package hellfirepvp.astralsorcery.common.constellation.perk;
 
-import java.util.Collection;
+
+import net.minecraft.util.EnumChatFormatting;import java.util.Collection;
 import java.util.function.BiFunction;
 
 import net.minecraft.client.Minecraft;

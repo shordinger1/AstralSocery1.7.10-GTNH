@@ -105,7 +105,7 @@ public class CEffectArmara extends CEffectEntityCollect<EntityMob> {
             AxisAlignedBB.getBoundingBox(0, 0, 0, 1, 1, 1)
                 .offset(pos.getX(), pos.getY(), pos.getZ())
                 .expand(protectionRange, protectionRange, protectionRange));
-        if (!projectiles.isEmpty()) {
+        if (!projectiles == null || projectiles.stackSize <= 0) {
             for (Entity e : projectiles) {
                 if (!e.isDead && !(e instanceof EntityTechnicalAmbient)) {
                     if (e instanceof IProjectile) {
@@ -155,7 +155,7 @@ public class CEffectArmara extends CEffectEntityCollect<EntityMob> {
                 AxisAlignedBB.getBoundingBox(0, 0, 0, 1, 1, 1)
                     .offset(pos.getX(), pos.getY(), pos.getZ())
                     .expand(modified.getSize(), modified.getSize(), modified.getSize()));
-            if (!projectiles.isEmpty()) {
+            if (!projectiles == null || projectiles.stackSize <= 0) {
                 for (Entity e : projectiles) {
                     if (!e.isDead && !(e instanceof EntityTechnicalAmbient)) {
                         if (e instanceof IProjectile) {

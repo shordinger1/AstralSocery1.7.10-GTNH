@@ -44,14 +44,13 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import com.google.common.base.Predicate;
 import hellfirepvp.astralsorcery.AstralSorcery;
 import hellfirepvp.astralsorcery.common.base.Mods;
-import hellfirepvp.astralsorcery.common.migration.BiConsumer;
 import hellfirepvp.astralsorcery.common.migration.BiFunction;
 import hellfirepvp.astralsorcery.common.migration.BinaryOperator;
 import hellfirepvp.astralsorcery.common.migration.Collector;
 import hellfirepvp.astralsorcery.common.migration.Function;
-import hellfirepvp.astralsorcery.common.migration.Predicate;
 import hellfirepvp.astralsorcery.common.migration.RayTraceResult;
 import hellfirepvp.astralsorcery.common.migration.Supplier;
 import hellfirepvp.astralsorcery.common.util.data.NonDuplicateArrayList;
@@ -107,13 +106,13 @@ public class MiscUtils {
 
     @Nullable
     public static <T> T getRandomEntry(List<T> list, Random rand) {
-        if (list == null || list.isEmpty()) return null;
+        if (list == null || list == null || list.stackSize <= 0) return null;
         return list.get(rand.nextInt(list.size()));
     }
 
     @Nullable
     public static <T> T getWeightedRandomEntry(Collection<T> list, Random rand,
-        Function<T, Integer> getWeightFunction) {
+                                               Function<T, Integer> getWeightFunction) {
         List<WRItemObject<T>> weightedItems = new ArrayList<>(list.size());
         for (T e : list) {
             weightedItems.add(new WRItemObject<>(getWeightFunction.apply(e), e));
@@ -337,14 +336,15 @@ public class MiscUtils {
 
     @Nullable
     public static ItemStack getMainOrOffHand(EntityLivingBase entity, Item search,
-        @Nullable Predicate<ItemStack> acceptorFnc) {
+                                             @Nullable Predicate<ItemStack> acceptorFnc) {
         // 1.7.10: Use getEquipmentInSlot instead of getCurrentEquippedItem
         ItemStack held = entity.getEquipmentInSlot(0); // 0 = main hand
         if ((held == null || held.stackSize <= 0) || !search.getClass()
             .isAssignableFrom(
                 held.getItem()
                     .getClass())
-            || (acceptorFnc != null && !acceptorFnc.test(held))) {
+            // 1.7.10: com.google.common.base.Predicate uses apply(), not test()
+            || (acceptorFnc != null && !acceptorFnc.apply(held))) {
             // 1.7.10 doesn't have offhand, just return null if main hand doesn't match
             return null;
         }
@@ -406,7 +406,7 @@ public class MiscUtils {
     }
 
     public static boolean canToolBreakBlockWithoutPlayer(@Nonnull World world, @Nonnull BlockPos pos,
-        @Nonnull Block state, @Nonnull ItemStack stack) {
+                                                         @Nonnull Block state, @Nonnull ItemStack stack) {
         // 1.7.10: Get hardness differently
         float hardness = state.getBlockHardness(world, pos.getX(), pos.getY(), pos.getZ());
         if (hardness == -1) {
@@ -457,7 +457,7 @@ public class MiscUtils {
     }
 
     public static boolean breakBlockWithoutPlayer(WorldServer world, BlockPos pos, Block suggestedBrokenState,
-        boolean breakBlock, boolean ignoreHarvestRestrictions, boolean playEffects) {
+                                                  boolean breakBlock, boolean ignoreHarvestRestrictions, boolean playEffects) {
         FakePlayer fp = AstralSorcery.proxy.getASFakePlayerServer(world);
         int exp = 0;
         try {
@@ -594,7 +594,7 @@ public class MiscUtils {
     }
 
     public static List<Vector3> getCirclePositions(Vector3 centerOffset, Vector3 axis, double radius,
-        int amountOfPointsOnCircle) {
+                                                   int amountOfPointsOnCircle) {
         List<Vector3> out = new LinkedList<>();
         Vector3 circleVec = axis.clone()
             .perpendicular()
@@ -694,13 +694,13 @@ public class MiscUtils {
 
     @Nullable
     public static BlockPos searchAreaForFirst(World world, BlockPos center, int radius, @Nullable Vector3 offsetFrom,
-        BlockStateCheck acceptor) {
+                                              BlockStateCheck acceptor) {
         return searchAreaForFirst(world, center, radius, offsetFrom, BlockStateCheck.WorldSpecific.wrap(acceptor));
     }
 
     @Nullable
     public static BlockPos searchAreaForFirst(World world, BlockPos center, int radius, @Nullable Vector3 offsetFrom,
-        BlockStateCheck.WorldSpecific acceptor) {
+                                              BlockStateCheck.WorldSpecific acceptor) {
         for (int r = 0; r <= radius; r++) {
             List<BlockPos> posList = new LinkedList<>();
             for (int xx = -r; xx <= r; xx++) {
@@ -719,7 +719,7 @@ public class MiscUtils {
                     }
                 }
             }
-            if (!posList.isEmpty()) {
+            if (!posList == null || posList.stackSize <= 0) {
                 Vector3 offset = new Vector3(center).add(0.5, 0.5, 0.5);
                 if (offsetFrom != null) {
                     offset = offsetFrom;
@@ -740,7 +740,7 @@ public class MiscUtils {
     }
 
     public static List<BlockPos> searchAreaFor(World world, BlockPos center, Block blockToSearch, int metaToSearch,
-        int radius) {
+                                               int radius) {
         List<BlockPos> found = new LinkedList<>();
         for (int xx = -radius; xx <= radius; xx++) {
             for (int yy = -radius; yy <= radius; yy++) {

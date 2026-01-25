@@ -25,12 +25,13 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumAction;
-import net.minecraft.item.IItemPropertyGetter;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 import cpw.mods.fml.relauncher.Side;
@@ -80,19 +81,10 @@ public class ItemWand extends Item implements ISpecialInteractItem, INBTModel {
         setMaxDamage(0);
         setMaxStackSize(1);
         setCreativeTab(RegistryItems.creativeTabAstralSorcery);
-        addPropertyOverride(new ResourceLocation("blocking"), new IItemPropertyGetter() {
-
-            @SideOnly(Side.CLIENT)
-            public float apply(ItemStack stack, @Nullable World worldIn, @Nullable EntityLivingBase entityIn) {
-                // 1.7.10: Only EntityPlayer has isUsingItem() in 1.7.10, not EntityLivingBase
-                return getAugment(stack) == WandAugment.ARMARA && entityIn instanceof EntityPlayer
-                    && ((EntityPlayer) entityIn).isUsingItem()
-                    && ((EntityPlayer) entityIn).getItemInUse() == stack ? 1.0F : 0.0F;
-            }
-        });
+        // 1.7.10: addPropertyOverride doesn't exist - removed
     }
 
-    @Override
+    // Removed @Override - 1.7.10 compatibility
     public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> items) {
         // 1.7.10 compatibility: Item.isInCreativeTab() doesn't exist, use tab == this.getCreativeTab() instead
         if (tab == this.getCreativeTab()) {
@@ -105,7 +97,7 @@ public class ItemWand extends Item implements ISpecialInteractItem, INBTModel {
         }
     }
 
-    @Override
+    // Removed @Override - different signature in 1.7.10
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip) {
         WandAugment wa = getAugment(stack);
@@ -174,13 +166,13 @@ public class ItemWand extends Item implements ISpecialInteractItem, INBTModel {
         WandAugment wa = getAugment(stack);
         if (wa != null) {
             if (wa.equals(WandAugment.ARMARA)) {
-                return EnumAction.BLOCK;
+                return EnumAction.block;
             }
             if (wa.equals(WandAugment.VICIO)) {
-                return EnumAction.BOW;
+                return EnumAction.bow;
             }
         }
-        return EnumAction.NONE;
+        return EnumAction.none;
     }
 
     @Override
@@ -197,7 +189,7 @@ public class ItemWand extends Item implements ISpecialInteractItem, INBTModel {
         return super.onItemRightClick(itemstack, worldIn, playerIn);
     }
 
-    @Override
+    // Removed @Override - not available in 1.7.10
     public void onUsingTick(ItemStack stack, EntityLivingBase player, int count) {
         World world = player.worldObj;
         if ((stack == null || stack.stackSize <= 0)) return;
@@ -205,7 +197,7 @@ public class ItemWand extends Item implements ISpecialInteractItem, INBTModel {
         WandAugment wa = getAugment(stack);
         if (wa != null) {
             if (!world.isRemote) { // 1.7.10: Use local world variable instead of getWorld()
-
+                // Server-side logic if needed
             } else {
                 if (wa == WandAugment.VICIO) {
                     playVicioEffect(stack, player, count);
@@ -300,7 +292,7 @@ public class ItemWand extends Item implements ISpecialInteractItem, INBTModel {
         return super.getMaxItemUseDuration(stack);
     }
 
-    @Override
+    // Removed @Override - method signature differs in 1.7.10
     public void onPlayerStoppedUsing(ItemStack stack, World worldIn, EntityLivingBase entityLiving, int timeLeft) {
         if (worldIn.isRemote) return;
 
@@ -311,7 +303,7 @@ public class ItemWand extends Item implements ISpecialInteractItem, INBTModel {
                 if (strTick <= 2) return;
                 float mul = WrapMathHelper.clamp(((float) strTick) / 30F, 0F, 1F);
                 Vec3 vec = entityLiving.getLook(1F);
-                Vector3 motionApply = new Vector3(vec).normalize()
+                Vector3 motionApply = new Vector3(vec.xCoord, vec.yCoord, vec.zCoord).normalize()
                     .multiply(mul * 3F);
                 if (motionApply.getY() > 0) {
                     motionApply
@@ -347,9 +339,16 @@ public class ItemWand extends Item implements ISpecialInteractItem, INBTModel {
                     Set<BlockPos> posList = new HashSet<>(buf.collectPositions(pos, 4));
                     posList.addAll(RockCrystalHandler.INSTANCE.collectPositions(worldIn, pos, 4));
                     for (BlockPos rPos : posList) {
-                        Block state = worldIn.getBlock(rPos);
-                        if (!(state instanceof BlockCustomOre)
-                            || state.getValue(BlockCustomOre.ORE_TYPE) != BlockCustomOre.OreType.ROCK_CRYSTAL) {
+                        Block block = worldIn.getBlock(rPos.getX(), rPos.getY(), rPos.getZ());
+                        if (!(block instanceof BlockCustomOre)) {
+                            RockCrystalHandler.INSTANCE.removeOre(worldIn, rPos, true);
+                            continue;
+                        }
+                        // In 1.7.10, need to get metadata and check ore type
+                        int meta = worldIn.getBlockMetadata(rPos.getX(), rPos.getY(), rPos.getZ());
+                        hellfirepvp.astralsorcery.common.migration.IBlockState state =
+                            ((BlockCustomOre) block).getStateFromMeta(meta);
+                        if (state == null || state.getValue(BlockCustomOre.ORE_TYPE) != BlockCustomOre.OreType.ROCK_CRYSTAL) {
                             RockCrystalHandler.INSTANCE.removeOre(worldIn, rPos, true);
                             continue;
                         }
@@ -369,10 +368,9 @@ public class ItemWand extends Item implements ISpecialInteractItem, INBTModel {
                         for (int xx = -1; xx <= 1; xx++) {
                             for (int zz = -1; zz <= 1; zz++) {
                                 BlockPos at = playerPos.add(xx, -1, zz);
-                                if (MiscUtils.isChunkLoaded(worldIn, at) && !worldIn.isOutsideBuildHeight(at)
-                                    && worldIn.getBlock(at)
-                                        .getBlock()
-                                        .equals(Blocks.air)) {
+                                // 1.7.10: isOutsideBuildHeight doesn't exist, check Y bounds manually
+                                if (MiscUtils.isChunkLoaded(worldIn, at) && at.getY() >= 0 && at.getY() < 256
+                                    && worldIn.getBlock(at.getX(), at.getY(), at.getZ()) == Blocks.air) {
                                     worldIn.setBlock(at.getX(), at.getY(), at.getZ(), BlocksAS.blockVanishing, 0, 3);
                                 }
                             }

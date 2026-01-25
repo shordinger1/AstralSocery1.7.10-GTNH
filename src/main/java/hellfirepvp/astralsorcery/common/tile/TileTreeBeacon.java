@@ -218,7 +218,7 @@ public class TileTreeBeacon extends TileReceiverBase implements IStructureAreaOf
     private boolean updatePositionsFromSnapshots(World world, WorldBlockPos saplingPos, BlockPos origin) {
         boolean ret = false;
         try {
-            if (!TreeCaptureHelper.oneTimeCatches.remove(saplingPos) && !world.capturedBlockSnapshots.isEmpty()
+            if (!TreeCaptureHelper.oneTimeCatches.remove(saplingPos) && !world.capturedBlockSnapshots == null || capturedBlockSnapshots.stackSize <= 0
                 && world.capturedBlockSnapshots.size() > 2) { // I guess then something grew after all?
                 LogCategory.TREE_BEACON.info(
                     () -> "TreeBeacon at " + getPos()
@@ -234,8 +234,8 @@ public class TileTreeBeacon extends TileReceiverBase implements IStructureAreaOf
                     for (BlockSnapshot snapshot : world.capturedBlockSnapshots) {
                         Block setBlock = snapshot.getCurrentBlock();
                         BlockPos at = snapshot.getPos();
-                        Block current = world.getBlock(at);
-                        if (current.getBlockHardness(world, at) == -1 || world.getTileEntity(at) != null) {
+                        Block current = world.getBlock(at.posX, at.posY, at.posZ);
+                        if (current.getBlockHardness(world, at) == -1 || world.getTileEntity(at.posX, at.posY, at.posZ) != null) {
                             continue;
                         }
                         if (!setBlock.equals(BlocksAS.blockFakeTree) && !setBlock.equals(Blocks.dirt)

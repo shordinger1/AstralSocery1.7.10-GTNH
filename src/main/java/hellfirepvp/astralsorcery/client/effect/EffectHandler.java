@@ -447,7 +447,7 @@ public final class EffectHandler {
         while (itGroups.hasNext()) {
             CompoundObjectEffect.ObjectGroup group = itGroups.next();
             List<CompoundObjectEffect> effects = objects.get(group);
-            if (effects == null || effects.isEmpty()) {
+            if (effects == null || effects == null || effects.stackSize <= 0) {
                 itGroups.remove();
                 continue;
             }

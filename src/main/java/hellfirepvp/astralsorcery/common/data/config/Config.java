@@ -109,7 +109,8 @@ public class Config {
 
     private static Map<String, Configuration> cachedConfigs = new HashMap<>();
 
-    private Config() {}
+    private Config() {
+    }
 
     public static void loadAndSetup(File file) {
         latestConfig = new Configuration(file);
@@ -123,8 +124,8 @@ public class Config {
 
     @SubscribeEvent
     public void onCfgChange(ConfigChangedEvent.OnConfigChangedEvent event) {
-        if (AstralSorcery.MODID.equals(event.getModID())) {
-            Configuration cfg = cachedConfigs.get(event.getConfigID());
+        if (AstralSorcery.MODID.equals(event.modID)) {
+            Configuration cfg = cachedConfigs.get(event.configID);
             if (cfg != null) {
                 cfg.save();
 
@@ -153,12 +154,12 @@ public class Config {
                     "Duplicate DataRegistry names! " + cfg.getDataFileName()
                         + " ("
                         + cfg.getClass()
-                            .getName()
+                        .getName()
                         + ") - "
                         + dataAdapter.getDataFileName()
                         + " ("
                         + dataAdapter.getClass()
-                            .getName()
+                        .getName()
                         + ")");
             }
         }
@@ -232,17 +233,17 @@ public class Config {
         String[] dimWhitelist = latestConfig.getStringList(
             "skySupportedDimensions",
             "general",
-            new String[] { "0" },
+            new String[]{"0"},
             "Whitelist of dimension ID's that will have special sky rendering");
         String[] weakSkyRenders = latestConfig.getStringList(
             "weakSkyRenders",
             "general",
-            new String[] {},
+            new String[]{},
             "IF a dimensionId is listed in 'skySupportedDimensions' you can add it here to keep its sky render, but AS will try to render only constellations on top of its existing sky render.");
         String[] oreModidBlacklist = latestConfig.getStringList(
             "oreGenBlacklist",
             "general",
-            new String[] { "techreborn" },
+            new String[]{"techreborn"},
             "List any number of modid's here and the aevitas perk & mineralis ritual will not spawn ores that originate from any of the mods listed here.");
         modidOreGenBlacklist = Lists.newArrayList(oreModidBlacklist);
         dayLength = latestConfig.getInt(
@@ -485,7 +486,7 @@ public class Config {
         String[] dimGenWhitelist = latestConfig.getStringList(
             "worldGenWhitelist",
             "worldgen",
-            new String[] { "0" },
+            new String[]{"0"},
             "the Astral Sorcery-specific worldgen will only run in Dimension ID's listed here.");
         enableFlatGen = latestConfig.getBoolean(
             "enableFlatGen",
@@ -517,7 +518,7 @@ public class Config {
     private static void fillDimGenWhitelist(String[] dimGenWhitelist) {
         List<Integer> out = new ArrayList<>();
         for (String s : dimGenWhitelist) {
-            if (s.isEmpty()) continue;
+            if (s == null || s.stackSize <= 0) continue;
             try {
                 out.add(Integer.parseInt(s));
             } catch (NumberFormatException exc) {
@@ -533,7 +534,7 @@ public class Config {
     private static void fillWeakSkyRenders(String[] weakSkyRenders) {
         List<Integer> out = new ArrayList<>();
         for (String s : weakSkyRenders) {
-            if (s.isEmpty()) continue;
+            if (s == null || s.stackSize <= 0) continue;
             try {
                 out.add(Integer.parseInt(s));
             } catch (NumberFormatException exc) {
@@ -548,7 +549,7 @@ public class Config {
     private static void fillWhitelistIDs(String[] dimWhitelist) {
         List<Integer> out = new ArrayList<>();
         for (String s : dimWhitelist) {
-            if (s.isEmpty()) continue;
+            if (s == null || s.stackSize <= 0) continue;
             try {
                 out.add(Integer.parseInt(s));
             } catch (NumberFormatException exc) {

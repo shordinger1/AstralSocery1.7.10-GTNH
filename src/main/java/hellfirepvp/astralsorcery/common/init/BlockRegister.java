@@ -61,10 +61,10 @@ public class BlockRegister {
         String fluidName = blockLiquidStarlight.getClass()
             .getSimpleName()
             .toLowerCase();
-        blockLiquidStarlight.setUnlocalizedName(fluidName);
+        // 1.7.10: setUnlocalizedName via registerBlock, fluid blocks don't have setUnlocalizedName
         GameRegistry.registerBlock(blockLiquidStarlight, fluidName);
         fluidLiquidStarlight.setBlock(blockLiquidStarlight);
-        FluidRegistry.addBucketForFluid(fluidLiquidStarlight);
+        // 1.7.10: addBucketForFluid doesn't exist, buckets handled separately if needed
     }
 
     private static void registerBlocks() {
@@ -179,7 +179,7 @@ public class BlockRegister {
     }
 
     private static <T extends Block> T registerBlock(T block, String name) {
-        block.setUnlocalizedName(name);
+        // 1.7.10: setUnlocalizedName via registerBlock, not on block directly
         GameRegistry.registerBlock(block, name);
         if (block instanceof BlockDynamicColor) {
             pendingIBlockColorBlocks.add((BlockDynamicColor) block);

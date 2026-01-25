@@ -8,11 +8,12 @@
 
 package hellfirepvp.astralsorcery.common.util;
 
+import hellfirepvp.astralsorcery.common.migration.SoundEvent;
+import hellfirepvp.astralsorcery.common.migration.Vec3i;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SoundCategory;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.world.World;
-import net.minecraftforge.client.event.sound.SoundEvent;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;

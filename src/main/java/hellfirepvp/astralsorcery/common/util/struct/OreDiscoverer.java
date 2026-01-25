@@ -46,7 +46,7 @@ public class OreDiscoverer {
                     int highest = (c.getTopFilledSegment() + 1) * 16;
                     for (int y = 0; y < highest; y++) {
                         pooledPos.setY(y);
-                        Block at = c.getBlock(pooledPos);
+                        Block at = c.getBlock(pooledPos.posX, pooledPos.posY, pooledPos.posZ);
                         if (successfulOres.contains(at)) {
                             out.addBlock(new BlockPos(pooledPos), at);
                         } else if (isOre(at)) {

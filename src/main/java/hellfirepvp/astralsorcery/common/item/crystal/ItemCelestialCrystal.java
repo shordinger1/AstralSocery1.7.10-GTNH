@@ -34,7 +34,7 @@ import hellfirepvp.astralsorcery.common.registry.RegistryItems;
  */
 public class ItemCelestialCrystal extends ItemRockCrystalBase implements ItemGatedVisibility {
 
-    @Override
+
     public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> subItems) {
         // 1.7.10 compatibility: Item.isInCreativeTab() doesn't exist, use tab == this.getCreativeTab() instead
         if (tab == this.getCreativeTab()) {
@@ -43,6 +43,8 @@ public class ItemCelestialCrystal extends ItemRockCrystalBase implements ItemGat
             subItems.add(stack);
         }
     }
+
+
 
     @Override
     public int getMaxSize(ItemStack stack) {

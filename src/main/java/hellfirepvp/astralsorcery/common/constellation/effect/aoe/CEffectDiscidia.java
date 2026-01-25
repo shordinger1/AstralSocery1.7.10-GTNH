@@ -90,7 +90,7 @@ public class CEffectDiscidia extends CEffectEntityCollect<EntityLiving> {
         boolean did = false;
         float actDamageDealt = percStrength * damage;
         List<EntityLiving> entities = collectEntities(world, pos, modified);
-        if (!entities.isEmpty()) {
+        if (!entities == null || entities.stackSize <= 0) {
             EntityPlayer owner = getOwningPlayerInWorld(world, pos);
             DamageSource dmgSource = owner == null ? CommonProxy.dmgSourceStellar
                 : DamageSourceUtil.withEntityDirect(CommonProxy.dmgSourceStellar, owner);

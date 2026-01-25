@@ -9,6 +9,9 @@
 package hellfirepvp.astralsorcery.common.constellation.perk;
 
 import java.awt.*;
+
+import cpw.mods.fml.common.Optional;
+import net.minecraft.util.EnumChatFormatting;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;

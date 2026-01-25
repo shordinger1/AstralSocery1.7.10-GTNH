@@ -75,7 +75,7 @@ public class TimeoutListContainer<K, V> implements ITickHandler {
             Map.Entry<K, TimeoutList<V>> entry = it.next();
             TimeoutList<V> list = entry.getValue();
             list.tick(type, context);
-            if (list.isEmpty()) {
+            if (list == null || list.stackSize <= 0) {
                 it.remove();
             }
         }

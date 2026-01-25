@@ -35,35 +35,10 @@ public abstract class AbstractRecipeAccessor extends AbstractRecipeData {
     @Nullable
     abstract ItemHandle getExpectedStack(ShapedRecipeSlot slot);
 
+    // 1.7.10: IRecipe doesn't have getIngredients() method
+    // This method cannot be implemented in 1.7.10 due to fundamental recipe system differences
     public static AbstractRecipeAccessor buildAccessorFor(IRecipe nativeRecipe) {
-        return new AbstractRecipeAccessor(nativeRecipe.getRecipeOutput()) {
-
-            @Nullable
-            @Override
-            ItemHandle getExpectedStack(int row, int column) {
-                int index = row * 3 + column;
-                if (index >= nativeRecipe.getIngredients()
-                    .size()) {
-                    return null;
-                }
-                return ItemHandle.of(
-                    nativeRecipe.getIngredients()
-                        .get(index));
-            }
-
-            @Nullable
-            @Override
-            ItemHandle getExpectedStack(ShapedRecipeSlot slot) {
-                int index = slot.getSlotID();
-                if (index >= nativeRecipe.getIngredients()
-                    .size()) {
-                    return null;
-                }
-                return ItemHandle.of(
-                    nativeRecipe.getIngredients()
-                        .get(index));
-            }
-        };
+        throw new UnsupportedOperationException("buildAccessorFor(IRecipe) is not supported in 1.7.10. Use AccessibleRecipeAdapter instead.");
     }
 
 }

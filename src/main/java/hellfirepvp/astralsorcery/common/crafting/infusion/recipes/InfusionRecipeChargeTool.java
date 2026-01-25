@@ -119,7 +119,8 @@ public class InfusionRecipeChargeTool extends BasicInfusionRecipe {
         for (int i = 0; i < 3; i++) {
             at = TileStarlightInfuser.offsetsLiquidStarlight[rand
                 .nextInt(TileStarlightInfuser.offsetsLiquidStarlight.length)];
-            at = at.add(infuser.getPos());
+            // In 1.7.10, BlockPos doesn't have add(BlockPos), use add(int, int, int)
+            at = at.add(infuser.getPos().getX(), infuser.getPos().getY(), infuser.getPos().getZ());
             EffectHelper.genericFlareParticle(at.getX() + 0.5, at.getY() + 0.85, at.getZ() + 0.5)
                 .motion(
                     rand.nextFloat() * 0.1 - rand.nextFloat() * 0.1,
@@ -130,7 +131,8 @@ public class InfusionRecipeChargeTool extends BasicInfusionRecipe {
         if (rand.nextInt(3) == 0) {
             at = TileStarlightInfuser.offsetsLiquidStarlight[rand
                 .nextInt(TileStarlightInfuser.offsetsLiquidStarlight.length)];
-            at = at.add(infuser.getPos());
+            // In 1.7.10, BlockPos doesn't have add(BlockPos), use add(int, int, int)
+            at = at.add(infuser.getPos().getX(), infuser.getPos().getY(), infuser.getPos().getZ());
             Vector3 from = new Vector3(at).add(0.5, 0, 0.5);
             MiscUtils.applyRandomOffset(from, rand, 0.4F);
             EffectLightbeam lightbeam = EffectHandler.getInstance()

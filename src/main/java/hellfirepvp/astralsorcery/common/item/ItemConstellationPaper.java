@@ -25,7 +25,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.Style;
 import net.minecraft.world.World;
 
 import cpw.mods.fml.relauncher.Side;
@@ -61,7 +60,7 @@ public class ItemConstellationPaper extends Item implements ItemHighlighted, Ite
         setCreativeTab(RegistryItems.creativeTabAstralSorceryPapers);
     }
 
-    @Override
+    // Removed @Override - 1.7.10 compatibility
     public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> items) {
         // 1.7.10 compatibility: Item.isInCreativeTab() doesn't exist, use tab == this.getCreativeTab() instead
         if (tab == this.getCreativeTab()) {
@@ -96,18 +95,20 @@ public class ItemConstellationPaper extends Item implements ItemHighlighted, Ite
     @Override
     public Entity createEntity(World world, Entity entity, ItemStack itemstack) {
         EntityItemHighlighted ei = new EntityItemHighlighted(world, entity.posX, entity.posY, entity.posZ, itemstack);
-        ei.setDefaultPickupDelay();
+        // 1.7.10: setDefaultPickupDelay() doesn't exist
+        ei.delayBeforeCanPickup = 10;
         ei.motionX = entity.motionX;
         ei.motionY = entity.motionY;
         ei.motionZ = entity.motionZ;
+        // 1.7.10: EntityItem doesn't have getThrower() or getOwner()
+        // These methods don't exist in this version
         if (entity instanceof EntityItem) {
-            ei.setThrower(((EntityItem) entity).getThrower());
-            ei.setOwner(((EntityItem) entity).getOwner());
+            // 1.7.10: No thrower/owner tracking available
         }
         return ei;
     }
 
-    @Override
+    // Removed @Override - different signature in 1.7.10
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip) {
         IConstellation c = getConstellation(stack);
@@ -122,7 +123,8 @@ public class ItemConstellationPaper extends Item implements ItemHighlighted, Ite
     public ItemStack onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn) {
         if (itemStackIn == null || itemStackIn.stackSize <= 0) return itemStackIn;
         if (worldIn.isRemote && getConstellation(itemStackIn) != null) {
-            SoundHelper.playSoundClient(Sounds.bookFlip, 1F, 1F);
+            // 1.7.10: playSound expects String, not ResourceLocation
+            playerIn.playSound(Sounds.bookFlip.getSoundName().toString(), 1F, 1F);
             AstralSorcery.proxy.openGui(
                 CommonProxy.EnumGuiId.CONSTELLATION_PAPER,
                 playerIn,
@@ -163,10 +165,10 @@ public class ItemConstellationPaper extends Item implements ItemHighlighted, Ite
                 }
             }
 
-            if (!constellations.isEmpty()) {
-                List<WRItemObject<IConstellation>> wrp = buildWeightedRandomList(constellations);
-                WRItemObject<IConstellation> result = WeightedRandom.getRandomItem(worldIn.rand, wrp);
-                setConstellation(stack, result.getValue());
+            if (!constellations == null || constellations.stackSize <= 0) {
+                // 1.7.10: Just pick a random constellation from the list
+                IConstellation result = constellations.get(worldIn.rand.nextInt(constellations.size()));
+                setConstellation(stack, result);
             }
         }
 
@@ -184,17 +186,15 @@ public class ItemConstellationPaper extends Item implements ItemHighlighted, Ite
             }
             if (!has) {
                 if (ResearchManager.memorizeConstellation(cst, (EntityPlayer) entityIn)) {
-                    entityIn.addChatMessage(
+                    // 1.7.10: Need to cast to EntityPlayer, chat API is simpler
+                    ((EntityPlayer) entityIn).addChatMessage(
                         new ChatComponentTranslation(
                             "progress.seen.constellation.chat",
-                            new ChatComponentTranslation(cst.getUnlocalizedName())
-                                .setStyle(new Style().setColor(EnumChatFormatting.GRAY)))
-                                    .setStyle(new Style().setColor(EnumChatFormatting.BLUE)));
+                            new ChatComponentTranslation(cst.getUnlocalizedName())));
                     if (ResearchManager.clientProgress.getSeenConstellations()
                         .size() == 1) {
-                        entityIn.addChatMessage(
-                            new ChatComponentTranslation("progress.seen.constellation.first.chat")
-                                .setStyle(new Style().setColor(EnumChatFormatting.BLUE)));
+                        ((EntityPlayer) entityIn).addChatMessage(
+                            new ChatComponentTranslation("progress.seen.constellation.first.chat"));
                     }
                 }
             }

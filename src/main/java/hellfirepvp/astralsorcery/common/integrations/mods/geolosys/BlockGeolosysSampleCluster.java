@@ -10,16 +10,21 @@ package hellfirepvp.astralsorcery.common.integrations.mods.geolosys;
 
 import java.util.ArrayList;
 
+import cpw.mods.fml.relauncher.Side;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.particle.EffectRenderer;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import com.google.common.collect.Lists;
 
@@ -49,8 +54,9 @@ public class BlockGeolosysSampleCluster extends BlockContainer {
         setStepSound(Block.soundTypePiston);
     }
 
-    @Override
-    public void getSubBlocks(CreativeTabs itemIn, ArrayList<ItemStack> items) {}
+
+    public void getSubBlocks(CreativeTabs itemIn, ArrayList<ItemStack> items) {
+    }
 
     @Override
     public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
@@ -69,13 +75,13 @@ public class BlockGeolosysSampleCluster extends BlockContainer {
 
     @Override
     @SideOnly(Side.CLIENT)
-    public boolean addDestroyEffects(World world, int x, int y, int z, int meta, ParticleManager manager) {
+    public boolean addDestroyEffects(World world, int x, int y, int z, int meta, EffectRenderer effectRenderer) {
         return true;
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public boolean addHitEffects(World world, int x, int y, int z, EntityPlayer player) {
+    public boolean addHitEffects(World world, MovingObjectPosition target, EffectRenderer effectRenderer) {
         return true;
     }
 
@@ -83,36 +89,35 @@ public class BlockGeolosysSampleCluster extends BlockContainer {
     public boolean canPlaceBlockAt(World worldIn, int x, int y, int z) {
         boolean replaceable = super.canPlaceBlockAt(worldIn, x, y, z);
         if (replaceable) {
-            if (!worldIn.isSideSolid(x, y - 1, z, 1)) replaceable = false; // UP = 1
+            // 1.7.10: isSideSolid takes ForgeDirection, not int
+            if (!worldIn.isSideSolid(x, y - 1, z, ForgeDirection.UP)) replaceable = false;
         }
         return replaceable;
     }
 
     @Override
-    public boolean isTopSolid(Block block) {
-        return false;
-    }
-
-    @Override
+    @SuppressWarnings("deprecation")
     public ItemStack getPickBlock(MovingObjectPosition target, World world, int x, int y, int z) {
         return super.getPickBlock(target, world, x, y, z); // Waila fix. wtf. why waila. why.
     }
 
     @Override
     public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune) {
-        ArrayList<ItemStack> drops = Lists.newLinkedList();
+        // 1.7.10: Lists.newLinkedList() returns LinkedList<Object>, not ArrayList<ItemStack>
+        ArrayList<ItemStack> drops = new ArrayList<ItemStack>();
         drops.add(ItemCraftingComponent.MetaType.STARDUST.asStack());
         return drops;
     }
 
     @Override
-    public boolean isSideSolid(IBlockAccess world, int x, int y, int z, int side) {
+    public boolean isSideSolid(IBlockAccess world, int x, int y, int z, ForgeDirection side) {
         return false;
     }
 
     @Override
     public void onNeighborBlockChange(World worldIn, int x, int y, int z, Block neighbor) {
-        if (!worldIn.isSideSolid(x, y - 1, z, 1)) { // UP = 1
+        // 1.7.10: isSideSolid takes ForgeDirection, not int
+        if (!worldIn.isSideSolid(x, y - 1, z, ForgeDirection.UP)) {
             dropBlockAsItem(worldIn, x, y, z, worldIn.getBlockMetadata(x, y, z), 0);
             worldIn.setBlockToAir(x, y, z);
         }
@@ -120,14 +125,17 @@ public class BlockGeolosysSampleCluster extends BlockContainer {
 
     @Override
     public void breakBlock(World worldIn, int x, int y, int z, Block block, int meta) {
-        TileGeolosysSampleCluster te = MiscUtils.getTileAt(worldIn, x, y, z, TileGeolosysSampleCluster.class, true);
+        // 1.7.10: getTileAt doesn't have boolean parameter overload
+        TileGeolosysSampleCluster te = MiscUtils.getTileAt(worldIn, x, y, z, TileGeolosysSampleCluster.class);
         if (te != null && !worldIn.isRemote) {
             PktParticleEvent event = new PktParticleEvent(
                 PktParticleEvent.ParticleEventType.CELESTIAL_CRYSTAL_BURST,
                 x,
                 y,
                 z);
-            PacketChannel.CHANNEL.sendToAllAround(event, PacketChannel.pointFromPos(worldIn, x, y, z, 32));
+            // 1.7.10: pointFromPos takes ChunkCoordinates, not separate x, y, z
+            ChunkCoordinates pos = new ChunkCoordinates(x, y, z);
+            PacketChannel.CHANNEL.sendToAllAround(event, PacketChannel.pointFromPos(worldIn, pos, 32));
         }
         super.breakBlock(worldIn, x, y, z, block, meta);
     }

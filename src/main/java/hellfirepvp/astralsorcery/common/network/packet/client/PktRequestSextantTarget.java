@@ -149,19 +149,13 @@ public class PktRequestSextantTarget
 
     @SideOnly(Side.CLIENT)
     private void handlePacketClient(PktRequestSextantTarget pkt) {
-        Minecraft.getMinecraft()
-            .addScheduledTask(new Runnable() {
-
-                @Override
-                public void run() {
-                    if (Minecraft.getMinecraft().thePlayer == null || Minecraft.getMinecraft().theWorld == null) {
-                        return;
-                    }
-                    SextantFinder.TargetObject to = SextantFinder.getByName(pkt.regNameExpected);
-                    if (to == null) return;
-                    UISextantCache.addTarget(to, pkt.resultPos, pkt.resultDim);
-                }
-            });
+        // 1.7.10: addScheduledTask doesn't exist, call directly
+        if (Minecraft.getMinecraft().thePlayer == null || Minecraft.getMinecraft().theWorld == null) {
+            return;
+        }
+        SextantFinder.TargetObject to = SextantFinder.getByName(pkt.regNameExpected);
+        if (to == null) return;
+        UISextantCache.addTarget(to, pkt.resultPos, pkt.resultDim);
     }
 
 }

@@ -17,10 +17,12 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 
+import com.google.common.collect.Sets;
+
 import hellfirepvp.astralsorcery.common.item.crystal.CrystalProperties;
 import hellfirepvp.astralsorcery.common.item.crystal.ToolCrystalProperties;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
-import hellfirepvp.astralsorcery.common.util.Sets;
+
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -31,8 +33,11 @@ import hellfirepvp.astralsorcery.common.util.Sets;
  */
 public class ItemCrystalPickaxe extends ItemCrystalToolBase {
 
-    private static final Set<Block> EFFECTIVE_SET = Sets
-        .newHashSet(Blocks.REDSTONE_ORE, Blocks.LIT_REDSTONE_ORE, Blocks.OBSIDIAN);
+    private static final Set<Block> EFFECTIVE_SET = Sets.newHashSet(
+        Blocks.redstone_ore,
+        Blocks.lit_redstone_ore,
+        Blocks.obsidian
+    );
 
     public ItemCrystalPickaxe() {
         super(3, EFFECTIVE_SET);
@@ -42,7 +47,7 @@ public class ItemCrystalPickaxe extends ItemCrystalToolBase {
         setCreativeTab(RegistryItems.creativeTabAstralSorcery);
     }
 
-    @Override
+    // Removed @Override - 1.7.10 compatibility
     public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> subItems) {
         // 1.7.10 compatibility: Item.isInCreativeTab() doesn't exist, use tab == this.getCreativeTab() instead
         if (tab == this.getCreativeTab()) {
@@ -58,14 +63,14 @@ public class ItemCrystalPickaxe extends ItemCrystalToolBase {
     public boolean canHarvestBlock(Block state, ItemStack stack) {
         Block block = state;
 
-        if (block == Blocks.OBSIDIAN) {
+        if (block == Blocks.obsidian) {
             return this.toolMaterial.getHarvestLevel() == 3;
-        } else if (block != Blocks.DIAMOND_BLOCK && block != Blocks.DIAMOND_ORE) {
-            if (block != Blocks.EMERALD_ORE && block != Blocks.EMERALD_BLOCK) {
-                if (block != Blocks.GOLD_BLOCK && block != Blocks.GOLD_ORE) {
-                    if (block != Blocks.IRON_BLOCK && block != Blocks.IRON_ORE) {
-                        if (block != Blocks.LAPIS_BLOCK && block != Blocks.LAPIS_ORE) {
-                            if (block != Blocks.REDSTONE_ORE && block != Blocks.LIT_REDSTONE_ORE) {
+        } else if (block != Blocks.diamond_block && block != Blocks.diamond_ore) {
+            if (block != Blocks.emerald_ore && block != Blocks.emerald_block) {
+                if (block != Blocks.gold_block && block != Blocks.gold_ore) {
+                    if (block != Blocks.iron_block && block != Blocks.iron_ore) {
+                        if (block != Blocks.lapis_block && block != Blocks.lapis_ore) {
+                            if (block != Blocks.redstone_ore && block != Blocks.lit_redstone_ore) {
                                 Material material = state.getMaterial();
 
                                 if (material == Material.rock) {

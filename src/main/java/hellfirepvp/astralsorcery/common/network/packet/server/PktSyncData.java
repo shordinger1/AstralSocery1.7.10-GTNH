@@ -8,12 +8,10 @@
 
 package hellfirepvp.astralsorcery.common.network.packet.server;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.PacketBuffer;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
@@ -46,13 +44,13 @@ public class PktSyncData implements IMessage, IMessageHandler<PktSyncData, IMess
 
     @Override
     public void fromBytes(ByteBuf buf) {
-        PacketBuffer pb = new PacketBuffer(buf);
-        int size = pb.readInt();
+        // 1.7.10: Use ByteBufUtils instead of PacketBuffer methods
+        int size = buf.readInt();
 
         for (int i = 0; i < size; i++) {
-            String key = ByteBufUtils.readString(pb);
+            String key = ByteBufUtils.readString(buf);
 
-            byte providerId = pb.readByte();
+            byte providerId = buf.readByte();
             AbstractData.AbstractDataProvider<? extends AbstractData> provider = AbstractData.Registry
                 .getProvider(providerId);
             if (provider == null) {
@@ -60,14 +58,8 @@ public class PktSyncData implements IMessage, IMessageHandler<PktSyncData, IMess
                 continue;
             }
 
-            NBTTagCompound cmp;
-            try {
-                cmp = pb.readCompoundTag();
-            } catch (IOException e) {
-                AstralSorcery.log.warn("Provider Compound of " + providerId + " threw an IOException! Skipping...");
-                AstralSorcery.log.warn("Exception message: " + e.getMessage());
-                continue;
-            }
+            // 1.7.10: ByteBufUtils.readNBTTag doesn't throw IOException, it catches exceptions internally
+            NBTTagCompound cmp = ByteBufUtils.readNBTTag(buf);
 
             AbstractData dat = provider.provideNewInstance(Side.CLIENT);
             dat.readRawFromPacket(cmp);
@@ -78,8 +70,8 @@ public class PktSyncData implements IMessage, IMessageHandler<PktSyncData, IMess
 
     @Override
     public void toBytes(ByteBuf buf) {
-        PacketBuffer pb = new PacketBuffer(buf);
-        pb.writeInt(data.size());
+        // 1.7.10: Use ByteBufUtils instead of PacketBuffer methods
+        buf.writeInt(data.size());
 
         for (String key : data.keySet()) {
             AbstractData dat = data.get(key);
@@ -90,11 +82,11 @@ public class PktSyncData implements IMessage, IMessageHandler<PktSyncData, IMess
                 dat.writeToPacket(cmp);
             }
 
-            ByteBufUtils.writeString(pb, key);
+            ByteBufUtils.writeString(buf, key);
 
             byte providerId = dat.getProviderID();
-            pb.writeByte(providerId);
-            pb.writeCompoundTag(cmp);
+            buf.writeByte(providerId);
+            ByteBufUtils.writeNBTTag(buf, cmp);
         }
     }
 

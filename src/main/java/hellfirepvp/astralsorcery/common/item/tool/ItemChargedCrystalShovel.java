@@ -36,12 +36,14 @@ import hellfirepvp.astralsorcery.common.util.struct.BlockDiscoverer;
 public class ItemChargedCrystalShovel extends ItemCrystalShovel implements ChargedCrystalToolBase {
 
     @Override
-    public boolean onBlockStartBreak(ItemStack itemstack, BlockPos pos, EntityPlayer player) {
+    public boolean onBlockStartBreak(ItemStack itemstack, int x, int y, int z, EntityPlayer player) {
         World world = player.worldObj;
         // 1.7.10: No CooldownTracker, removed cooldown check; use world variable
         if (!world.isRemote && !player.isSneaking()) {
-            Block at = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
-            if (at.isToolEffective("shovel", at)) {
+            Block at = world.getBlock(x, y, z);
+            int meta = world.getBlockMetadata(x, y, z);
+            if (at.isToolEffective("shovel", meta)) {
+                BlockPos pos = new BlockPos(x, y, z);
                 BlockArray shovelables = BlockDiscoverer
                     .discoverBlocksWithSameStateAround(world, pos, true, 8, 100, true);
                 if (shovelables != null) {
@@ -80,7 +82,7 @@ public class ItemChargedCrystalShovel extends ItemCrystalShovel implements Charg
                 }
             }
         }
-        return super.onBlockStartBreak(itemstack, pos, player);
+        return super.onBlockStartBreak(itemstack, x, y, z, player);
     }
 
     @Nonnull

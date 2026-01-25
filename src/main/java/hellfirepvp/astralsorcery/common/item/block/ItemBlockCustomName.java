@@ -35,7 +35,7 @@ public class ItemBlockCustomName extends ItemBlock {
 
     @Override
     public String getUnlocalizedName(ItemStack stack) {
-        Block b = getBlock();
+        Block b = this.field_150939_a;
         if (b instanceof BlockCustomName) {
             String identifier = ((BlockCustomName) b).getIdentifierForMeta(stack.getItemDamage());
             return super.getUnlocalizedName(stack) + "." + identifier;

@@ -26,8 +26,24 @@ public class PropertyInteger extends PropertyHelper<Integer> {
         this.max = max;
     }
 
+    @Override
     public Collection<Integer> getAllowedValues() {
         return Collections.singleton(min);
+    }
+
+    @Override
+    public String getName(Integer value) {
+        // In 1.7.10, integer values are just their string representation
+        return value.toString();
+    }
+
+    @Override
+    public Integer parseValue(String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return min; // Return default on parse error
+        }
     }
 
     /**

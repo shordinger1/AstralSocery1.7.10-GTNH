@@ -20,9 +20,9 @@ import net.minecraft.entity.player.EntityPlayer;
  */
 public abstract class EnchantmentPlayerWornTick extends EnchantmentBase {
 
-    public EnchantmentPlayerWornTick(String name, Rarity rarityIn, EnumEnchantmentType typeIn,
-        net.minecraft.inventory.EntityEquipmentSlot... slots) {
-        super(name, rarityIn, typeIn, slots);
+    // 1.7.10: Removed Rarity and EntityEquipmentSlot parameters
+    public EnchantmentPlayerWornTick(String name, int weightIn, EnumEnchantmentType typeIn) {
+        super(name, weightIn, typeIn);
     }
 
     public void onWornTick(boolean isClient, EntityPlayer base, int level) {}

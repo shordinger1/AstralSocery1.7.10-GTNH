@@ -89,7 +89,7 @@ public class GuiJournalConstellationCluster extends GuiScreenJournal {
         return new GuiJournalConstellationCluster(20, "no.title", constellations);
 
         /*
-         * if(tiersFound.isEmpty()) {
+         * if(tiersFound == null || tiersFound.stackSize <= 0) {
          * return new GuiJournalConstellationCluster(1, false, "gui.journal.c.unmapped", unmapped);
          * } else if(tiersFound.size() == 1) {
          * return new GuiJournalConstellationCluster(1, true, tiersFound.get(0).getUnlocalizedName(),

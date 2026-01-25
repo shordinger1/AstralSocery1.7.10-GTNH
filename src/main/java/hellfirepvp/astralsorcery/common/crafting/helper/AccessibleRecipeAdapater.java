@@ -36,7 +36,7 @@ public class AccessibleRecipeAdapater extends AccessibleRecipe {
     private final AbstractRecipeAccessor abstractRecipe;
 
     public AccessibleRecipeAdapater(IRecipe parent, AbstractRecipeAccessor abstractRecipe) {
-        super(parent.getRegistryName());
+        super(null); // 1.7.10 IRecipe doesn't have getRegistryName()
         this.parent = parent;
         this.abstractRecipe = abstractRecipe;
     }
@@ -76,6 +76,7 @@ public class AccessibleRecipeAdapater extends AccessibleRecipe {
             if (oreDictIn.getItemDamage() == OreDictionary.WILDCARD_VALUE && !oreDictIn.isItemStackDamageable()) {
                 oreDictIn.getItem()
                     .getSubItems(
+                        oreDictIn.getItem(),
                         oreDictIn.getItem()
                             .getCreativeTab(),
                         out);
@@ -86,19 +87,19 @@ public class AccessibleRecipeAdapater extends AccessibleRecipe {
         return out;
     }
 
-    @Override
     public ArrayList<Ingredient> getIngredients() {
-        return parent.getIngredients();
+        // 1.7.10 IRecipe doesn't have getIngredients(), return empty list
+        return new ArrayList<>();
     }
 
-    @Override
     public String getGroup() {
-        return parent.getGroup();
+        // 1.7.10 IRecipe doesn't have getGroup(), return empty string
+        return "";
     }
 
-    @Override
     public boolean isDynamic() {
-        return parent.isDynamic();
+        // 1.7.10 IRecipe doesn't have isDynamic(), return false
+        return false;
     }
 
     @Override
@@ -112,8 +113,13 @@ public class AccessibleRecipeAdapater extends AccessibleRecipe {
     }
 
     @Override
+    public int getRecipeSize() {
+        return parent.getRecipeSize();
+    }
+
     public boolean canFit(int width, int height) {
-        return parent.canFit(width, height);
+        // 1.7.10 IRecipe doesn't have canFit(), use getRecipeSize() instead
+        return width * height >= parent.getRecipeSize();
     }
 
     @Override
@@ -121,9 +127,9 @@ public class AccessibleRecipeAdapater extends AccessibleRecipe {
         return parent.getRecipeOutput();
     }
 
-    @Override
     public ArrayList<ItemStack> getRemainingItems(InventoryCrafting inv) {
-        return parent.getRemainingItems(inv);
+        // 1.7.10 IRecipe doesn't have getRemainingItems(), return empty list
+        return new ArrayList<>();
     }
 
     public IRecipe getParentRecipe() {

@@ -83,7 +83,7 @@ public class JournalPageAttunementRecipe implements IJournalPage {
         }
 
         protected void renderAltarSlot(float offsetX, float offsetY, float zLevel, java.util.List<ItemStack> stacks) {
-            if (stacks == null || stacks.isEmpty()) return;
+            if (stacks == null || stacks == null || stacks.stackSize <= 0) return;
 
             long select = ((ClientScheduler.getClientTick() + ((int) offsetX) * 40 + ((int) offsetY) * 40) / 20);
             select %= stacks.size();

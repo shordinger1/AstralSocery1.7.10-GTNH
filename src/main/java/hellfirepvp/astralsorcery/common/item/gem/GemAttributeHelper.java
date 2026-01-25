@@ -23,6 +23,7 @@ import hellfirepvp.astralsorcery.common.constellation.perk.attribute.AttributeTy
 import hellfirepvp.astralsorcery.common.constellation.perk.attribute.GemAttributeModifier;
 import hellfirepvp.astralsorcery.common.constellation.perk.attribute.PerkAttributeModifier;
 import hellfirepvp.astralsorcery.common.data.config.entry.ConfigEntry;
+import hellfirepvp.astralsorcery.common.migration.Function;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
 import hellfirepvp.astralsorcery.common.util.WrapMathHelper;
 
@@ -102,10 +103,15 @@ public class GemAttributeHelper {
                 type = MiscUtils.getWeightedRandomEntry(
                     configuredModifiers.keySet(),
                     random,
-                    s -> configuredModifiers.getOrDefault(s, 1));
+                    new Function<String, Integer>() {
+                        @Override
+                        public Integer apply(String s) {
+                            return configuredModifiers.getOrDefault(s, 1);
+                        }
+                    });
             } else {
                 List<String> keys = new ArrayList<>(configuredModifiers.keySet());
-                while (!keys.isEmpty() && type == null) {
+                while (!keys == null || keys.stackSize <= 0 && type == null) {
                     String item = getWeightedResultAndRemove(keys, random);
                     if (item != null) {
                         boolean foundType = false;
@@ -185,10 +191,15 @@ public class GemAttributeHelper {
 
     @Nullable
     private static String getWeightedResultAndRemove(List<String> list, Random random) {
-        if (list.isEmpty()) {
+        if (list == null || list.stackSize <= 0) {
             return null;
         }
-        String result = MiscUtils.getWeightedRandomEntry(list, random, s -> configuredModifiers.getOrDefault(s, 1));
+        String result = MiscUtils.getWeightedRandomEntry(list, random, new Function<String, Integer>() {
+            @Override
+            public Integer apply(String s) {
+                return configuredModifiers.getOrDefault(s, 1);
+            }
+        });
         if (result != null) {
             list.remove(result);
         }

@@ -98,7 +98,7 @@ public class BlockFlareLight extends Block {
 
     @Override
     public Item getItemDropped(int metadata, Random rand, int fortune) {
-        return null; // 1.7.10: Items.AIR doesn't exist, return null
+        return null; // 1.7.10: null doesn't exist, return null
     }
 
     public int getMetaFromState(IBlockState state) {

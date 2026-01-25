@@ -9,8 +9,6 @@
 package hellfirepvp.astralsorcery.common.network.packet.client;
 
 import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.ChatStyle;
-import net.minecraft.util.EnumChatFormatting;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
@@ -58,15 +56,13 @@ public class PktDiscoverConstellation implements IMessage, IMessageHandler<PktDi
         if (received == null) {
             AstralSorcery.log.info("Received unknown constellation from client: " + message.discoveredConstellation);
         } else {
-            PlayerProgress prog = ResearchManager.getProgress(ctx.getServerHandler().player, Side.SERVER);
-            if (prog.isValid() && received.canDiscover(ctx.getServerHandler().player, prog)) {
-                ResearchManager.discoverConstellation(received, ctx.getServerHandler().player);
-                ctx.getServerHandler().player.addChatMessage(
-                    new ChatComponentTranslation(
-                        "progress.discover.constellation.chat",
-                        new ChatComponentTranslation(message.discoveredConstellation)
-                            .setStyle(new ChatStyle().setColor(EnumChatFormatting.GRAY)))
-                                .setStyle(new ChatStyle().setColor(EnumChatFormatting.BLUE)));
+            // 1.7.10: Use playerEntity instead of player
+            PlayerProgress prog = ResearchManager.getProgress(ctx.getServerHandler().playerEntity, Side.SERVER);
+            if (prog.isValid() && received.canDiscover(ctx.getServerHandler().playerEntity, prog)) {
+                ResearchManager.discoverConstellation(received, ctx.getServerHandler().playerEntity);
+                // 1.7.10: Simplified chat message without complex styling
+                ctx.getServerHandler().playerEntity.addChatMessage(
+                    new ChatComponentTranslation("progress.discover.constellation.chat"));
             }
         }
         return null;

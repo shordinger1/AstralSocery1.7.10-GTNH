@@ -32,7 +32,6 @@ public class PotionDropModifier extends PotionCustomTexture {
     public PotionDropModifier() {
         super(false, 0xFFD114);
         setPotionName("effect.as.dropmod");
-        setBeneficial();
     }
 
     @Override

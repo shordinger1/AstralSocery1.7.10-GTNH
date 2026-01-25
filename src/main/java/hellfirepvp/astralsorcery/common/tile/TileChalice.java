@@ -121,7 +121,7 @@ public class TileChalice extends TileEntityTick
                     return;
                 }
                 List<LiquidInteraction> interactions = LiquidInteraction.getPossibleInteractions(this.tank.getFluid());
-                if (!interactions.isEmpty()) {
+                if (!interactions == null || interactions.stackSize <= 0) {
                     List<TileChalice> tch = collectChalicesFlat();
                     Collections.shuffle(tch);
                     for (TileChalice ch : tch) {

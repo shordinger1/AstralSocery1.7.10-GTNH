@@ -61,8 +61,10 @@ public class GrindstoneRecipe {
     }
 
     public boolean isValid() {
-        return this.input.getApplicableItems()
-            .size() > 0 && !output == null || output.stackSize <= 0;
+        if (output != null) {
+            return !this.input.getApplicableItems().isEmpty() || output.stackSize <= 0;
+        }
+        return false;
     }
 
     public float getChanceToDoubleOutput() {

@@ -5,17 +5,19 @@
  * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
  * For further details, see the License file there.
  ******************************************************************************/
-
 package hellfirepvp.astralsorcery.common.registry.multiblock;
 
-import net.minecraft.block.Block;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.transpose;
+
 import net.minecraft.init.Blocks;
 import net.minecraft.util.ResourceLocation;
 
+import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
+import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+
 import hellfirepvp.astralsorcery.AstralSorcery;
-import hellfirepvp.astralsorcery.common.block.BlockMarble;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
-import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -24,90 +26,79 @@ import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
  * Created by HellFirePvP
  * Date: 11.12.2016 / 16:35
  */
-public class MultiblockStarlightInfuser extends PatternBlockArray {
+public class MultiblockStarlightInfuser {
+
+    private static final String STRUCTURE_ID = "pattern_starlight_infuser";
+    private static IStructureDefinition<MultiblockStarlightInfuser> STRUCTURE_DEFINITION = null;
 
     public MultiblockStarlightInfuser() {
-        super(new ResourceLocation(AstralSorcery.MODID, "pattern_starlight_infuser"));
-        load();
+        // Structure defined via getStructureDefinition()
     }
 
-    private void load() {
-        Block mar = BlocksAS.blockMarble.withProperty(BlockMarble.MARBLE_TYPE, BlockMarble.MarbleBlockType.ARCH);
-        Block mrw = BlocksAS.blockMarble.withProperty(BlockMarble.MARBLE_TYPE, BlockMarble.MarbleBlockType.RAW);
-        Block mpl = BlocksAS.blockMarble.withProperty(BlockMarble.MARBLE_TYPE, BlockMarble.MarbleBlockType.PILLAR);
-        Block mch = BlocksAS.blockMarble.withProperty(BlockMarble.MARBLE_TYPE, BlockMarble.MarbleBlockType.CHISELED);
-        Block mru = BlocksAS.blockMarble.withProperty(BlockMarble.MARBLE_TYPE, BlockMarble.MarbleBlockType.RUNED);
-
-        Block liquidStarlight = BlocksAS.blockLiquidStarlight;
-
-        addBlock(0, 0, 0, BlocksAS.starlightInfuser);
-
-        addBlockCube(mar, -2, -1, -3, 2, -1, 3);
-        addBlockCube(mar, -3, -1, -2, 3, -1, 2);
-
-        addBlockCube(mru, -2, -1, -2, 2, -1, 2);
-
-        addBlock(0, -1, 0, Blocks.LAPIS_BLOCK);
-        addBlock(-2, -1, -1, liquidStarlight);
-        addBlock(-2, -1, 0, liquidStarlight);
-        addBlock(-2, -1, 1, liquidStarlight);
-        addBlock(2, -1, -1, liquidStarlight);
-        addBlock(2, -1, 0, liquidStarlight);
-        addBlock(2, -1, 1, liquidStarlight);
-        addBlock(-1, -1, -2, liquidStarlight);
-        addBlock(0, -1, -2, liquidStarlight);
-        addBlock(1, -1, -2, liquidStarlight);
-        addBlock(-1, -1, 2, liquidStarlight);
-        addBlock(0, -1, 2, liquidStarlight);
-        addBlock(1, -1, 2, liquidStarlight);
-
-        addBlock(-2, -2, -1, mrw);
-        addBlock(-2, -2, 0, mrw);
-        addBlock(-2, -2, 1, mrw);
-        addBlock(2, -2, -1, mrw);
-        addBlock(2, -2, 0, mrw);
-        addBlock(2, -2, 1, mrw);
-        addBlock(-1, -2, -2, mrw);
-        addBlock(0, -2, -2, mrw);
-        addBlock(1, -2, -2, mrw);
-        addBlock(-1, -2, 2, mrw);
-        addBlock(0, -2, 2, mrw);
-        addBlock(1, -2, 2, mrw);
-
-        addBlock(3, 3, 2, mar);
-        addBlock(3, 3, -2, mar);
-        addBlock(-3, 3, 2, mar);
-        addBlock(-3, 3, -2, mar);
-        addBlock(2, 3, 3, mar);
-        addBlock(-2, 3, 3, mar);
-        addBlock(2, 3, -3, mar);
-        addBlock(-2, 3, -3, mar);
-
-        addBlock(3, 4, 1, mar);
-        addBlock(3, 4, 0, mar);
-        addBlock(3, 4, -1, mar);
-        addBlock(-3, 4, 1, mar);
-        addBlock(-3, 4, 0, mar);
-        addBlock(-3, 4, -1, mar);
-        addBlock(1, 4, 3, mar);
-        addBlock(0, 4, 3, mar);
-        addBlock(-1, 4, 3, mar);
-        addBlock(1, 4, -3, mar);
-        addBlock(0, 4, -3, mar);
-        addBlock(-1, 4, -3, mar);
-
-        addBlock(-3, 0, 3, mpl);
-        addBlock(-3, 1, 3, mpl);
-        addBlock(-3, 2, 3, mch);
-        addBlock(-3, 0, -3, mpl);
-        addBlock(-3, 1, -3, mpl);
-        addBlock(-3, 2, -3, mch);
-        addBlock(3, 0, 3, mpl);
-        addBlock(3, 1, 3, mpl);
-        addBlock(3, 2, 3, mch);
-        addBlock(3, 0, -3, mpl);
-        addBlock(3, 1, -3, mpl);
-        addBlock(3, 2, -3, mch);
+    public IStructureDefinition<MultiblockStarlightInfuser> getStructureDefinition() {
+        if (STRUCTURE_DEFINITION == null) {
+            STRUCTURE_DEFINITION = StructureDefinition.<MultiblockStarlightInfuser>builder()
+                .addShape(STRUCTURE_ID, transpose(shape))
+                .addElement('I', ofBlock(BlocksAS.starlightInfuser, 0))
+                .addElement('C', ofBlock(BlocksAS.blockMarble, 3)) // ARCH
+                .addElement('R', ofBlock(BlocksAS.blockMarble, 0)) // RAW
+                .addElement('P', ofBlock(BlocksAS.blockMarble, 5)) // PILLAR
+                .addElement('H', ofBlock(BlocksAS.blockMarble, 1)) // CHISELED
+                .addElement('U', ofBlock(BlocksAS.blockMarble, 4)) // RUNED
+                .addElement('L', ofBlock(BlocksAS.blockLiquidStarlight, 0))
+                .addElement('X', ofBlock(Blocks.lapis_block, 0))
+                .build();
+        }
+        return STRUCTURE_DEFINITION;
     }
+
+    public ResourceLocation getStructureId() {
+        return new ResourceLocation(AstralSorcery.MODID, STRUCTURE_ID);
+    }
+
+    private final String[][] shape = new String[][] {
+        // Y = -2 (Liquid starlight base)
+        {"        ", "        ", "   R    ", "   R    ", "   R    ", "        ", "        ", "        "},
+        {"        ", "   R    ", "   R    ", "   R    ", "   R    ", "   R    ", "   R    ", "        "},
+        {"        ", "        ", "   R    ", "   R    ", "   R    ", "        ", "        ", "        "},
+
+        // Y = -1 (Main base with liquid starlight)
+        {"CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCUCCUCC", "CULXCLUC", "CCUCCUCC", "CCCCCCCC", "CCCCCCCC"},
+        {"CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC"},
+
+        // Y = 0 (Infuser at center)
+        {"        ", "        ", "        ", "        ", "   I    ", "        ", "        ", "        "},
+
+        // Y = 1
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
+
+        // Y = 2
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
+
+        // Y = 3 (Pillars)
+        {"        ", "        ", "        ", "P       ", "        ", "        ", "       P", "        "},
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
+
+        // Y = 4
+        {"        ", "        ", "        ", "P       ", "        ", "        ", "       P", "        "},
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
+
+        // Y = 5 (Top arches)
+        {"        ", "        ", "        ", "H       ", "        ", "        ", "       H", "        "},
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
+        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
+
+        // Y = 6 (Top platform)
+        {"        ", "        ", "        ", "   C    ", "        ", "        ", "    C   ", "        "},
+        {"        ", "        ", "   C    ", "   C    ", "        ", "   C    ", "   C    ", "        "},
+        {"        ", "        ", "        ", "   C    ", "        ", "        ", "    C   ", "        "},
+
+        // Y = 7 (Arch decorations)
+        {"        ", "        ", "        ", "        ", "   C    ", "        ", "        ", "        "},
+        {"        ", "        ", "        ", "   C    ", "        ", "   C    ", "        ", "        "},
+        {"        ", "        ", "        ", "        ", "   C    ", "        ", "        ", "        "},
+    };
 
 }

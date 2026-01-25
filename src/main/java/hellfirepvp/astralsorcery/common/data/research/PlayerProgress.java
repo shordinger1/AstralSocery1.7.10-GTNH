@@ -10,9 +10,10 @@ package hellfirepvp.astralsorcery.common.data.research;
 
 import java.util.*;
 import java.util.ArrayList;
-import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
+
+import java.util.function.Predicate;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;

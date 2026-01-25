@@ -14,5 +14,5 @@ import net.minecraft.client.renderer.entity.Render;
  */
 public interface IRenderFactory<T extends net.minecraft.entity.Entity> {
 
-    Render<? super T> createRenderFor();
+    Render createRenderFor();
 }

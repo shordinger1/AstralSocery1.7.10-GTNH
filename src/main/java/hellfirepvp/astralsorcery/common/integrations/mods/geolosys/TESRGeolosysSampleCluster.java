@@ -8,17 +8,19 @@
 
 package hellfirepvp.astralsorcery.common.integrations.mods.geolosys;
 
-import net.darkhax.orestages.api.OreTiersAPI;
+
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Tuple;
 
 import org.lwjgl.opengl.GL11;
 
+import cpw.mods.fml.common.Optional;
 import hellfirepvp.astralsorcery.client.models.obj.OBJModelLibrary;
 import hellfirepvp.astralsorcery.client.util.item.IItemRenderer;
 import hellfirepvp.astralsorcery.client.util.obj.WavefrontObject;
@@ -27,6 +29,10 @@ import hellfirepvp.astralsorcery.client.util.resource.AssetLoader;
 import hellfirepvp.astralsorcery.client.util.resource.BindableResource;
 import hellfirepvp.astralsorcery.common.integrations.ModIntegrationGeolosys;
 
+// 1.7.10: Migrated versions of OreStages mod APIs (optional dependencies)
+import hellfirepvp.astralsorcery.common.migration.net.darkhax.orestages.api.OreTiersAPI;
+import hellfirepvp.astralsorcery.common.migration.net.darkhax.gamestages.GameStageHelper;
+
 /**
  * This class is part of the Astral Sorcery Mod
  * The complete source code for this mod can be found on github.
@@ -34,7 +40,7 @@ import hellfirepvp.astralsorcery.common.integrations.ModIntegrationGeolosys;
  * Created by HellFirePvP
  * Date: 03.10.2017 / 17:39
  */
-public class TESRGeolosysSampleCluster extends TileEntitySpecialRenderer<TileGeolosysSampleCluster>
+public class TESRGeolosysSampleCluster extends TileEntitySpecialRenderer
     implements IItemRenderer {
 
     private static int dlC1 = -1;
@@ -44,15 +50,16 @@ public class TESRGeolosysSampleCluster extends TileEntitySpecialRenderer<TileGeo
     private static int[] rotMapping = new int[] { 45, 135, 270, 90, 315, 0, 180, 225 };
 
     @Override
-    public void render(TileGeolosysSampleCluster te, double x, double y, double z, float partialTicks, int destroyStage,
-        float alpha) {
+    public void renderTileEntityAt(TileEntity te, double x, double y, double z, float partialTicks) {
+        // 1.7.10: renderTileEntityAt takes TileEntity, not the specific type
+        if (!(te instanceof TileGeolosysSampleCluster)) return;
+        TileGeolosysSampleCluster tile = (TileGeolosysSampleCluster) te;
+
         Block relevantState = ModIntegrationGeolosys.geolosysSample;
-        if (OreTiersAPI.hasReplacement(relevantState)) {
-            Tuple<String, Block> info = OreTiersAPI.getStageInfo(relevantState);
-            if (info != null && Minecraft.getMinecraft().thePlayer != null
-                && !GameStageHelper.hasStage(Minecraft.getMinecraft().thePlayer, info.getFirst())) {
-                return;
-            }
+
+        // 1.7.10: Use optional method for OreStages integration
+        if (checkShouldHide(relevantState)) {
+            return;
         }
 
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
@@ -63,9 +70,9 @@ public class TESRGeolosysSampleCluster extends TileEntitySpecialRenderer<TileGeo
         GL11.glScalef(size, size, size);
 
         int r = 0x59A51481;
-        r ^= te.xCoord;
-        r ^= te.yCoord;
-        r ^= te.zCoord;
+        r ^= tile.xCoord;
+        r ^= tile.yCoord;
+        r ^= tile.zCoord;
         r = Math.abs(r);
         r = rotMapping[r % rotMapping.length];
         GL11.glRotated(r, 0, 1, 0);
@@ -74,6 +81,22 @@ public class TESRGeolosysSampleCluster extends TileEntitySpecialRenderer<TileGeo
         RenderHelper.enableStandardItemLighting();
         GL11.glPopMatrix();
         GL11.glPopAttrib();
+    }
+
+    // 1.7.10: Wrap OreStages API calls in optional method
+    @Optional.Method(modid = "orestages")
+    private boolean checkShouldHide(Block block) {
+        if (OreTiersAPI.hasReplacement(block)) {
+            // 1.7.10: Tuple is raw, need to cast
+            Tuple info = OreTiersAPI.getStageInfo(block);
+            if (info != null && info.getFirst() instanceof String && Minecraft.getMinecraft().thePlayer != null) {
+                String stage = (String) info.getFirst();
+                if (!GameStageHelper.hasStage(Minecraft.getMinecraft().thePlayer, stage)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void renderCrystals() {

@@ -37,7 +37,7 @@ public class KeyEnergyShield extends KeyPerkThaumcraft {
     public void on(AttributeEvent.PostProcessVanilla event) {
         EntityPlayer owner = event.getPlayer();
         if (owner != null && event.getAttribute()
-            .equals(SharedMonsterAttributes.MAX_HEALTH)) {
+            .equals(SharedMonsterAttributes.maxHealth)) {
             if (owner.worldObj == null) {
                 return; // Srsly, fck you ExU2. do your stuff correlty for once.
             }

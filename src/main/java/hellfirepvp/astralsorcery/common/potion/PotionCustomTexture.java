@@ -71,7 +71,7 @@ public abstract class PotionCustomTexture extends Potion {
         TextureHelper.refreshTextureBindState();
     }
 
-    @Override
+
     @SideOnly(Side.CLIENT)
     public void renderHUDEffect(int x, int y, PotionEffect effect, Minecraft mc, float alpha) {
         Tessellator tes = Tessellator.instance;

@@ -13,9 +13,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
 import cpw.mods.fml.common.event.FMLInterModComms;
+import cpw.mods.fml.common.registry.GameData;
 import hellfirepvp.astralsorcery.common.base.Mods;
 import hellfirepvp.astralsorcery.common.block.BlockBlackMarble;
 import hellfirepvp.astralsorcery.common.block.BlockMarble;
+import hellfirepvp.astralsorcery.common.migration.IBlockState;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -29,29 +31,35 @@ public class ModIntegrationChisel {
     public static void sendVariantIMC() {
         for (BlockMarble.MarbleBlockType type : BlockMarble.MarbleBlockType.values()) {
             if (type.obtainableInCreative()) {
-                sendVariantMapping(type.asBlock(), type.asStack(), ChiselGroup.MARBLE);
+                IBlockState state = type.asBlock();
+                Block block = state.getBlock();
+                int meta = state.getMetadata();
+                sendVariantMapping(block, meta, type.asStack(), ChiselGroup.MARBLE);
             }
         }
         for (BlockBlackMarble.BlackMarbleBlockType type : BlockBlackMarble.BlackMarbleBlockType.values()) {
             if (type.obtainableInCreative()) {
-                sendVariantMapping(type.asBlock(), type.asStack(), ChiselGroup.SOOTY_MARBLE);
+                IBlockState state = type.asBlock();
+                Block block = state.getBlock();
+                int meta = state.getMetadata();
+                sendVariantMapping(block, meta, type.asStack(), ChiselGroup.SOOTY_MARBLE);
             }
         }
     }
 
-    private static void sendVariantMapping(Block state, ItemStack stack, ChiselGroup group) {
+    private static void sendVariantMapping(Block block, int meta, ItemStack stack, ChiselGroup group) {
         NBTTagCompound tag = new NBTTagCompound();
         tag.setString("group", group.group);
         tag.setTag("stack", stack.writeToNBT(new NBTTagCompound()));
-        tag.setString(
-            "block",
-            state.getRegistryName()
-                .toString());
-        tag.setInteger("meta", state.getMetaFromState(state));
-        FMLInterModComms.addChatMessage(Mods.CHISEL.modid, "add_variation", tag);
+        // In 1.7.10, use GameData to get the registry name
+        String registryName = GameData.getBlockRegistry().getNameForObject(block);
+        tag.setString("block", registryName);
+        tag.setInteger("meta", meta);
+        // In 1.7.10, use sendMessage instead of addChatMessage
+        FMLInterModComms.sendMessage(Mods.CHISEL.modid, "add_variation", tag);
     }
 
-    public static enum ChiselGroup {
+    public enum ChiselGroup {
 
         MARBLE("marble"),
         SOOTY_MARBLE("sooty_marble");

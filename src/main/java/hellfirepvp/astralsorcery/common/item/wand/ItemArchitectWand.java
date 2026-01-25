@@ -44,6 +44,7 @@ import hellfirepvp.astralsorcery.common.integrations.ModIntegrationBotania;
 import hellfirepvp.astralsorcery.common.item.ItemBlockStorage;
 import hellfirepvp.astralsorcery.common.item.base.render.ItemAlignmentChargeConsumer;
 import hellfirepvp.astralsorcery.common.item.base.render.ItemHandRender;
+import hellfirepvp.astralsorcery.common.item.base.render.ItemHandRenderHelper;
 import hellfirepvp.astralsorcery.common.item.base.render.ItemHudRender;
 import hellfirepvp.astralsorcery.common.migration.RayTraceResult;
 import hellfirepvp.astralsorcery.common.network.PacketChannel;
@@ -83,7 +84,7 @@ public class ItemArchitectWand extends ItemBlockStorage
     @SideOnly(Side.CLIENT)
     public void onRenderInHandHUD(ItemStack lastCacheInstance, float fadeAlpha, float pTicks) {
         Collection<ItemStack> stored = getMappedStoredStates(lastCacheInstance).values();
-        if ((stored == null || stored.isEmpty())) return;
+        if ((stored == null || stored == null || stored.stackSize <= 0)) return;
 
         Map<ItemStack, Integer> amountMap = new LinkedHashMap<>();
         for (ItemStack stack : stored) {
@@ -154,8 +155,8 @@ public class ItemArchitectWand extends ItemBlockStorage
         TextureHelper.refreshTextureBindState();
         TextureHelper.setActiveTextureToAtlasSprite();
         RenderHelper.enableGUIStandardItemLighting();
-        net.minecraft.client.renderer.entity.RenderItem ri = Minecraft.getMinecraft()
-            .getRenderItem();
+        // 1.7.10: Create new RenderItem instance
+        net.minecraft.client.renderer.entity.RenderItem ri = new net.minecraft.client.renderer.entity.RenderItem();
 
         tempOffsetY = offsetY;
         for (Map.Entry<ItemStack, Integer> entry : amountMap.entrySet()) {
@@ -188,15 +189,15 @@ public class ItemArchitectWand extends ItemBlockStorage
     @SideOnly(Side.CLIENT)
     public void onRenderWhileInHand(ItemStack stack, float pTicks) {
         List<Block> storedStates = Lists.newArrayList(getMappedStoredStates(stack).keySet());
-        if (storedStates.isEmpty()) return;
+        if (storedStates == null || storedStates.stackSize <= 0) return;
         Random r = getPreviewRandomFromWorld(Minecraft.getMinecraft().theWorld);
 
         Deque<BlockPos> placeable = filterBlocksToPlace(
             Minecraft.getMinecraft().thePlayer,
             Minecraft.getMinecraft().theWorld,
             architectRange);
-        if (!(placeable == null || placeable.isEmpty())) {
-            RayTraceResult rtr = getLookBlock(Minecraft.getMinecraft().thePlayer, false, true, architectRange);
+        if (!(placeable == null || placeable == null || placeable.stackSize <= 0)) {
+            RayTraceResult rtr = ItemHandRenderHelper.getLookBlock(Minecraft.getMinecraft().thePlayer, false, true, architectRange);
             if (rtr == null || rtr.typeOfHit != hellfirepvp.astralsorcery.common.migration.RayTraceResult.Type.BLOCK) {
                 return;
             }
@@ -229,17 +230,17 @@ public class ItemArchitectWand extends ItemBlockStorage
         if (world.isRemote) return stack;
 
         Map<Block, ItemStack> storedStates = getMappedStoredStates(stack);
-        if (storedStates.isEmpty()) return stack;
+        if (storedStates == null || storedStates.stackSize <= 0) return stack;
 
-        RayTraceResult rtr = getLookBlock(playerIn, false, true, architectRange);
-        if (rtr == null || rtr.sideHit == null || rtr.hitVec == null) return stack;
-        EnumFacing sideHit = rtr.sideHit;
+        RayTraceResult rtr = ItemHandRenderHelper.getLookBlock(playerIn, false, true, architectRange);
+        if (rtr == null || rtr.sideHit == -1 || rtr.hitVec == null) return stack;
+        EnumFacing sideHit = rtr.getSideHit();
         List<Tuple<Block, ItemStack>> shuffleable = MiscUtils
-            .flatten(storedStates, (block, stack) -> new Tuple<>(block, stack));
+            .flatten(storedStates, (block, stackItem) -> new Tuple<>(block, stackItem));
 
         Random r = getPreviewRandomFromWorld(world);
         Deque<BlockPos> placeable = filterBlocksToPlace(playerIn, world, architectRange);
-        if (!(placeable == null || placeable.isEmpty())) {
+        if (!(placeable == null || placeable == null || placeable.stackSize <= 0)) {
             for (BlockPos placePos : placeable) {
                 Collections.shuffle(shuffleable, r);
                 Tuple<Block, ItemStack> applicable = playerIn.capabilities.isCreativeMode
@@ -258,13 +259,16 @@ public class ItemArchitectWand extends ItemBlockStorage
 
                 if (drainTempCharge(playerIn, Config.architectWandUseCost, true)) {
                     Block place = applicable.key;
-                    if (MiscUtils.canPlayerPlaceBlockPos(playerIn, 0, place, placePos, sideHit)) {
+                    // 1.7.10: Extract metadata from ItemStack
+                    int meta = applicable.value.getItemDamage();
+                    // 1.7.10: canPlayerPlaceBlockPos takes int for side
+                    if (MiscUtils.canPlayerPlaceBlockPos(playerIn, place, placePos, sideHit.ordinal())) {
                         if (world.setBlock(
                             placePos.getX(),
                             placePos.getY(),
                             placePos.getZ(),
                             place,
-                            applicable.value.getItemDamage(),
+                            meta,
                             3)) {
                             drainTempCharge(playerIn, Config.architectWandUseCost, false);
                             if (!playerIn.capabilities.isCreativeMode) {
@@ -277,7 +281,7 @@ public class ItemArchitectWand extends ItemBlockStorage
                             PktParticleEvent ev = new PktParticleEvent(
                                 PktParticleEvent.ParticleEventType.ARCHITECT_PLACE,
                                 placePos);
-                            // 1.7.10: No getStateId, use block ID
+                            // 1.7.10: Use block ID for additional data
                             ev.setAdditionalDataLong(Block.getIdFromBlock(applicable.key));
                             PacketChannel.CHANNEL.sendToAllAround(ev, PacketChannel.pointFromPos(world, placePos, 40));
                         }
@@ -300,14 +304,14 @@ public class ItemArchitectWand extends ItemBlockStorage
         } else {
             if (!world.isRemote) {
                 Map<Block, ItemStack> storedStates = getMappedStoredStates(stack);
-                if (storedStates.isEmpty()) return true;
+                if (storedStates == null || storedStates.stackSize <= 0) return true;
 
                 List<Tuple<Block, ItemStack>> shuffleable = MiscUtils
-                    .flatten(storedStates, (block, stack) -> new Tuple<>(block, stack));
+                    .flatten(storedStates, (block, stackItem) -> new Tuple<>(block, stackItem));
                 Random r = getPreviewRandomFromWorld(world);
 
                 Deque<BlockPos> placeable = filterBlocksToPlace(playerIn, world, architectRange);
-                if (!(placeable == null || placeable.isEmpty())) {
+                if (!(placeable == null || placeable == null || placeable.stackSize <= 0)) {
                     for (BlockPos placePos : placeable) {
                         Collections.shuffle(shuffleable, r);
                         Tuple<Block, ItemStack> applicable = playerIn.capabilities.isCreativeMode
@@ -326,15 +330,17 @@ public class ItemArchitectWand extends ItemBlockStorage
 
                         if (drainTempCharge(playerIn, Config.architectWandUseCost, true)) {
                             Block place = applicable.key;
-                            // 1.7.10: EnumFacing.getFront() is correct for 1.7.10
+                            // 1.7.10: Extract metadata from ItemStack
+                            int meta = applicable.value.getItemDamage();
+                            // 1.7.10: canPlayerPlaceBlockPos takes int for side
                             if (MiscUtils
-                                .canPlayerPlaceBlockPos(playerIn, side, place, placePos, EnumFacing.getFront(side))) {
+                                .canPlayerPlaceBlockPos(playerIn, place, placePos, EnumFacing.getFront(side).ordinal())) {
                                 if (world.setBlock(
                                     placePos.getX(),
                                     placePos.getY(),
                                     placePos.getZ(),
                                     place,
-                                    applicable.value.getItemDamage(),
+                                    meta,
                                     3)) {
                                     drainTempCharge(playerIn, Config.architectWandUseCost, false);
                                     if (!playerIn.capabilities.isCreativeMode) {
@@ -406,12 +412,13 @@ public class ItemArchitectWand extends ItemBlockStorage
     }
 
     private Deque<BlockPos> getBlocksToPlaceAt(Entity entity, double range) {
-        RayTraceResult rtr = getLookBlock(entity, false, true, range);
+        RayTraceResult rtr = ItemHandRenderHelper.getLookBlock(entity, false, true, range);
         if (rtr == null || rtr.typeOfHit != hellfirepvp.astralsorcery.common.migration.RayTraceResult.Type.BLOCK) {
             return Lists.newLinkedList();
         }
         LinkedList<BlockPos> blocks = Lists.newLinkedList();
-        EnumFacing sideHit = rtr.sideHit;
+        // 1.7.10: sideHit is int, use getSideHit() to get EnumFacing
+        EnumFacing sideHit = rtr.getSideHit();
         BlockPos hitPos = rtr.blockPos;
         int length;
         int cmpFrom;

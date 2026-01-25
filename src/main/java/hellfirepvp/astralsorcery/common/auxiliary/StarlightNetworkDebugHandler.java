@@ -94,7 +94,7 @@ public class StarlightNetworkDebugHandler implements ITickHandler {
 
             List<BlockPos> sources = tr.getSources();
             player.addChatMessage(new ChatComponentText("§aTransmission-Node Network-Source-Positions:"));
-            if (sources.isEmpty()) {
+            if (sources == null || sources.stackSize <= 0) {
                 player.addChatMessage(new ChatComponentText("§cNONE"));
             }
             for (BlockPos sPos : sources) {

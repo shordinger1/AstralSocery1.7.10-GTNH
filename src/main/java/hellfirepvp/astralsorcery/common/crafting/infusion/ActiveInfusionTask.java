@@ -66,10 +66,16 @@ public class ActiveInfusionTask {
 
     @Nullable
     public EntityPlayer tryGetCraftingPlayerServer() {
-        return FMLCommonHandler.instance()
+        // 1.7.10: Iterate through player list to find player by UUID
+        for (EntityPlayer player : FMLCommonHandler.instance()
             .getMinecraftServerInstance()
-            .getPlayerList()
-            .getPlayerByUUID(playerCraftingUUID);
+            .getConfigurationManager()
+            .playerEntityList) {
+            if (player.getUniqueID().equals(playerCraftingUUID)) {
+                return player;
+            }
+        }
+        return null;
     }
 
     public boolean tick(TileStarlightInfuser infuser) {
@@ -77,7 +83,7 @@ public class ActiveInfusionTask {
         boolean change = this.pendingChalicePositions.size() > 0;
 
         for (BlockPos bp : this.pendingChalicePositions) {
-            TileChalice test = MiscUtils.getTileAt(infuser.worldObj, bp, TileChalice.class, true);
+            TileChalice test = MiscUtils.getTileAt(infuser.getWorldObj(), bp, TileChalice.class, true);
             if (test != null) {
                 this.supportingChalices.add(test);
             }
@@ -92,12 +98,12 @@ public class ActiveInfusionTask {
                 iterator.remove();
                 change = true;
             } else {
-                TileChalice test = MiscUtils.getTileAt(infuser.worldObj, tc.getPos(), TileChalice.class, true);
+                TileChalice test = MiscUtils.getTileAt(infuser.getWorldObj(), tc.getPos(), TileChalice.class, true);
                 if (test == null || test.getTank() == null
                     || test.getTank()
                         .getFluid() == null
                     || !(test.getTank()
-                        .getFluid().fluidID == fl.fluidID
+                        .getFluid().getFluidID() == fl.getFluidID()
                         && test.getTank()
                             .getFluid().amount >= fl.amount)) {
                     iterator.remove();
@@ -132,7 +138,7 @@ public class ActiveInfusionTask {
 
     public boolean isFinished() {
         return ticksCrafting >= (recipeToCraft.craftingTickTime()
-            * (recipeToCraft.canBeSupportedByChalice() && !supportingChalices.isEmpty() ? 0.3F : 1F));
+            * (recipeToCraft.canBeSupportedByChalice() && !supportingChalices == null || supportingChalices.stackSize <= 0 ? 0.3F : 1F));
     }
 
     public void forceTick(int tick) {

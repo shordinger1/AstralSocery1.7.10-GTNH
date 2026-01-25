@@ -134,9 +134,9 @@ public class FluidBlockLiquidStarlight extends BlockFluidClassic {
         if (shouldCreateBlock) {
             if (isCold) {
                 if (Config.liquidStarlightIce) {
-                    world.setBlock(x, y, z, Blocks.ice, 0, 3);
+                    world.setBlock(x.posX, x.posY, x.posZ, y, z, Blocks.ice, 0, 3);
                 } else {
-                    world.setBlock(x, y, z, Blocks.cobblestone, 0, 3);
+                    world.setBlock(x.posX, x.posY, x.posZ, y, z, Blocks.cobblestone, 0, 3);
                 }
             } else {
                 if (Config.liquidStarlightSand) {
@@ -149,10 +149,10 @@ public class FluidBlockLiquidStarlight extends BlockFluidClassic {
                             BlockCustomSandOre.OreType.AQUAMARINE.ordinal(),
                             3);
                     } else {
-                        world.setBlock(x, y, z, Blocks.sand, 0, 3);
+                        world.setBlock(x.posX, x.posY, x.posZ, y, z, Blocks.sand, 0, 3);
                     }
                 } else {
-                    world.setBlock(x, y, z, Blocks.cobblestone, 0, 3);
+                    world.setBlock(x.posX, x.posY, x.posZ, y, z, Blocks.cobblestone, 0, 3);
                 }
             }
 

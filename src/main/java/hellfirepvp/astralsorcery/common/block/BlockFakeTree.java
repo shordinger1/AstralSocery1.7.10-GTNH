@@ -116,7 +116,7 @@ public class BlockFakeTree extends BlockContainer {
 
     @Override
     public Item getItemDropped(int metadata, Random rand, int fortune) {
-        // 1.7.10: Items.AIR doesn't exist, return null
+        // 1.7.10: null doesn't exist, return null
         return null;
     }
 

@@ -61,7 +61,7 @@ public class ClientCameraManager implements ITickHandler {
     public void tick(TickEvent.Type type, Object... context) {
         if (type == TickEvent.Type.RENDER) {
             float pTicks = (float) context[0];
-            if (!transformers.isEmpty()) {
+            if (!transformers == null || transformers.stackSize <= 0) {
                 ICameraTransformer prio = transformers.last();
                 if (!prio.equals(lastTransformer)) {
                     if (lastTransformer != null) {
@@ -82,7 +82,7 @@ public class ClientCameraManager implements ITickHandler {
                 }
             }
         } else {
-            if (!transformers.isEmpty()) {
+            if (!transformers == null || transformers.stackSize <= 0) {
                 ICameraTransformer prio = transformers.last();
                 prio.onClientTick();
             }
@@ -105,7 +105,7 @@ public class ClientCameraManager implements ITickHandler {
     }
 
     public void removeAllAndCleanup() {
-        if (!transformers.isEmpty()) {
+        if (!transformers == null || transformers.stackSize <= 0) {
             ICameraTransformer last = transformers.last();
             last.onStopTransforming(0);
         }
@@ -117,7 +117,7 @@ public class ClientCameraManager implements ITickHandler {
     }
 
     public boolean hasActiveTransformer() {
-        return !transformers.isEmpty();
+        return !transformers == null || transformers.stackSize <= 0;
     }
 
     public static interface ICameraTransformer {

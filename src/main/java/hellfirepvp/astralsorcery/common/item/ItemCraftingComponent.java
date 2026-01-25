@@ -9,6 +9,7 @@
 package hellfirepvp.astralsorcery.common.item;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -41,7 +42,7 @@ public class ItemCraftingComponent extends Item implements IItemVariants {
     }
 
     @Override
-    public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> items) {
+    public void getSubItems(Item item, CreativeTabs tab, List items) {
         // 1.7.10 compatibility: Item.isInCreativeTab() doesn't exist, use tab == this.getCreativeTab() instead
         if (tab == this.getCreativeTab()) {
             for (MetaType type : MetaType.values()) {
@@ -74,13 +75,15 @@ public class ItemCraftingComponent extends Item implements IItemVariants {
                     location.posY,
                     location.posZ,
                     itemstack);
-                stardust.setDefaultPickupDelay();
+                // 1.7.10: setDefaultPickupDelay doesn't exist, set field directly
+                stardust.delayBeforeCanPickup = 10;
                 stardust.motionX = location.motionX;
                 stardust.motionY = location.motionY;
                 stardust.motionZ = location.motionZ;
+                // 1.7.10: setThrower/setOwner don't exist in EntityItem
                 if (location instanceof EntityItem) {
-                    stardust.setThrower(((EntityItem) location).getThrower());
-                    stardust.setOwner(((EntityItem) location).getOwner());
+                    // Copy properties from original EntityItem if needed
+                    stardust.age = ((EntityItem) location).age;
                 }
                 return stardust;
             default:

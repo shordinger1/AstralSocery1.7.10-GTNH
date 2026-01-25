@@ -186,7 +186,7 @@ public class BlockChalice extends BlockContainer {
     @Override
     public void onBlockPlacedBy(World worldIn, int x, int y, int z, EntityLivingBase placer, ItemStack stack) {
         // Place the top part
-        worldIn.setBlock(x, y + 1, z, BlocksAS.blockChalice, META_INACTIVE, 3);
+        worldIn.setBlock(x.posX, x.posY, x.posZ, y + 1, z, BlocksAS.blockChalice, META_INACTIVE, 3);
         super.onBlockPlacedBy(worldIn, x, y, z, placer, stack);
     }
 

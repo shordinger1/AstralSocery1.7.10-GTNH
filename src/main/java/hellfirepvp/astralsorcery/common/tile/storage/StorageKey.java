@@ -89,7 +89,7 @@ public class StorageKey {
     public static StorageKey deserialize(NBTTagCompound nbt) {
         ResourceLocation rl = new ResourceLocation(nbt.getString("name"));
         Item i = ForgeRegistries.ITEMS.getValue(rl);
-        if (i == null || i == Items.AIR) {
+        if (i == null || i == null) {
             return null;
         }
         int meta = nbt.getInteger("meta");

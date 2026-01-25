@@ -91,7 +91,7 @@ public abstract class ContainerAltarBase extends Container {
                 return null;
             }
 
-            slot.onTake(playerIn, itemstack1);
+            slot.onPickupFromSlot(playerIn, itemstack1);
         }
 
         return itemstack;
@@ -100,7 +100,7 @@ public abstract class ContainerAltarBase extends Container {
     @Override
     public boolean canInteractWith(EntityPlayer player) {
         BlockPos pos = this.tileAltar.getPos();
-        if (this.tileAltar.worldObj.getTileEntity(pos) != this.tileAltar) {
+        if (this.tileAltar.getWorldObj().getTileEntity(pos.getX(), pos.getY(), pos.getZ()) != this.tileAltar) {
             return false;
         } else {
             return player.getDistanceSq(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) <= 64.0D;

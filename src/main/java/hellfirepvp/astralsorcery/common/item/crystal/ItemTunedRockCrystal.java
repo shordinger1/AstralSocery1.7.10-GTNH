@@ -30,7 +30,7 @@ import hellfirepvp.astralsorcery.common.item.crystal.base.ItemTunedCrystalBase;
  */
 public class ItemTunedRockCrystal extends ItemTunedCrystalBase implements ItemGatedVisibility {
 
-    @Override
+
     public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> subItems) {
         // 1.7.10 compatibility: Item.isInCreativeTab() doesn't exist, use tab == this.getCreativeTab() instead
         if (tab == this.getCreativeTab()) {

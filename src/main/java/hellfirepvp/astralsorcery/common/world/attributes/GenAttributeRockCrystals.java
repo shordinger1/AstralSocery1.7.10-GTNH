@@ -15,7 +15,7 @@ import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.config.Configuration;
 
@@ -121,7 +121,7 @@ public class GenAttributeRockCrystals extends WorldGenAttribute {
         if (this.doIgnoreDimensionSpecifications) return true;
 
         Integer dimId = world.provider.dimensionId;
-        if (this.applicableDimensions.isEmpty()) return false;
+        if (this.applicableDimensions == null || applicableDimensions.stackSize <= 0) return false;
         for (Integer dim : this.applicableDimensions) {
             if (dim.equals(dimId)) return true;
         }
@@ -131,9 +131,9 @@ public class GenAttributeRockCrystals extends WorldGenAttribute {
     private boolean fitsBiome(World world, BlockPos pos) {
         if (this.doIgnoreBiomeSpecifications) return true;
 
-        Biome b = world.getBiomeGenForCoords(pos.getX(), pos.getZ());
+        BiomeGenBase b = world.getBiomeGenForCoords(pos.getX(), pos.getZ());
         Collection<BiomeDictionary.Type> types = BiomeDictionary.getTypes(b);
-        if (types.isEmpty()) return false;
+        if (types == null || types.stackSize <= 0) return false;
         boolean applicable = false;
         for (BiomeDictionary.Type t : types) {
             if (biomeTypes.contains(t)) applicable = true;
@@ -159,7 +159,7 @@ public class GenAttributeRockCrystals extends WorldGenAttribute {
                 continue;
             }
             Block b = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(spl[0], spl[1]));
-            if (b == null || b == Blocks.AIR) {
+            if (b == null || b == Blocks.air) {
                 AstralSorcery.log
                     .error("Skipping invalid replacement state: " + stateStr + " - The block does not exist!");
                 continue;

@@ -94,7 +94,7 @@ public abstract class BaseAltarRecipe implements SerializeableRecipe {
         return fluidInputs;
     }
 
-    protected AbstractAltarRecipe buildRecipeUnsafe(TileAltar.AltarLevel altarLevel, int starlightConsumption,
+    public AbstractAltarRecipe buildRecipeUnsafe(TileAltar.AltarLevel altarLevel, int starlightConsumption,
         int craftingTickTime, ItemStack out, ItemHandle[] inputs) {
         starlightConsumption = WrapMathHelper.clamp(starlightConsumption, 1, altarLevel.getStarlightMaxStorage());
         final int sConsumption = starlightConsumption;

@@ -65,7 +65,7 @@ public class PktElytraCapeState implements IMessageHandler<PktElytraCapeState, I
     @Override
     public IMessage onMessage(PktElytraCapeState message, MessageContext ctx) {
         // 1.7.10: Network packets are already handled on the main thread, no need for addScheduledTask
-        EntityPlayer pl = ctx.getServerHandler().player;
+        EntityPlayer pl = ctx.getServerHandler().playerEntity;
 
         CapeEffectVicio vic = ItemCape.getCapeEffect(pl, Constellations.vicio);
         if (vic == null) {

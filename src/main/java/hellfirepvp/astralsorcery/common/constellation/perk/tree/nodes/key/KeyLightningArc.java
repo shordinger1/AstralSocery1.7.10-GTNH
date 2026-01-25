@@ -217,7 +217,7 @@ public class KeyLightningArc extends KeyPerk {
                         }
                     }
 
-                    if (!entities.isEmpty()) {
+                    if (!entities == null || entities.stackSize <= 0) {
                         EntityLivingBase tmpEntity = entity; // Final for lambda
                         // 1.7.10: getDistanceToEntity returns float, need to cast to double
                         EntityLivingBase closest = EntityUtils

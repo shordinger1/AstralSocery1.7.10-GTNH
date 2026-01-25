@@ -50,7 +50,8 @@ public class BlockArray {
     private BlockPos min = new BlockPos(0, 0, 0), max = new BlockPos(0, 0, 0), size = new BlockPos(0, 0, 0);
 
     public void addAir(int x, int y, int z) {
-        addBlock(x, y, z, Blocks.AIR, state -> state.getMaterial() == Material.air);
+
+        addBlock(x, y, z, Blocks.air, state -> state.getMaterial() == Material.air);
     }
 
     public void addBlock(int x, int y, int z, @Nonnull Block state) {
@@ -165,7 +166,7 @@ public class BlockArray {
     }
 
     public void addAirCube(int ox, int oy, int oz, int tx, int ty, int tz) {
-        addBlockCube(Blocks.AIR, state -> state.getMaterial() == Material.air, ox, oy, oz, tx, ty, tz);
+        addBlockCube(Blocks.air, state -> state.getMaterial() == Material.air, ox, oy, oz, tx, ty, tz);
     }
 
     public void addBlockCube(@Nonnull Block state, int ox, int oy, int oz, int tx, int ty, int tz) {
@@ -223,7 +224,7 @@ public class BlockArray {
                 world.notifyBlockOfNeighborChange(at.getX(), at.getY(), at.getZ(), state);
             }
 
-            TileEntity placed = world.getTileEntity(at);
+            TileEntity placed = world.getTileEntity(at.posX, at.posY, at.posZ);
             if (tileCallbacks.containsKey(entry.getKey())) {
                 TileEntityCallback callback = tileCallbacks.get(entry.getKey());
                 if (callback.isApplicable(placed)) {
@@ -252,10 +253,10 @@ public class BlockArray {
                 s = ((ISpecialStackDescriptor) info.type).getDecriptor(info.state);
             } else {
                 Item i = Item.getItemFromBlock(info.type);
-                if (i == Items.AIR) continue;
+                if (i == null) continue;
                 s = new ItemStack(i, 1, meta);
             }
-            if (!s.isEmpty()) {
+            if (!s == null || s.stackSize <= 0) {
                 boolean found = false;
                 for (ItemStack stack : out) {
                     if (stack.getItem()

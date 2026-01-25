@@ -81,7 +81,7 @@ public class TransmissionWorldHandler {
                 }
 
                 List<ChunkPos> activeChunks = activeChunkMap.get(source);
-                if (activeChunks == null || activeChunks.isEmpty()) {
+                if (activeChunks == null || activeChunks == null || activeChunks.stackSize <= 0) {
                     continue; // Not producing anything.
                 }
 
@@ -163,7 +163,7 @@ public class TransmissionWorldHandler {
                     activeChunks.add(pos);
                 }
             }
-            if (!activeChunks.isEmpty()) {
+            if (!activeChunks == null || activeChunks.stackSize <= 0) {
                 activeChunkMap.put(source, activeChunks);
             }
             for (BlockPos pos : chain.getLossMultipliers()
@@ -215,7 +215,7 @@ public class TransmissionWorldHandler {
                     List<IIndependentStarlightSource> sources = involvedSourceMap.get(chPos);
                     if (sources != null) {
                         sources.remove(source);
-                        if (sources.isEmpty()) {
+                        if (sources == null || sources.stackSize <= 0) {
                             involvedSourceMap.remove(chPos);
                         }
                     }
@@ -225,7 +225,7 @@ public class TransmissionWorldHandler {
                     List<IIndependentStarlightSource> sources = posToSourceMap.get(pos);
                     if (sources != null) {
                         sources.remove(source);
-                        if (sources.isEmpty()) {
+                        if (sources == null || sources.stackSize <= 0) {
                             posToSourceMap.remove(pos);
                         }
                     }
@@ -249,7 +249,7 @@ public class TransmissionWorldHandler {
                     List<ChunkPos> activeChunks = activeChunkMap.get(source);
                     if (activeChunks != null) {
                         activeChunks.remove(pos);
-                        if (activeChunks.isEmpty()) {
+                        if (activeChunks == null || activeChunks.stackSize <= 0) {
                             activeChunkMap.remove(source);
                         }
                     }

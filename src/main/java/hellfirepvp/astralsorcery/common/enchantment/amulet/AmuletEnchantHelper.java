@@ -109,7 +109,7 @@ public class AmuletEnchantHelper {
     }
 
     private static boolean mayGetAdditionalRoll(List<AmuletEnchantment> existing) {
-        if ((existing == null || existing.stackSize <= 0)) return true;
+        if ((existing == null || existing.size() <= 0)) return true;
         switch (existing.size()) {
             case 1:
                 return rand.nextFloat() < chance2nd;

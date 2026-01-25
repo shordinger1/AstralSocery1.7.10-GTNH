@@ -57,7 +57,7 @@ public class TreeCaptureHelper {
             return;
         }
 
-        if (watchers.isEmpty()) return;
+        if (watchers == null || watchers.stackSize <= 0) return;
         Iterator<WeakReference<TreeWatcher>> iterator = watchers.iterator();
         while (iterator.hasNext()) {
             WeakReference<TreeWatcher> watch = iterator.next();
@@ -101,7 +101,7 @@ public class TreeCaptureHelper {
     @Nonnull
     public static List<WorldBlockPos> getAndClearCachedEntries(@Nullable TreeWatcher watcher) {
         if (watcher == null) return Lists.newArrayList();
-        if (watchers.isEmpty()) return Lists.newArrayList();
+        if (watchers == null || watchers.stackSize <= 0) return Lists.newArrayList();
         Iterator<WeakReference<TreeWatcher>> iterator = watchers.iterator();
         while (iterator.hasNext()) {
             WeakReference<TreeWatcher> itW = iterator.next();

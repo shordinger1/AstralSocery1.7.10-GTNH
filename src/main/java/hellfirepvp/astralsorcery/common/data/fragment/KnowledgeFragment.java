@@ -34,7 +34,7 @@ import hellfirepvp.astralsorcery.common.data.research.PlayerProgress;
 import hellfirepvp.astralsorcery.common.data.research.ProgressionTier;
 import hellfirepvp.astralsorcery.common.data.research.ResearchNode;
 import hellfirepvp.astralsorcery.common.data.research.ResearchProgression;
-import hellfirepvp.astralsorcery.common.migration.Predicate;
+import java.util.function.Predicate;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
 
 /**

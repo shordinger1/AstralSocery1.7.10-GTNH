@@ -238,4 +238,22 @@ public class BlockPos extends ChunkCoordinates {
      * ORIGIN constant for BlockPos(0, 0, 0).
      */
     public static final BlockPos ORIGIN = new BlockPos(0, 0, 0);
+
+    /**
+     * Serialize this position to a long.
+     * Format: ((x & 0x3FFFFFF) << 38) | ((y & 0xFFF) << 26) | (z & 0x3FFFFFF)
+     */
+    public long toLong() {
+        return ((long) this.posX & 0x3FFFFFF) << 38 | ((long) this.posY & 0xFFF) << 26 | (this.posZ & 0x3FFFFFF);
+    }
+
+    /**
+     * Deserialize a BlockPos from a long.
+     */
+    public static BlockPos fromLong(long serialized) {
+        int x = (int) (serialized >> 38);
+        int y = (int) ((serialized << 26) >> 52);
+        int z = (int) ((serialized << 38) >> 38);
+        return new BlockPos(x, y, z);
+    }
 }

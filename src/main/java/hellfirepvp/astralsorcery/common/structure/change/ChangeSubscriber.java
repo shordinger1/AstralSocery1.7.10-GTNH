@@ -73,7 +73,7 @@ public class ChangeSubscriber<T extends StructureMatcher> {
     }
 
     public boolean matches(World world) {
-        if (this.isMatching != null && this.changeSet.isEmpty()) {
+        if (this.isMatching != null && this.changeSet == null || changeSet.stackSize <= 0) {
             return isMatching;
         }
 

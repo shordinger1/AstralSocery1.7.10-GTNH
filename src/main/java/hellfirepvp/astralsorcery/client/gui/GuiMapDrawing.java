@@ -243,7 +243,7 @@ public class GuiMapDrawing extends GuiTileBase<TileMapDrawingTable> {
             TextureHelper.refreshTextureBindState();
         }
 
-        // 1.7.10: ItemStack.isEmpty() doesn't exist, check stackSize
+        // 1.7.10: ItemStack == null || ItemStack.stackSize <= 0 doesn't exist, check stackSize
         ItemStack slotIn = tile.getSlotIn();
         if (slotIn != null && slotIn.stackSize > 0 && !tile.hasParchment() && itemRender != null) {
             TextureHelper.refreshTextureBindState();

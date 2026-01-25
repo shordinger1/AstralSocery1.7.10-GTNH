@@ -389,7 +389,7 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
                             it1.remove();
                         }
                     }
-                    if (!(out == null || out.isEmpty())) {
+                    if (!(out == null || out == null || out.stackSize <= 0)) {
                         TileChalice target = out.get(rand.nextInt(out.size()));
                         LiquidStarlightChaliceHandler.doFluidTransfer(this, target, drained.copy());
                         entry.tryDrain(actMbDrain, true);
@@ -405,7 +405,7 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
                             it2.remove();
                         }
                     }
-                    if (!(out == null || out.isEmpty())) {
+                    if (!(out == null || out == null || out.stackSize <= 0)) {
                         TileChalice target = out.get(rand.nextInt(out.size()));
                         LiquidStarlightChaliceHandler.doFluidTransfer(this, target, drained.copy());
                     }
@@ -585,7 +585,7 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
         int z = getPos().getZ();
         for (int yy = 0; yy < getPos().getY(); yy++) {
             BlockPos pos = new BlockPos(x, yy, z);
-            Block at = worldObj.getBlock(pos);
+            Block at = worldObj.getBlock(pos.posX, pos.posY, pos.posZ);
             if (at.isTranslucent() || at.isAir(at, world, pos)) {
                 for (int i = 0; i < 20; i++) {
                     Vector3 v = new Vector3(
@@ -759,13 +759,13 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
         }
         List<BlockPos> out = new ArrayList<>();
         for (BlockPos p : digPosResult) {
-            if (!getWorld().isAirBlock(p) && worldObj.getTileEntity(p) == null
-                && worldObj.getBlock(p)
+            if (!getWorld().isAirBlock(p) && worldObj.getTileEntity(p.posX, p.posY, p.posZ) == null
+                && worldObj.getBlock(p.posX, p.posY, p.posZ)
                     .getBlockHardness(world, p) >= 0) {
                 out.add(p);
             }
         }
-        if (!(out == null || out.isEmpty())) {
+        if (!(out == null || out == null || out.stackSize <= 0)) {
             this.preparationSuccessful = false;
             this.digPosResult = null;
         } else {
@@ -781,13 +781,13 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
         }
         List<BlockPos> out = new ArrayList<>();
         for (BlockPos p : digPosResult) {
-            if (!getWorld().isAirBlock(p) && worldObj.getTileEntity(p) == null
-                && worldObj.getBlock(p)
+            if (!getWorld().isAirBlock(p) && worldObj.getTileEntity(p.posX, p.posY, p.posZ) == null
+                && worldObj.getBlock(p.posX, p.posY, p.posZ)
                     .getBlockHardness(world, p) >= 0) {
                 out.add(p);
             }
         }
-        if (!(out == null || out.isEmpty())) {
+        if (!(out == null || out == null || out.stackSize <= 0)) {
             this.preparationSuccessful = false;
             this.digPercentage = 0;
             this.digPosResult = null;
@@ -808,8 +808,8 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
         }
         List<BlockPos> out = new ArrayList<>();
         for (BlockPos p : pos) {
-            if (!getWorld().isAirBlock(p) && worldObj.getTileEntity(p) == null
-                && worldObj.getBlock(p)
+            if (!getWorld().isAirBlock(p) && worldObj.getTileEntity(p.posX, p.posY, p.posZ) == null
+                && worldObj.getBlock(p.posX, p.posY, p.posZ)
                     .getBlockHardness(world, p) >= 0) {
                 out.add(p);
             }
@@ -818,7 +818,7 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
             BlockDropCaptureAssist.startCapturing();
             try {
                 for (BlockPos p : out) {
-                    Block state = worldObj.getBlock(p);
+                    Block state = worldObj.getBlock(p.posX, p.posY, p.posZ);
                     if (!state.getMaterial()
                         .isLiquid()) {
                         MiscUtils.breakBlockWithoutPlayer(((WorldServer) world), p, state, true, true, false);
@@ -844,8 +844,8 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
         List<BlockPos> pos = coneBlockDiscoverer.tryDiscoverBlocksDown(dst, 5F * downPerc);
         List<BlockPos> out = new ArrayList<>();
         for (BlockPos p : pos) {
-            if (!getWorld().isAirBlock(p) && worldObj.getTileEntity(p) == null
-                && worldObj.getBlock(p)
+            if (!getWorld().isAirBlock(p) && worldObj.getTileEntity(p.posX, p.posY, p.posZ) == null
+                && worldObj.getBlock(p.posX, p.posY, p.posZ)
                     .getBlockHardness(world, p) >= 0) {
                 out.add(p);
             }
@@ -855,7 +855,7 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
             BlockDropCaptureAssist.startCapturing();
             try {
                 for (BlockPos p : out) {
-                    Block state = worldObj.getBlock(p);
+                    Block state = worldObj.getBlock(p.posX, p.posY, p.posZ);
                     if (!state.getMaterial()
                         .isLiquid()) {
                         MiscUtils.breakBlockWithoutPlayer(((WorldServer) world), p, state, true, true, false);

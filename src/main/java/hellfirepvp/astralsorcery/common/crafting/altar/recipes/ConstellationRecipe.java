@@ -30,6 +30,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.client.effect.EffectHelper;
 import hellfirepvp.astralsorcery.client.effect.fx.EntityFXFacingParticle;
 import hellfirepvp.astralsorcery.common.crafting.ItemHandle;
+
+import com.cleanroommc.modularui.utils.item.ItemStackHandler;
 import hellfirepvp.astralsorcery.common.crafting.altar.ActiveCraftingTask;
 import hellfirepvp.astralsorcery.common.crafting.helper.AccessibleRecipe;
 import hellfirepvp.astralsorcery.common.data.research.ResearchProgression;
@@ -141,8 +143,9 @@ public class ConstellationRecipe extends AttunementRecipe {
                     return false;
                 }
             } else {
-                if (!invHandler.getStackInSlot(slot.slotId)
-                    .isEmpty()) return false;
+                // 1.7.10: Use stack == null || stack.stackSize <= 0 instead of isEmpty()
+                ItemStack stack = invHandler.getStackInSlot(slot.slotId);
+                if (!(stack == null || stack.stackSize <= 0)) return false;
             }
         }
         return super.matches(altar, invHandler, ignoreStarlightRequirement);

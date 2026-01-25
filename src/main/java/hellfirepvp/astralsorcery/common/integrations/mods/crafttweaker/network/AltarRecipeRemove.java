@@ -69,9 +69,9 @@ public class AltarRecipeRemove implements SerializeableRecipe {
             CraftingAccessManager.tryRemoveAltarRecipeByOutputAndLevel(this.matchOutRemove, this.level);
         } else {
             if (!CraftingAccessManager.tryRemoveAltarRecipe(new ResourceLocation(this.recipeRegistryName))) {
-                CraftTweakerAPI.logError(
-                    "[AstralSorcery Altar Crafting] Could not find recipe to remove with name "
-                        + this.recipeRegistryName);
+//                CraftTweakerAPI.logError(
+//                    "[AstralSorcery Altar Crafting] Could not find recipe to remove with name "
+//                        + this.recipeRegistryName);
             }
         }
     }

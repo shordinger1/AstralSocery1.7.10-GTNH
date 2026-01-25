@@ -8,17 +8,17 @@
 
 package hellfirepvp.astralsorcery.common.registry.multiblock;
 
-import static hellfirepvp.astralsorcery.common.block.BlockMarble.MARBLE_TYPE;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.transpose;
 
-import net.minecraft.block.Block;
 import net.minecraft.util.ResourceLocation;
 
+import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
+import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+
 import hellfirepvp.astralsorcery.AstralSorcery;
-import hellfirepvp.astralsorcery.common.block.BlockBlackMarble;
 import hellfirepvp.astralsorcery.common.block.BlockMarble;
-import hellfirepvp.astralsorcery.common.block.network.BlockAltar;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
-import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -27,57 +27,50 @@ import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
  * Created by HellFirePvP
  * Date: 17.10.2016 / 11:46
  */
-public class MultiblockAltarAttunement extends PatternBlockArray {
+public class MultiblockAltarAttunement {
+
+    private static final String STRUCTURE_ID = "pattern_altar_t2";
+    private static IStructureDefinition<MultiblockAltarAttunement> STRUCTURE_DEFINITION = null;
 
     public MultiblockAltarAttunement() {
-        super(new ResourceLocation(AstralSorcery.MODID, "pattern_altar_t2"));
-        load();
+        // Structure defined via getStructureDefinition()
     }
 
-    private void load() {
-        Block marble = BlocksAS.blockMarble;
-        Block darkMarble = BlocksAS.blockBlackMarble;
-        Block mch = marble.withProperty(MARBLE_TYPE, BlockMarble.MarbleBlockType.CHISELED);
-        Block mbr = marble.withProperty(MARBLE_TYPE, BlockMarble.MarbleBlockType.BRICKS);
-        Block mar = marble.withProperty(MARBLE_TYPE, BlockMarble.MarbleBlockType.ARCH);
-        Block mpl = marble.withProperty(MARBLE_TYPE, BlockMarble.MarbleBlockType.PILLAR);
-        Block mbl = darkMarble
-            .withProperty(BlockBlackMarble.BLACK_MARBLE_TYPE, BlockBlackMarble.BlackMarbleBlockType.RAW);
-
-        addBlockCube(mbl, -3, -1, -3, 3, -1, 3);
-
-        addBlock(0, 0, 0, BlocksAS.blockAltar.withProperty(BlockAltar.ALTAR_TYPE, BlockAltar.AltarType.ALTAR_2));
-
-        for (int i = -3; i <= 3; i++) {
-            addBlock(4, -1, i, mar);
-            addBlock(-4, -1, i, mar);
-            addBlock(i, -1, 4, mar);
-            addBlock(i, -1, -4, mar);
-            addBlock(3, -1, i, mbr);
-            addBlock(-3, -1, i, mbr);
-            addBlock(i, -1, 3, mbr);
-            addBlock(i, -1, -3, mbr);
+    public IStructureDefinition<MultiblockAltarAttunement> getStructureDefinition() {
+        if (STRUCTURE_DEFINITION == null) {
+            STRUCTURE_DEFINITION = StructureDefinition.<MultiblockAltarAttunement>builder()
+                .addShape(STRUCTURE_ID, transpose(shape))
+                .addElement('A', ofBlock(BlocksAS.blockAltar, 1)) // ALTAR_2
+                .addElement('B', ofBlock(BlocksAS.blockBlackMarble, 0)) // RAW
+                .addElement('C', ofBlock(BlocksAS.blockMarble, 3)) // ARCH
+                .addElement('D', ofBlock(BlocksAS.blockMarble, 2)) // BRICKS
+                .addElement('E', ofBlock(BlocksAS.blockMarble, 1)) // CHISELED
+                .addElement('F', ofBlock(BlocksAS.blockMarble, 5)) // PILLAR
+                .build();
         }
-        addBlock(3, -1, 3, mch);
-        addBlock(3, -1, -3, mch);
-        addBlock(-3, -1, 3, mch);
-        addBlock(-3, -1, -3, mch);
-
-        addBlock(2, -1, 0, mbr);
-        addBlock(-2, -1, 0, mbr);
-        addBlock(0, -1, 2, mbr);
-        addBlock(0, -1, -2, mbr);
-
-        for (int i = 0; i < 2; i++) {
-            addBlock(3, i, 3, mpl);
-            addBlock(3, i, -3, mpl);
-            addBlock(-3, i, 3, mpl);
-            addBlock(-3, i, -3, mpl);
-        }
-        addBlock(3, 2, 3, mch);
-        addBlock(3, 2, -3, mch);
-        addBlock(-3, 2, 3, mch);
-        addBlock(-3, 2, -3, mch);
+        return STRUCTURE_DEFINITION;
     }
+
+    public ResourceLocation getStructureId() {
+        return new ResourceLocation(AstralSorcery.MODID, STRUCTURE_ID);
+    }
+
+    private final String[][] shape = new String[][] {
+        // Y = -1 (Base layer - y+2 in shape array since we build from bottom)
+        {"DDDDDCCD", "DBBBBBBD", "DBBBBBBD", "DBBBBBBD", "DBBBBBBD", "DBBBBBBD", "DBBBBBBD", "DDDDDCCD"},
+        {"DCCCCCCC", "CDDDDDDC", "CDDDDDDC", "CDDDDDDC", "CDDDDDDC", "CDDDDDDC", "CDDDDDDC", "DCCCCCCC"},
+
+        // Y = 0
+        {"        ", "        ", "        ", "        ", "   A    ", "        ", "        ", "        "},
+
+        // Y = 1 (Pillars)
+        {"        ", "        ", "        ", "   F    ", "        ", "   F    ", "        ", "        "},
+
+        // Y = 2 (Pillars)
+        {"        ", "        ", "        ", "   F    ", "        ", "   F    ", "        ", "        "},
+
+        // Y = 3 (Top of pillars)
+        {"        ", "        ", "        ", "   E    ", "        ", "   E    ", "        ", "        "},
+    };
 
 }

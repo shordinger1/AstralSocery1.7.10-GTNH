@@ -14,7 +14,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.worldObj.World;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -26,7 +25,7 @@ import hellfirepvp.astralsorcery.common.lib.BlocksAS;
 import hellfirepvp.astralsorcery.common.network.PacketChannel;
 import hellfirepvp.astralsorcery.common.network.packet.server.PktParticleEvent;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
-import hellfirepvp.astralsorcery.common.util.EntityUtils;
+import net.minecraft.world.World;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -68,7 +67,7 @@ public class EntityItemStardust extends EntityItem implements EntityStarlightRea
     }
 
     private void checkMergeConditions() {
-        if (getWorld().isRemote) {
+        if (worldObj.isRemote) { // 1.7.10: Use worldObj instead of getWorld()
             if (canCraft()) {
                 spawnCraftingParticles();
             }
@@ -92,21 +91,27 @@ public class EntityItemStardust extends EntityItem implements EntityStarlightRea
                 new PktParticleEvent(PktParticleEvent.ParticleEventType.CELESTIAL_CRYSTAL_FORM, posX, posY, posZ),
                 PacketChannel.pointFromPos(worldObj, pos, 64));
 
-            getItem().stackSize = getItem().stackSize - 1;
-            List<Entity> foundItems = worldObj.getEntitiesInAABBexcluding(
+            // 1.7.10: Use getEntityItem() instead of getItem()
+            ItemStack thisItem = getEntityItem();
+            thisItem.stackSize = thisItem.stackSize - 1;
+            // 1.7.10: getEntitiesInAABBexcluding takes different parameters
+            List<Entity> foundItems = worldObj.getEntitiesWithinAABBExcludingEntity(
                 this,
                 boxCraft.offset(posX, posY, posZ)
-                    .grow(0.1),
-                EntityUtils.selectItemClassInstaceof(ItemRockCrystalBase.class));
-            if (foundItems.size() > 0) {
-                EntityItem ei = (EntityItem) foundItems.get(0);
-                ItemStack stack = ei.getItem();
-                getItem().stackSize = getItem().stackSize - 1;
-                stack.stackSize = stack.stackSize - 1;
-                if (stack.stackSize <= 0) {
-                    ei.setDead();
-                } else {
-                    ei.setItem(stack);
+                    .expand(0.1, 0.1, 0.1)); // 1.7.10: Use expand() instead of grow()
+            // Filter for ItemRockCrystalBase items
+            for (Entity e : foundItems) {
+                if (e instanceof EntityItem) {
+                    EntityItem ei = (EntityItem) e;
+                    ItemStack stack = ei.getEntityItem();
+                    if (stack != null && stack.getItem() instanceof ItemRockCrystalBase) {
+                        thisItem.stackSize = thisItem.stackSize - 1;
+                        stack.stackSize = stack.stackSize - 1;
+                        if (stack.stackSize <= 0) {
+                            ei.setDead();
+                        } // 1.7.10: EntityItem doesn't have setItem(), field updated directly
+                        break;
+                    }
                 }
             }
         } else {
@@ -136,11 +141,22 @@ public class EntityItemStardust extends EntityItem implements EntityStarlightRea
     private boolean canCraft() {
         if (!isInLiquidStarlight(this)) return false;
 
-        List<Entity> foundItems = worldObj.getEntitiesInAABBexcluding(
+        // 1.7.10: getEntitiesInAABBexcluding doesn't have a predicate version
+        // Use getEntitiesWithinAABBExcludingEntity and filter manually
+        List<Entity> foundItems = worldObj.getEntitiesWithinAABBExcludingEntity(
             this,
-            boxCraft.offset(posX, posY, posZ),
-            EntityUtils.selectItemClassInstaceof(ItemRockCrystalBase.class));
-        return foundItems.size() > 0;
+            boxCraft.offset(posX, posY, posZ));
+        // Filter for ItemRockCrystalBase items
+        for (Entity e : foundItems) {
+            if (e instanceof EntityItem) {
+                EntityItem ei = (EntityItem) e;
+                ItemStack stack = ei.getEntityItem();
+                if (stack != null && stack.getItem() instanceof ItemRockCrystalBase) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }

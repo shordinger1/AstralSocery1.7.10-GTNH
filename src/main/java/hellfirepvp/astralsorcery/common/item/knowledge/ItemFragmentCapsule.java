@@ -8,8 +8,7 @@
 
 package hellfirepvp.astralsorcery.common.item.knowledge;
 
-import java.awt.*;
-import java.util.ArrayList;
+import java.awt.Color;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -17,7 +16,6 @@ import javax.annotation.Nullable;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
@@ -31,8 +29,6 @@ import hellfirepvp.astralsorcery.common.entities.EntityItemExplosionResistant;
 import hellfirepvp.astralsorcery.common.item.base.ItemHighlighted;
 import hellfirepvp.astralsorcery.common.lib.ItemsAS;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
-import hellfirepvp.astralsorcery.common.util.BlockPos;
-import hellfirepvp.astralsorcery.common.util.SoundHelper;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -50,7 +46,7 @@ public class ItemFragmentCapsule extends Item implements ItemHighlighted {
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void addInformation(ItemStack stack, @Nullable World world, List<String> tooltip) {
+    public void addInformation(ItemStack stack, EntityPlayer player, List tooltip, boolean advanced) {
         tooltip.add(EnumChatFormatting.GRAY + I18n.format("misc.fragment.container.desc"));
         tooltip.add(EnumChatFormatting.GRAY + I18n.format("misc.fragment.container.open"));
     }
@@ -85,19 +81,15 @@ public class ItemFragmentCapsule extends Item implements ItemHighlighted {
     }
 
     private void spawnFragment(EntityPlayer player) {
-        SoundHelper.playSoundAround(
-            null /* TODO: SoundEvents - needs 1.7.10 sound string */,
-            player.worldObj,
-            new BlockPos(player),
-            0.75F,
-            3.5F);
+        // 1.7.10: Use world.playSoundAtEntity instead of SoundHelper
+        player.worldObj.playSoundAtEntity(player, "mob.endermen.portal", 0.75F, 3.5F);
         ItemStack frag = new ItemStack(ItemsAS.knowledgeFragment);
         ItemKnowledgeFragment.generateSeed(player, frag);
         player.inventory.mainInventory[player.inventory.currentItem] = frag;
     }
 
     @Override
-    public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> items) {}
+    public void getSubItems(Item item, CreativeTabs tab, List list) {}
 
     @Override
     public boolean hasCustomEntity(ItemStack stack) {
@@ -113,14 +105,13 @@ public class ItemFragmentCapsule extends Item implements ItemHighlighted {
             location.posY,
             location.posZ,
             itemstack);
-        e.setDefaultPickupDelay();
+        // 1.7.10: setDefaultPickupDelay doesn't exist, set field directly
+        e.delayBeforeCanPickup = 10;
         e.motionX = location.motionX;
         e.motionY = location.motionY;
         e.motionZ = location.motionZ;
-        if (location instanceof EntityItem) {
-            e.setThrower(((EntityItem) location).getThrower());
-            e.setOwner(((EntityItem) location).getOwner());
-        }
+        // 1.7.10: setThrower/setOwner don't exist in EntityItem
+        // These methods were added in later versions
         return e;
     }
 

@@ -28,14 +28,10 @@ public class ModelResourceLocation extends ResourceLocation {
     }
 
     public ModelResourceLocation(ResourceLocation location, String variantIn) {
-        this(location.toString(), variantIn);
+        this(0, parsePathString(location.toString() + '#' + (variantIn == null ? "normal" : variantIn)));
     }
 
-    public ModelResourceLocation(String location, String variantIn) {
-        this(0, parsePathString(location + '#' + (variantIn == null ? "normal" : variantIn)));
-    }
-
-    protected ModelResourceLocation(int unused, String... resourceName) {
+    private ModelResourceLocation(int unused, String... resourceName) {
         super(resourceName[0], resourceName[1]);
         this.variant = (resourceName[2] == null || resourceName[2].isEmpty()) ? "normal"
             : resourceName[2].toLowerCase(Locale.ROOT);

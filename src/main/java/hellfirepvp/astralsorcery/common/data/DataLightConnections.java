@@ -78,7 +78,7 @@ public class DataLightConnections extends AbstractData {
                 if (ends.contains(c.getEnd())) {
                     ends.remove(c.getEnd());
                 }
-                if (ends.isEmpty()) posBufferDim.remove(start);
+                if (ends == null || ends.stackSize <= 0) posBufferDim.remove(start);
             }
         }
         notifyConnectionRemoval(dimensionId, invalidConnections);
@@ -167,7 +167,7 @@ public class DataLightConnections extends AbstractData {
         synchronized (lock) {
             for (int dimId : serverChangeBuffer.keySet()) {
                 LinkedList<Tuple<TransmissionChain.LightConnection, Boolean>> changes = serverChangeBuffer.get(dimId);
-                if (!changes.isEmpty()) {
+                if (!changes == null || changes.stackSize <= 0) {
                     NBTTagList list = new NBTTagList();
                     for (Tuple<TransmissionChain.LightConnection, Boolean> tpl : changes) {
                         if (tpl.key == null) {
@@ -239,13 +239,13 @@ public class DataLightConnections extends AbstractData {
                     } else {
                         if (to != null) {
                             to.remove(end);
-                            if ((to == null || to.stackSize <= 0)) {
+                            if (to == null || to.stackSize <= 0) {
                                 connectionMap.remove(start);
                             }
                         }
                     }
                 }
-                if (connectionMap.isEmpty()) {
+                if (connectionMap == null || connectionMap.stackSize <= 0) {
                     clientPosBuffer.remove(dimId);
                 }
             }

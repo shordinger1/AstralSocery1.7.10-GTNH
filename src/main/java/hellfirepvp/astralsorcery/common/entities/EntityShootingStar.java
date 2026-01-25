@@ -49,9 +49,13 @@ import hellfirepvp.astralsorcery.common.util.effect.ShootingStarExplosion;
  */
 public class EntityShootingStar extends EntityThrowable implements EntityTechnicalAmbient {
 
-    private static final int SHOOT_CONSTANT_DATAWATCHER_ID = 20;
-    private static final int EFFECT_SEED_DATAWATCHER_ID = 21;
-    private static final int LAST_UPDATE_DATAWATCHER_ID = 22;
+    // 1.7.10: Store Vector3 as separate components
+    private static final int SHOOT_X_DATAWATCHER_ID = 20;
+    private static final int SHOOT_Y_DATAWATCHER_ID = 21;
+    private static final int SHOOT_Z_DATAWATCHER_ID = 22;
+    private static final int EFFECT_SEED_LOW_DATAWATCHER_ID = 23; // Store long as two ints
+    private static final int EFFECT_SEED_HIGH_DATAWATCHER_ID = 24;
+    private static final int LAST_UPDATE_DATAWATCHER_ID = 25;
 
     // Not saved or synced value to deny 'capturing' one.
     private boolean removalPending = true;
@@ -64,9 +68,15 @@ public class EntityShootingStar extends EntityThrowable implements EntityTechnic
         super(worldIn, x, y, z);
         this.setSize(0.1F, 0.1F);
         this.removalPending = false;
-        this.dataWatcher.updateObject(SHOOT_CONSTANT_DATAWATCHER_ID, shot);
-        this.dataWatcher.updateObject(EFFECT_SEED_DATAWATCHER_ID, rand.nextLong());
-        this.dataWatcher.updateObject(LAST_UPDATE_DATAWATCHER_ID, worldIn.getWorldTime());
+        // 1.7.10: Store Vector3 components separately
+        this.dataWatcher.updateObject(SHOOT_X_DATAWATCHER_ID, Float.valueOf((float) shot.getX()));
+        this.dataWatcher.updateObject(SHOOT_Y_DATAWATCHER_ID, Float.valueOf((float) shot.getY()));
+        this.dataWatcher.updateObject(SHOOT_Z_DATAWATCHER_ID, Float.valueOf((float) shot.getZ()));
+        // 1.7.10: Store long as two ints
+        long seed = rand.nextLong();
+        this.dataWatcher.updateObject(EFFECT_SEED_LOW_DATAWATCHER_ID, Integer.valueOf((int) (seed & 0xFFFFFFFFL)));
+        this.dataWatcher.updateObject(EFFECT_SEED_HIGH_DATAWATCHER_ID, Integer.valueOf((int) (seed >> 32)));
+        this.dataWatcher.updateObject(LAST_UPDATE_DATAWATCHER_ID, Integer.valueOf((int) worldIn.getWorldTime()));
         correctMovement();
     }
 
@@ -74,15 +84,23 @@ public class EntityShootingStar extends EntityThrowable implements EntityTechnic
     protected void entityInit() {
         super.entityInit();
 
-        this.dataWatcher.addObject(SHOOT_CONSTANT_DATAWATCHER_ID, new Vector3());
-        this.dataWatcher.addObject(EFFECT_SEED_DATAWATCHER_ID, 0L);
-        this.dataWatcher.addObject(LAST_UPDATE_DATAWATCHER_ID, 0L);
+        // 1.7.10: Store Vector3 components as Float
+        this.dataWatcher.addObject(SHOOT_X_DATAWATCHER_ID, Float.valueOf(0F));
+        this.dataWatcher.addObject(SHOOT_Y_DATAWATCHER_ID, Float.valueOf(0F));
+        this.dataWatcher.addObject(SHOOT_Z_DATAWATCHER_ID, Float.valueOf(0F));
+        // 1.7.10: Store long as two ints
+        this.dataWatcher.addObject(EFFECT_SEED_LOW_DATAWATCHER_ID, Integer.valueOf(0));
+        this.dataWatcher.addObject(EFFECT_SEED_HIGH_DATAWATCHER_ID, Integer.valueOf(0));
+        this.dataWatcher.addObject(LAST_UPDATE_DATAWATCHER_ID, Integer.valueOf(0));
     }
 
     private void correctMovement() {
-        Vector3 shot = (Vector3) this.dataWatcher.getWatchableObjectObject(SHOOT_CONSTANT_DATAWATCHER_ID);
-        this.motionX = shot.getX();
-        this.motionZ = shot.getZ();
+        // 1.7.10: Read Vector3 components separately
+        float shotX = this.dataWatcher.getWatchableObjectFloat(SHOOT_X_DATAWATCHER_ID);
+        float shotY = this.dataWatcher.getWatchableObjectFloat(SHOOT_Y_DATAWATCHER_ID);
+        float shotZ = this.dataWatcher.getWatchableObjectFloat(SHOOT_Z_DATAWATCHER_ID);
+        this.motionX = shotX;
+        this.motionZ = shotZ;
         if (this.posY >= 500) {
             this.motionY = -0.09;
         } else {
@@ -91,14 +109,32 @@ public class EntityShootingStar extends EntityThrowable implements EntityTechnic
     }
 
     public long getEffectSeed() {
-        return this.dataWatcher.getWatchableObjectLong(EFFECT_SEED_DATAWATCHER_ID);
+        // 1.7.10: Reconstruct long from two integers
+        int low = this.dataWatcher.getWatchableObjectInt(EFFECT_SEED_LOW_DATAWATCHER_ID);
+        int high = this.dataWatcher.getWatchableObjectInt(EFFECT_SEED_HIGH_DATAWATCHER_ID);
+        return ((long) high << 32) | (low & 0xFFFFFFFFL);
+    }
+
+    // 1.7.10: Helper to get the shot Vector3
+    private Vector3 getShotVector() {
+        return new Vector3(
+            this.dataWatcher.getWatchableObjectFloat(SHOOT_X_DATAWATCHER_ID),
+            this.dataWatcher.getWatchableObjectFloat(SHOOT_Y_DATAWATCHER_ID),
+            this.dataWatcher.getWatchableObjectFloat(SHOOT_Z_DATAWATCHER_ID));
+    }
+
+    // 1.7.10: isInLava doesn't exist, implement manually
+    private boolean handleLavaCollision() {
+        BlockPos pos = new BlockPos(this);
+        return worldObj.getBlock(pos.getX(), pos.getY(), pos.getZ()).getMaterial().isLiquid();
     }
 
     @Override
     public void onUpdate() {
         super.onUpdate();
 
-        long lastTrackedTick = this.dataWatcher.getWatchableObjectLong(LAST_UPDATE_DATAWATCHER_ID);
+        // 1.7.10: LAST_UPDATE also needs to be stored as int (world time fits in int)
+        int lastTrackedTick = this.dataWatcher.getWatchableObjectInt(LAST_UPDATE_DATAWATCHER_ID);
 
         if (!worldObj.isRemote) {
             if (removalPending || !ConstellationSkyHandler.getInstance()
@@ -107,16 +143,17 @@ public class EntityShootingStar extends EntityThrowable implements EntityTechnic
                 return;
             }
 
-            this.dataWatcher.updateObject(LAST_UPDATE_DATAWATCHER_ID, world.getWorldTime());
+            this.dataWatcher.updateObject(LAST_UPDATE_DATAWATCHER_ID, worldObj.getWorldTime());
 
-            if (isInWater() || isInLava()) {
+            // 1.7.10: isInLava doesn't exist, check manually
+            if (isInWater() || handleLavaCollision()) {
+                // 1.7.10: MovingObjectPosition constructor takes (int, int, int, int, Vec3)
+                // The int after coordinates is the side hit (0=down, 1=up, 2=north, 3=south, 4=west, 5=east)
                 MovingObjectPosition rtr = new MovingObjectPosition(
-                    new Vec3(0, 0, 0),
-                    EnumFacing.UP,
-                    new BlockPos(this));
-                if (!ForgeEventFactory.onProjectileImpact(this, rtr)) {
-                    this.onImpact(rtr);
-                }
+                    (int) posX, (int) posY, (int) posZ,
+                    1, // side hit: 1 = UP
+                    Vec3.createVectorHelper(posX, posY, posZ));
+                this.onImpact(rtr);
             }
         }
 
@@ -135,7 +172,7 @@ public class EntityShootingStar extends EntityThrowable implements EntityTechnic
 
     @SideOnly(Side.CLIENT)
     private void spawnEffects() {
-        Vector3 shot = (Vector3) this.dataWatcher.getWatchableObjectObject(SHOOT_CONSTANT_DATAWATCHER_ID);
+        Vector3 shot = getShotVector(); // 1.7.10: Use helper method
         float positionDist = 96F;
 
         EntityComplexFX.RenderOffsetController renderCtrl = (fx, currentRenderPos, currentMotion, pTicks) -> {
@@ -226,22 +263,22 @@ public class EntityShootingStar extends EntityThrowable implements EntityTechnic
         }
         if (!worldObj.isRemote && MiscUtils.isChunkLoaded(worldObj, hit)) {
 
-            Block state = world.getBlock(hit);
+            Block state = worldObj.getBlock(hit.getX(), hit.getY(), hit.getZ());
             boolean eligableForExplosion = true;
             if (MiscUtils.isFluidBlock(state)) {
                 Fluid f = MiscUtils.tryGetFuild(state);
                 if (f != null) {
-                    if (f.getTemperature(world, hit) <= 300) { // About room temp; incl. water
+                    if (f.getTemperature(worldObj, hit.getX(), hit.getY(), hit.getZ()) <= 300) { // About room temp; incl. water
                         eligableForExplosion = false;
                     }
                 }
             }
 
             Vector3 v = Vector3.atEntityCenter(this);
-            ShootingStarExplosion.play(world, v, !eligableForExplosion, getEffectSeed());
+            ShootingStarExplosion.play(worldObj, v, !eligableForExplosion, getEffectSeed());
 
             EntityItem generated = new EntityItem(
-                world,
+                worldObj,
                 v.getX(),
                 v.getY(),
                 v.getZ(),
@@ -253,17 +290,11 @@ public class EntityShootingStar extends EntityThrowable implements EntityTechnic
             generated.motionZ = m.getZ();
             // 1.7.10: Use delayBeforeCanPickup field instead of setPickupDelay()
             generated.delayBeforeCanPickup = 20;
-            world.spawnEntityInWorld(generated);
+            worldObj.spawnEntityInWorld(generated);
 
-            LootTable table = world.getLootTableManager()
-                .getLootTableFromLocation(LootTableUtil.LOOT_TABLE_SHOOTING_STAR);
-            if (table != null && world instanceof WorldServer) {
-                LootContext context = new LootContext.Builder((WorldServer) world).build();
-                List<ItemStack> stacks = table.generateLootForPools(rand, context);
-                for (ItemStack stack : stacks) {
-                    ItemUtils.dropItemNaturally(world, v.getX(), v.getY(), v.getZ(), stack);
-                }
-            }
+            // 1.7.10: Loot tables don't exist, drop additional items manually
+            // For now, just drop the capsule (above)
+            // TODO: Implement custom loot system for 1.7.10 if needed
         }
     }
 

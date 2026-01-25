@@ -15,6 +15,8 @@ import net.minecraft.item.ItemStack;
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import cpw.mods.fml.common.Optional;
+import cpw.mods.fml.common.event.FMLInterModComms;
 import hellfirepvp.astralsorcery.client.util.item.ItemRenderRegistry;
 import hellfirepvp.astralsorcery.common.integrations.mods.geolosys.BlockGeolosysSampleCluster;
 import hellfirepvp.astralsorcery.common.integrations.mods.geolosys.TESRGeolosysSampleCluster;
@@ -48,10 +50,18 @@ public class ModIntegrationGeolosys {
         ItemRenderRegistry.register(Item.getItemFromBlock(geolosysSample), new TESRGeolosysSampleCluster());
     }
 
-    @SideOnly(Side.CLIENT)
-    @Optional.Method(modid = "jei")
-    public static void hideJEIGeolosysSample(IIngredientBlacklist blacklist) {
-        blacklist.addIngredientToBlacklist(new ItemStack(geolosysSample));
+    /**
+     * Hide Geolosys sample from NEI using IMC
+     * 1.7.10: Uses NEI instead of JEI (which doesn't exist for 1.7.10)
+     */
+    @Optional.Method(modid = "NotEnoughItems")
+    public static void hideNEIGeolosysSample() {
+        try {
+            String itemName = geolosysSample.getUnlocalizedName();
+            FMLInterModComms.sendMessage("NotEnoughItems", "hide", itemName);
+        } catch (Exception e) {
+            // Silently fail if item can't be hidden
+        }
     }
 
 }

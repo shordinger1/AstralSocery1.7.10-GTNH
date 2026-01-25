@@ -9,6 +9,7 @@
 package hellfirepvp.astralsorcery.common.crafting.altar.recipes;
 
 // TODO: Forge fluid system - manual review needed
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import java.util.Random;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.cleanroommc.modularui.utils.item.ItemStackHandler;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -212,7 +214,7 @@ public class TraitRecipe extends ConstellationRecipe implements ICraftingProgres
 
     @Override
     public boolean tryProcess(TileAltar altar, ActiveCraftingTask runningTask, NBTTagCompound craftingData,
-        int activeCraftingTick, int totalCraftingTime) {
+                              int activeCraftingTick, int totalCraftingTime) {
         if (!fulfillesStarlightRequirement(altar)) {
             return false; // Duh.
         }
@@ -256,7 +258,7 @@ public class TraitRecipe extends ConstellationRecipe implements ICraftingProgres
 
     @Override
     public boolean matches(TileAltar altar, TileReceiverBaseInventory.ItemHandlerTile invHandler,
-        boolean ignoreStarlightRequirement) {
+                           boolean ignoreStarlightRequirement) {
         IConstellation req = getRequiredConstellation();
         if (req != null) {
             IConstellation focus = altar.getFocusedConstellation();
@@ -271,8 +273,9 @@ public class TraitRecipe extends ConstellationRecipe implements ICraftingProgres
                     return false;
                 }
             } else {
-                if (!invHandler.getStackInSlot(slot.getSlotId())
-                    .isEmpty()) return false;
+                // 1.7.10: Use stack == null || stack.stackSize <= 0 instead of isEmpty()
+                ItemStack stack = invHandler.getStackInSlot(slot.getSlotId());
+                if (!(stack == null || stack.stackSize <= 0)) return false;
             }
         }
         return super.matches(altar, invHandler, ignoreStarlightRequirement);
@@ -284,10 +287,11 @@ public class TraitRecipe extends ConstellationRecipe implements ICraftingProgres
             if (stack.stackIndex < 0 || stack.stackIndex >= additionallyRequiredStacks.size()) continue; // Duh
 
             ItemHandle required = additionallyRequiredStacks.get(stack.stackIndex);
+            // 1.7.10: BlockPos.add() doesn't exist, need to create new BlockPos
+            BlockPos offsetPos = new BlockPos(altar.getPos().getX() + stack.offset.getX(), altar.getPos().getY() + stack.offset.getY(), altar.getPos().getZ() + stack.offset.getZ());
             TileAttunementRelay tar = MiscUtils.getTileAt(
-                altar.worldObj,
-                altar.getPos()
-                    .add(stack.offset),
+                altar.getWorldObj(),
+                offsetPos,
                 TileAttunementRelay.class,
                 true);
             if (tar != null) {
@@ -297,24 +301,36 @@ public class TraitRecipe extends ConstellationRecipe implements ICraftingProgres
                 ItemStack found = tar.getInventoryHandler()
                     .getStackInSlot(0);
                 if (required.getFluidTypeAndAmount() != null) {
-                    if (!found.isEmpty()) {
-                        FluidActionResult fas = ItemUtils
+                    // 1.7.10: Use stack == null || stack.stackSize <= 0 instead of isEmpty()
+                    if (!(found == null || found.stackSize <= 0)) {
+                        // 1.7.10: Use migration FluidActionResult class
+                        hellfirepvp.astralsorcery.common.migration.FluidActionResult fas = ItemUtils
                             .drainFluidFromItem(found, required.getFluidTypeAndAmount(), true);
-                        if (fas.isSuccess()) {
+                        if (fas != null && fas.isSuccess()) {
                             tar.getInventoryHandler()
                                 .setStackInSlot(0, fas.getResult());
                             tar.markForUpdate();
                         }
                     }
-                } else if (!ForgeHooks.getContainerItem(found)
-                    .isEmpty()) {
+                } else {
+                    // 1.7.10: ForgeHooks.getContainerItem() signature is different
+                    // Check for container item manually
+                    if (found != null && found.getItem().hasContainerItem(found)) {
+                        ItemStack container = found.getItem().getContainerItem(found);
                         tar.getInventoryHandler()
-                            .setStackInSlot(0, ForgeHooks.getContainerItem(found));
+                            .setStackInSlot(0, container);
                         tar.markForUpdate();
                     } else {
-                        ItemUtils.decrStackInInventory(tar.getInventoryHandler(), 0);
-                        tar.markForUpdate();
+                        // Decrease stack size manually
+                        if (found != null) {
+                            found.stackSize--;
+                            if (found.stackSize <= 0) {
+                                tar.getInventoryHandler().setStackInSlot(0, null);
+                            }
+                            tar.markForUpdate();
+                        }
                     }
+                }
             }
         }
     }
@@ -339,15 +355,15 @@ public class TraitRecipe extends ConstellationRecipe implements ICraftingProgres
 
                 ItemHandle required = additionallyRequiredStacks.get(stack.stackIndex);
                 TileAttunementRelay tar = MiscUtils.getTileAt(
-                    altar.worldObj,
-                    altar.getPos()
-                        .add(stack.offset),
+                    altar.getWorldObj(),
+                    new BlockPos(altar.getPos().getX() + stack.offset.getX(), altar.getPos().getY() + stack.offset.getY(), altar.getPos().getZ() + stack.offset.getZ()),
                     TileAttunementRelay.class,
                     true);
                 if (tar != null) { // If it's null then the server messed up or we're desynced..
                     ItemStack found = tar.getInventoryHandler()
                         .getStackInSlot(0);
-                    if (!found.isEmpty() && required.matchCrafting(found)) {
+                    // 1.7.10: Use stack == null || stack.stackSize <= 0 instead of isEmpty()
+                    if (!(found == null || found.stackSize <= 0) && required.matchCrafting(found)) {
                         Color c = ItemColorizationHelper.getDominantColorFromItemStack(found);
                         if (c == null) {
                             c = BlockCollectorCrystal.CollectorCrystalType.CELESTIAL_CRYSTAL.displayColor;
@@ -516,16 +532,18 @@ public class TraitRecipe extends ConstellationRecipe implements ICraftingProgres
                 if (stack.stackIndex < 0 || stack.stackIndex >= additionallyRequiredStacks.size()) continue; // Duh
 
                 ItemHandle required = additionallyRequiredStacks.get(stack.stackIndex);
+                // 1.7.10: Use getWorldObj() instead of worldObj, BlockPos.add() doesn't exist
+                BlockPos offsetPos = new BlockPos(altar.getPos().getX() + stack.offset.getX(), altar.getPos().getY() + stack.offset.getY(), altar.getPos().getZ() + stack.offset.getZ());
                 TileAttunementRelay tar = MiscUtils.getTileAt(
-                    altar.worldObj,
-                    altar.getPos()
-                        .add(stack.offset),
+                    altar.getWorldObj(),
+                    offsetPos,
                     TileAttunementRelay.class,
                     true);
                 if (tar != null) {
                     ItemStack found = tar.getInventoryHandler()
                         .getStackInSlot(0);
-                    if (found.isEmpty() || !required.matchCrafting(found)) {
+                    // 1.7.10: Use stack == null || stack.stackSize <= 0 instead of isEmpty()
+                    if ((found == null || found.stackSize <= 0) || !required.matchCrafting(found)) {
                         ArrayList<ItemStack> stacksApplicable = required.getApplicableItemsForRender();
                         int mod = (int) (ClientScheduler.getClientTick() % (stacksApplicable.size() * 60));
                         ItemStack element = stacksApplicable.get(
@@ -563,27 +581,9 @@ public class TraitRecipe extends ConstellationRecipe implements ICraftingProgres
 
     @SideOnly(Side.CLIENT)
     private void renderTranslucentItem(ItemStack stack, double x, double y, double z, float partialTicks) {
-
-        IBakedModel bakedModel = Minecraft.getMinecraft()
-            .getRenderItem()
-            .getItemModelWithOverrides(stack, null, null);
-        float sinBobY = WrapMathHelper.sin((ClientScheduler.getClientTick() + partialTicks) / 10.0F) * 0.1F + 0.1F;
-        float ageRotate = ((ClientScheduler.getClientTick() + partialTicks) / 20.0F) * (180F / (float) Math.PI);
-        bakedModel = net.minecraftforge.client.ForgeHooksClient
-            .handleCameraTransforms(bakedModel, ItemCameraTransforms.TransformType.GROUND, false);
-
-        TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
-        textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-        textureManager.getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE)
-            .setBlurMipmap(false, false);
-        Blending.CONSTANT_ALPHA.applyStateManager();
-
-        RenderingUtils.tryRenderItemWithColor(stack, bakedModel, Color.WHITE, 0.1F);
-
-        Blending.DEFAULT.applyStateManager();
-        textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-        textureManager.getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE)
-            .restoreLastBlurMipmap();
+        // 1.7.10: Render items using RenderItem directly, IBakedModel doesn't exist
+        // Use the existing renderItemAsEntity method which handles 1.7.10 rendering
+        RenderingUtils.renderItemAsEntity(stack, x, y, z, partialTicks, 0);
     }
 
     @Nullable
@@ -594,10 +594,11 @@ public class TraitRecipe extends ConstellationRecipe implements ICraftingProgres
                 if (xx == 0 && zz == 0) continue; // Not that it matters tho
 
                 BlockPos offset = new BlockPos(xx, 0, zz);
+                // 1.7.10: Use getWorldObj() instead of worldObj, BlockPos.add() doesn't exist
+                BlockPos offsetPos = new BlockPos(center.getPos().getX() + offset.getX(), center.getPos().getY() + offset.getY(), center.getPos().getZ() + offset.getZ());
                 TileAttunementRelay tar = MiscUtils.getTileAt(
-                    center.worldObj,
-                    center.getPos()
-                        .add(offset),
+                    center.getWorldObj(),
+                    offsetPos,
                     TileAttunementRelay.class,
                     true);
                 if (tar != null) {
@@ -611,7 +612,8 @@ public class TraitRecipe extends ConstellationRecipe implements ICraftingProgres
         if (eligableRelayOffsets.size() <= 0) {
             return null;
         }
-        return eligableRelayOffsets.get(center.worldObj.rand.nextInt(eligableRelayOffsets.size()));
+        // 1.7.10: Use getWorldObj() instead of worldObj
+        return eligableRelayOffsets.get(center.getWorldObj().rand.nextInt(eligableRelayOffsets.size()));
     }
 
     protected boolean matchFocusStacks(TileAltar altar, List<CraftingFocusStack> stacks) {
@@ -619,10 +621,11 @@ public class TraitRecipe extends ConstellationRecipe implements ICraftingProgres
             int index = stack.stackIndex;
             if (index < 0 || index >= additionallyRequiredStacks.size()) continue;
             ItemHandle required = additionallyRequiredStacks.get(index);
+            // 1.7.10: Use getWorldObj() instead of worldObj, BlockPos.add() doesn't exist
+            BlockPos offsetPos = new BlockPos(altar.getPos().getX() + stack.offset.getX(), altar.getPos().getY() + stack.offset.getY(), altar.getPos().getZ() + stack.offset.getZ());
             TileAttunementRelay relay = MiscUtils.getTileAt(
-                altar.worldObj,
-                altar.getPos()
-                    .add(stack.offset),
+                altar.getWorldObj(),
+                offsetPos,
                 TileAttunementRelay.class,
                 true);
             if (relay == null) {

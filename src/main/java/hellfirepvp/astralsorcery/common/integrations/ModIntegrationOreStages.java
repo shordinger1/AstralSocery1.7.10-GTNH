@@ -8,7 +8,9 @@
 
 package hellfirepvp.astralsorcery.common.integrations;
 
-import net.darkhax.orestages.api.OreTiersAPI;
+import cpw.mods.fml.common.Optional;
+import hellfirepvp.astralsorcery.common.migration.net.darkhax.gamestages.GameStageHelper;
+import hellfirepvp.astralsorcery.common.migration.net.darkhax.orestages.api.OreTiersAPI;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
@@ -31,9 +33,9 @@ public class ModIntegrationOreStages {
     public static boolean canSeeOreClient(Block test) {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         if (player == null) return false;
-        Tuple<String, Block> replacement;
+        Tuple replacement;
         if ((replacement = OreTiersAPI.getStageInfo(test)) != null) {
-            return GameStageHelper.clientHasStage(player, replacement.getFirst());
+            return GameStageHelper.clientHasStage(player, (String) replacement.getFirst());
         }
         return true;
     }

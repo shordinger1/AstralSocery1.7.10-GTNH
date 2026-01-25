@@ -68,16 +68,17 @@ public class PktRequestPerkSealAction
         if (ctx.side == Side.SERVER) {
             // 1.7.10: Network packets are already handled on the main thread, no need for addScheduledTask
             if (pkt.perk != null) {
-                EntityPlayerMP p = ctx.getServerHandler().player;
+                // 1.7.10: Use playerEntity instead of player
+                EntityPlayerMP p = ctx.getServerHandler().playerEntity;
                 if (pkt.doSealing) {
                     if (ItemPerkSeal.useSeal(p, true)
-                        && ResearchManager.applyPerkSeal(ctx.getServerHandler().player, pkt.perk)) {
+                        && ResearchManager.applyPerkSeal(ctx.getServerHandler().playerEntity, pkt.perk)) {
                         if (!ItemPerkSeal.useSeal(p, false)) {
-                            ResearchManager.breakPerkSeal(ctx.getServerHandler().player, pkt.perk);
+                            ResearchManager.breakPerkSeal(ctx.getServerHandler().playerEntity, pkt.perk);
                         }
                     }
                 } else {
-                    if (ResearchManager.breakPerkSeal(ctx.getServerHandler().player, pkt.perk)) {
+                    if (ResearchManager.breakPerkSeal(ctx.getServerHandler().playerEntity, pkt.perk)) {
                         PktRequestPerkSealAction packet = new PktRequestPerkSealAction(pkt.perk, false);
                         PacketChannel.CHANNEL.sendTo(packet, p);
                     }
@@ -92,9 +93,9 @@ public class PktRequestPerkSealAction
     private void recClientBreak(PktRequestPerkSealAction pkt) {
         if (!pkt.doSealing) {
             GuiScreen current = Minecraft.getMinecraft().currentScreen;
-            if (current != null && current instanceof GuiJournalPerkTree) {
-                Minecraft.getMinecraft()
-                    .addScheduledTask(() -> ((GuiJournalPerkTree) current).playSealBreakAnimation(pkt.perk));
+            if (current instanceof GuiJournalPerkTree) {
+                // 1.7.10: addScheduledTask doesn't exist, call directly
+                ((GuiJournalPerkTree) current).playSealBreakAnimation(pkt.perk);
             }
         }
     }

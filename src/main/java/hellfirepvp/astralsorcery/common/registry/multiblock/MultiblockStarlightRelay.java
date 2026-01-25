@@ -5,17 +5,18 @@
  * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
  * For further details, see the License file there.
  ******************************************************************************/
-
 package hellfirepvp.astralsorcery.common.registry.multiblock;
 
-import net.minecraft.block.Block;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.transpose;
+
 import net.minecraft.util.ResourceLocation;
 
+import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
+import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+
 import hellfirepvp.astralsorcery.AstralSorcery;
-import hellfirepvp.astralsorcery.common.block.BlockBlackMarble;
-import hellfirepvp.astralsorcery.common.block.BlockMarble;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
-import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -24,32 +25,35 @@ import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
  * Created by HellFirePvP
  * Date: 30.03.2017 / 14:07
  */
-public class MultiblockStarlightRelay extends PatternBlockArray {
+public class MultiblockStarlightRelay {
+
+    private static final String STRUCTURE_ID = "pattern_starlight_relay";
+    private static IStructureDefinition<MultiblockStarlightRelay> STRUCTURE_DEFINITION = null;
 
     public MultiblockStarlightRelay() {
-        super(new ResourceLocation(AstralSorcery.MODID, "pattern_starlight_relay"));
-        load();
+        // Structure defined via getStructureDefinition()
     }
 
-    private void load() {
-        Block marble = BlocksAS.blockMarble;
-        Block chiseled = marble.withProperty(BlockMarble.MARBLE_TYPE, BlockMarble.MarbleBlockType.CHISELED);
-        Block arch = marble.withProperty(BlockMarble.MARBLE_TYPE, BlockMarble.MarbleBlockType.ARCH);
-        Block sooty = BlocksAS.blockBlackMarble
-            .withProperty(BlockBlackMarble.BLACK_MARBLE_TYPE, BlockBlackMarble.BlackMarbleBlockType.RAW);
-
-        addBlock(0, 0, 0, BlocksAS.attunementRelay);
-
-        addBlock(-1, -1, -1, chiseled);
-        addBlock(1, -1, -1, chiseled);
-        addBlock(1, -1, 1, chiseled);
-        addBlock(-1, -1, 1, chiseled);
-
-        addBlock(-1, -1, 0, arch);
-        addBlock(1, -1, 0, arch);
-        addBlock(0, -1, 1, arch);
-        addBlock(0, -1, -1, arch);
-        addBlock(0, -1, 0, sooty);
+    public IStructureDefinition<MultiblockStarlightRelay> getStructureDefinition() {
+        if (STRUCTURE_DEFINITION == null) {
+            STRUCTURE_DEFINITION = StructureDefinition.<MultiblockStarlightRelay>builder()
+                .addShape(STRUCTURE_ID, transpose(shape))
+                .addElement('R', ofBlock(BlocksAS.attunementRelay, 0))
+                .addElement('H', ofBlock(BlocksAS.blockMarble, 1)) // CHISELED
+                .addElement('A', ofBlock(BlocksAS.blockMarble, 3)) // ARCH
+                .addElement('B', ofBlock(BlocksAS.blockBlackMarble, 0)) // RAW
+                .build();
+        }
+        return STRUCTURE_DEFINITION;
     }
+
+    public ResourceLocation getStructureId() {
+        return new ResourceLocation(AstralSorcery.MODID, STRUCTURE_ID);
+    }
+
+    private final String[][] shape = new String[][] {
+        // Y = -1 (Simple base)
+        {"   A   ", " AHHA  ", "AHBRHA ", " AHAHA ", "  R   "},
+    };
 
 }

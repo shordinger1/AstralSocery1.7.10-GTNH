@@ -92,7 +92,7 @@ public class PktPerkGemModification implements IMessageHandler<PktPerkGemModific
             return null;
         }
 
-        EntityPlayer player = ctx.getServerHandler().player;
+        EntityPlayer player = ctx.getServerHandler().playerEntity;
         switch (pkt.action) {
             case 0:
                 ItemStack stack = player.inventory.getStackInSlot(pkt.slotId);

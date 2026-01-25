@@ -8,7 +8,6 @@
 
 package hellfirepvp.astralsorcery.common.entities;
 
-import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -18,9 +17,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
-
-import com.google.common.collect.Iterables;
 
 import hellfirepvp.astralsorcery.common.container.ContainerObservatory;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
@@ -37,7 +35,13 @@ import hellfirepvp.astralsorcery.common.util.MiscUtils;
  */
 public class EntityObservatoryHelper extends Entity {
 
-    private static final int FIXED_DATAWATCHER_ID = 20;
+    // 1.7.10: DataWatcher doesn't support generic Objects, store coordinates separately
+    private static final int DATAWATCHER_X = 20;
+    private static final int DATAWATCHER_Y = 21;
+    private static final int DATAWATCHER_Z = 22;
+
+    // Fallback storage for when entity isn't initialized yet
+    private BlockPos fixedPosStorage;
 
     public EntityObservatoryHelper(World worldIn) {
         super(worldIn);
@@ -48,17 +52,34 @@ public class EntityObservatoryHelper extends Entity {
     public EntityObservatoryHelper(World world, BlockPos fixedPos) {
         super(world);
         setSize(0, 0);
-        this.dataWatcher.updateObject(FIXED_DATAWATCHER_ID, fixedPos);
+        this.fixedPosStorage = fixedPos;
         this.isImmuneToFire = true;
     }
 
     @Override
     protected void entityInit() {
-        this.dataWatcher.addObject(FIXED_DATAWATCHER_ID, BlockPos.ORIGIN);
+        this.dataWatcher.addObject(DATAWATCHER_X, Integer.valueOf(0));
+        this.dataWatcher.addObject(DATAWATCHER_Y, Integer.valueOf(0));
+        this.dataWatcher.addObject(DATAWATCHER_Z, Integer.valueOf(0));
     }
 
     public BlockPos getFixedObservatoryPos() {
-        return (BlockPos) this.dataWatcher.getWatchableObjectObject(FIXED_DATAWATCHER_ID);
+        if (this.fixedPosStorage != null) {
+            return this.fixedPosStorage;
+        }
+        // 1.7.10: Read coordinates separately
+        int x = this.dataWatcher.getWatchableObjectInt(DATAWATCHER_X);
+        int y = this.dataWatcher.getWatchableObjectInt(DATAWATCHER_Y);
+        int z = this.dataWatcher.getWatchableObjectInt(DATAWATCHER_Z);
+        return new BlockPos(x, y, z);
+    }
+
+    public void setFixedObservatoryPos(BlockPos pos) {
+        this.fixedPosStorage = null;
+        // 1.7.10: Update coordinates separately
+        this.dataWatcher.updateObject(DATAWATCHER_X, Integer.valueOf(pos.getX()));
+        this.dataWatcher.updateObject(DATAWATCHER_Y, Integer.valueOf(pos.getY()));
+        this.dataWatcher.updateObject(DATAWATCHER_Z, Integer.valueOf(pos.getZ()));
     }
 
     @Nullable
@@ -79,17 +100,16 @@ public class EntityObservatoryHelper extends Entity {
             }
             return;
         }
-        List<Entity> passengers = getPassengers();
+        // 1.7.10: getPassengers() doesn't exist, use riddenByEntity field (single entity)
+        Entity passenger = this.riddenByEntity;
         if (!to.isUsable()) {
-            // 1.7.10: forEach doesn't exist, use for loop
-            for (Entity passenger : passengers) {
+            if (passenger != null) {
                 passenger.mountEntity(null); // 1.7.10: mountEntity instead of dismountRidingEntity
             }
             return;
         }
-        Entity riding = Iterables.getFirst(passengers, null);
-        if (riding != null && riding instanceof EntityPlayer) {
-            applyObservatoryRotationsFrom(to, (EntityPlayer) riding);
+        if (passenger instanceof EntityPlayer) {
+            applyObservatoryRotationsFrom(to, (EntityPlayer) passenger);
         }
     }
 
@@ -123,14 +143,14 @@ public class EntityObservatoryHelper extends Entity {
         return to;
     }
 
-    @Override
-    protected boolean canBeRidden(Entity entityIn) {
-        if (!super.canBeRidden(entityIn)) return false;
+    // 1.7.10: canBeRidden doesn't exist as an overridable method
+    public boolean canBeRidden(Entity entityIn) {
+        // In 1.7.10, this logic needs to be handled differently
         TileObservatory to = isOnTelescope();
         return to != null && to.isUsable();
     }
 
-    @Override
+    // 1.7.10: isSilent() doesn't override anything in Entity
     public boolean isSilent() {
         return true;
     }
@@ -140,7 +160,7 @@ public class EntityObservatoryHelper extends Entity {
         return false;
     }
 
-    @Override
+    // 1.7.10: isGlowing() doesn't override anything in Entity
     public boolean isGlowing() {
         return false;
     }
@@ -150,7 +170,7 @@ public class EntityObservatoryHelper extends Entity {
         return false;
     }
 
-    @Override
+    // 1.7.10: isImmuneToExplosions() doesn't override anything in Entity
     public boolean isImmuneToExplosions() {
         return true;
     }
@@ -160,7 +180,7 @@ public class EntityObservatoryHelper extends Entity {
         return false;
     }
 
-    @Override
+    // 1.7.10: isOverWater() doesn't override anything in Entity
     public boolean isOverWater() {
         return true;
     }
@@ -168,21 +188,20 @@ public class EntityObservatoryHelper extends Entity {
     @Override
     public void playSound(String soundIn, float volume, float pitch) {}
 
-    @Override
-    // 1.7.10: Use BlockPos instead of BlockPos parameter
+    // 1.7.10: playStepSound has different signature, not overriding
     protected void playStepSound(int x, int y, int z, Block blockIn) {}
 
-    @Override
-    public ItemStack getPickedResult(RayTraceResult target) {
+    // 1.7.10: RayTraceResult is MovingObjectPosition
+    public ItemStack getPickedResult(MovingObjectPosition target) {
         return new ItemStack(BlocksAS.blockObservatory);
     }
 
-    @Override
+    // 1.7.10: shouldRenderInPass() doesn't override anything in Entity
     public boolean shouldRenderInPass(int pass) {
         return false;
     }
 
-    @Override
+    // 1.7.10: canPassengerSteer() doesn't override anything in Entity
     public boolean canPassengerSteer() {
         return false;
     }

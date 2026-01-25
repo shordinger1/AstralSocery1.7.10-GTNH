@@ -32,7 +32,6 @@ public class PotionTimeFreeze extends PotionCustomTexture {
     public PotionTimeFreeze() {
         super(false, 0xB89AFF);
         setPotionName("effect.as.timefreeze");
-        setBeneficial();
     }
 
     @Override
