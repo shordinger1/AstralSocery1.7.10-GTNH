@@ -12,9 +12,11 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
+import codechicken.nei.PositionedStack;
 import net.minecraft.item.ItemStack;
 
 import hellfirepvp.astralsorcery.common.base.LightOreTransmutations;
+import org.lwjgl.opengl.GL11;
 
 /**
  * NEI Recipe Handler for Light Transmutation (Lens crafting)

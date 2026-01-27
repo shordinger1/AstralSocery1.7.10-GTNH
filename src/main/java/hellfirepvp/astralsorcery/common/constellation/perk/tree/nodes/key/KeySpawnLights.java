@@ -8,6 +8,7 @@
 
 package hellfirepvp.astralsorcery.common.constellation.perk.tree.nodes.key;
 
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.common.config.Configuration;
 
@@ -76,10 +77,10 @@ public class KeySpawnLights extends KeyPerk implements IPlayerTickPerk {
                         rand.nextInt(radiusToSpawnLight) * (rand.nextBoolean() ? 1 : -1),
                         rand.nextInt(radiusToSpawnLight) * (rand.nextBoolean() ? 1 : -1),
                         rand.nextInt(radiusToSpawnLight) * (rand.nextBoolean() ? 1 : -1));
+                    Block block = player.worldObj.getBlock(pos.getX(), pos.getY(), pos.getZ());
+                    int meta = player.worldObj.getBlockMetadata(pos.getX(), pos.getY(), pos.getZ());
                     if (MiscUtils.isChunkLoaded(player.worldObj, pos) && TileIlluminator.illuminatorCheck.isStateValid(
-                        player.worldObj,
-                        pos,
-                        player.worldObj.getBlock(pos.getX(), pos.getY(), pos.getZ()))) {
+                        player.worldObj,pos, block, meta)) {
                         if (player.worldObj
                             .setBlock(pos.getX(), pos.getY(), pos.getZ(), BlocksAS.blockVolatileLight, 0, 3)) {
                             return;

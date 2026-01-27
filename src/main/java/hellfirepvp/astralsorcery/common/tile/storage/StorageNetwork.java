@@ -8,6 +8,7 @@
 
 package hellfirepvp.astralsorcery.common.tile.storage;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -65,7 +66,11 @@ public class StorageNetwork {
     }
 
     public List<CoreArea> getCores() {
-        return MiscUtils.flatten(this.cores, core -> new CoreArea(core));
+        List<CoreArea> list = new LinkedList<>();
+        for (Map.Entry<BlockPos, AxisAlignedBB> entry : this.cores.entrySet()) {
+            list.add(new CoreArea(entry.getKey(), entry.getValue()));
+        }
+        return list;
     }
 
     public void writeToNBT(NBTTagCompound tag) {
@@ -121,7 +126,14 @@ public class StorageNetwork {
         }
 
         public AxisAlignedBB getRealBox() {
-            return offsetBox.offset(getPos());
+            // In 1.7.10, AxisAlignedBB doesn't have offset() method
+            double minX = offsetBox.minX + pos.getX();
+            double minY = offsetBox.minY + pos.getY();
+            double minZ = offsetBox.minZ + pos.getZ();
+            double maxX = offsetBox.maxX + pos.getX();
+            double maxY = offsetBox.maxY + pos.getY();
+            double maxZ = offsetBox.maxZ + pos.getZ();
+            return AxisAlignedBB.getBoundingBox(minX, minY, minZ, maxX, maxY, maxZ);
         }
     }
 

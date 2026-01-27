@@ -12,6 +12,8 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
+import codechicken.nei.PositionedStack;
+import codechicken.nei.recipe.TemplateRecipeHandler;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 
@@ -38,8 +40,8 @@ public class LightWellRecipeHandler extends ASRecipeHandler {
         transferRects.add(
             new TemplateRecipeHandler.RecipeTransferRect(
                 new Rectangle(74, 23, 25, 18),
-                "astralsorcery.lightwell",
-                new Object[0]));
+                "astralsorcery.lightwell"
+            ));
     }
 
     @Override

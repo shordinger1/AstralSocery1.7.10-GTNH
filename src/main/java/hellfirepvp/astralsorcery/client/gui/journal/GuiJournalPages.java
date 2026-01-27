@@ -70,11 +70,12 @@ public class GuiJournalPages extends GuiScreenJournal {
         this.pages = new ArrayList<>(
             node.getPages()
                 .size());
-        List<Object> renderPages = new ArrayList<>();
         for (IJournalPage page : node.getPages()) {
-            renderPages.add(page.buildRenderPage());
+            Object renderPage = page.buildRenderPage();
+            if (renderPage instanceof IGuiRenderablePage) {
+                pages.add((IGuiRenderablePage) renderPage);
+            }
         }
-        pages.addAll(renderPages);
         this.unlocTitle = node.getUnLocalizedName();
     }
 
@@ -87,11 +88,12 @@ public class GuiJournalPages extends GuiScreenJournal {
         this.pages = new ArrayList<>(
             detailedInformation.getPages()
                 .size());
-        List<Object> renderPages = new ArrayList<>();
         for (IJournalPage page : detailedInformation.getPages()) {
-            renderPages.add(page.buildRenderPage());
+            Object renderPage = page.buildRenderPage();
+            if (renderPage instanceof IGuiRenderablePage) {
+                pages.add((IGuiRenderablePage) renderPage);
+            }
         }
-        pages.addAll(renderPages);
         this.unlocTitle = detailedInformation.getUnLocalizedName();
         this.currentPageOffset = exactPage / 2;
     }

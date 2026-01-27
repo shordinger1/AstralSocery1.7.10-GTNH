@@ -25,7 +25,7 @@ import hellfirepvp.astralsorcery.common.item.crystal.base.ItemRockCrystalBase;
 public class CrystalSharpeningRecipe extends GrindstoneRecipe {
 
     public CrystalSharpeningRecipe(int chance) {
-        super(null, null, chance);
+        super((ItemStack)null, null, chance);
     }
 
     @Override
