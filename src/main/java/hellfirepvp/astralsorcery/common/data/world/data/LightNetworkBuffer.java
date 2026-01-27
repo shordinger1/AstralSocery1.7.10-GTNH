@@ -174,7 +174,7 @@ public class LightNetworkBuffer extends CachedWorldData {
     private void cleanupQueuedChunks() {
         for (ChunkPos pos : queueRemoval) {
             ChunkNetworkData data = getChunkData(pos);
-            if (data != null && data == null || data.stackSize <= 0) {
+            if (data != null && data.isEmpty()) {
                 chunkSortedData.remove(pos);
             }
         }
@@ -393,7 +393,7 @@ public class LightNetworkBuffer extends CachedWorldData {
 
         data.checkIntegrity(); // Integrity of sections
 
-        if (data == null || data.stackSize <= 0) {
+        if (data.isEmpty()) {
             queueRemoval.add(chPos);
         }
     }
@@ -472,12 +472,12 @@ public class LightNetworkBuffer extends CachedWorldData {
             while (iterator.hasNext()) {
                 Integer yLevel = iterator.next();
                 ChunkSectionNetworkData data = sections.get(yLevel);
-                if (data == null || data == null || data.stackSize <= 0) iterator.remove();
+                if (data == null || data.isEmpty()) iterator.remove();
             }
         }
 
         public boolean isEmpty() {
-            return sections == null || sections.stackSize <= 0; // No section -> no data
+            return sections == null || sections.isEmpty(); // No section -> no data
         }
 
         private ChunkSectionNetworkData getOrCreateSection(int yLevel) {
@@ -603,7 +603,7 @@ public class LightNetworkBuffer extends CachedWorldData {
         }
 
         public boolean isEmpty() {
-            return nodes == null || nodes.stackSize <= 0;
+            return nodes == null || nodes.isEmpty();
         }
 
         public Collection<IPrismTransmissionNode> getAllTransmissionNodes() {

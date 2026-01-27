@@ -23,7 +23,6 @@ import hellfirepvp.astralsorcery.common.structure.array.BlockArray;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.util.BlockStateCheck;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
-import hellfirepvp.astralsorcery.common.util.WrapMathHelper;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -42,19 +41,29 @@ public class BlockDiscoverer {
         lbl: while (length > 0) {
             List<EnumFacing> faces = new ArrayList<>();
             Collections.addAll(faces, EnumFacing.values());
-            if (originalBreakDirection != null && (out == null || out.stackSize <= 0)) {
+            // 1.7.10: BlockArray uses isEmpty() not stackSize
+            if (originalBreakDirection != null && (out == null || out.isEmpty())) {
+                // 1.7.10: EnumFacing doesn't have opposite() method, use ordinal arithmetic
                 faces.remove(originalBreakDirection);
-                faces.remove(originalBreakDirection.getOpposite());
+                EnumFacing opposite = EnumFacing.values()[originalBreakDirection.ordinal() ^ 1];
+                faces.remove(opposite);
             }
             Collections.shuffle(faces);
             for (EnumFacing face : faces) {
-                BlockPos at = offset.offset(face);
+                // 1.7.10: BlockPos.offset() expects ForgeDirection, not EnumFacing
+                BlockPos at = new BlockPos(
+                    offset.getX() + face.getFrontOffsetX(),
+                    offset.getY() + face.getFrontOffsetY(),
+                    offset.getZ() + face.getFrontOffsetZ());
                 if (out.getPattern()
                     .containsKey(at)) {
                     continue;
                 }
                 Block test = world.getBlock(at.posX, at.posY, at.posZ);
-                if (MiscUtils.matchStateExact(match, test) && addCheck.isStateValid(world, at, test)) {
+                // 1.7.10: isStateValid takes 4 parameters (world, pos, block, metadata)
+                int metadata = world.getBlockMetadata(at.posX, at.posY, at.posZ);
+                if (MiscUtils.matchStateExact(match, test) && addCheck.isStateValid(world, at, test, metadata)) {
+                    // 1.7.10: addBlock takes 4 parameters (x, y, z, block)
                     out.addBlock(at.getX(), at.getY(), at.getZ(), test);
                     length--;
                     offset = at;
@@ -75,21 +84,26 @@ public class BlockDiscoverer {
         BlockStateCheck.WorldSpecific match) {
         BlockArray out = new BlockArray();
 
-        BlockPos.PooledMutableBlockPos offset = BlockPos.PooledMutableBlockPos.retain();
+        // 1.7.10: PooledMutableBlockPos doesn't exist, use regular BlockPos
+        BlockPos offset = new BlockPos(0, 0, 0);
         for (int xx = -cubeSize; xx <= cubeSize; xx++) {
             for (int zz = -cubeSize; zz <= cubeSize; zz++) {
                 for (int yy = -cubeSize; yy <= cubeSize; yy++) {
-                    offset.setPos(origin.getX() + xx, origin.getY() + yy, origin.getZ() + zz);
-                    if (getWorld().isBlockLoaded(offset)) {
-                        Block atState = world.getBlock(offset.posX, offset.posY, offset.posZ);
-                        if (match.isStateValid(world, offset, atState)) {
-                            out.addBlock(new BlockPos(offset), atState);
+                    // 1.7.10: Create new BlockPos manually
+                    offset = new BlockPos(origin.getX() + xx, origin.getY() + yy, origin.getZ() + zz);
+                    // 1.7.10: Use blockExists instead of isBlockLoaded, and pass World
+                    if (world.blockExists(offset.getX(), offset.getY(), offset.getZ())) {
+                        Block atState = world.getBlock(offset.getX(), offset.getY(), offset.getZ());
+                        // 1.7.10: isStateValid takes 4 parameters (world, pos, block, metadata)
+                        int meta = world.getBlockMetadata(offset.getX(), offset.getY(), offset.getZ());
+                        if (match.isStateValid(world, offset, atState, meta)) {
+                            // 1.7.10: addBlock takes individual coordinates, not BlockPos
+                            out.addBlock(offset.getX(), offset.getY(), offset.getZ(), atState);
                         }
                     }
                 }
             }
         }
-        offset.release();
         return out;
     }
 
@@ -98,13 +112,15 @@ public class BlockDiscoverer {
         Block testState = world.getBlock(origin.posX, origin.posY, origin.posZ);
 
         BlockArray foundResult = new BlockArray();
-        foundResult.addBlock(origin, testState);
+        // 1.7.10: addBlock takes individual coordinates, not BlockPos
+        foundResult.addBlock(origin.getX(), origin.getY(), origin.getZ(), testState);
         List<BlockPos> visited = new LinkedList<>();
 
         Deque<BlockPos> searchNext = new LinkedList<>();
         searchNext.addFirst(origin);
 
-        while (!(searchNext == null || searchNext.stackSize <= 0)) {
+        // 1.7.10: Collection uses isEmpty() not stackSize
+        while (!(searchNext == null || searchNext.isEmpty())) {
             Deque<BlockPos> currentSearch = searchNext;
             searchNext = new LinkedList<>();
 
@@ -121,9 +137,10 @@ public class BlockDiscoverer {
                                 visited.add(search);
 
                                 if (!onlyExposed || isExposedToAir(world, search)) {
-                                    Block current = world.getBlock(search.posX, search.posY, search.posZ);
+                                    Block current = world.getBlock(search.getX(), search.getY(), search.getZ());
                                     if (MiscUtils.matchStateExact(current, testState)) {
-                                        foundResult.addBlock(search, current);
+                                        // 1.7.10: addBlock takes individual coordinates, not BlockPos
+                                        foundResult.addBlock(search.getX(), search.getY(), search.getZ(), current);
                                         searchNext.add(search);
                                     }
                                 }
@@ -132,7 +149,11 @@ public class BlockDiscoverer {
                     }
                 } else {
                     for (EnumFacing face : EnumFacing.values()) {
-                        BlockPos search = offsetPos.offset(face);
+                        // 1.7.10: offset() expects ForgeDirection, calculate manually
+                        BlockPos search = new BlockPos(
+                            offsetPos.getX() + face.getFrontOffsetX(),
+                            offsetPos.getY() + face.getFrontOffsetY(),
+                            offsetPos.getZ() + face.getFrontOffsetZ());
                         if (visited.contains(search)) continue;
                         if (getCubeDistance(search, origin) > cubeSize) continue;
                         if (limit != -1 && foundResult.getBlockSize() + 1 > limit) continue;
@@ -140,9 +161,10 @@ public class BlockDiscoverer {
                         visited.add(search);
 
                         if (!onlyExposed || isExposedToAir(world, search)) {
-                            Block current = world.getBlock(search.posX, search.posY, search.posZ);
+                            Block current = world.getBlock(search.getX(), search.getY(), search.getZ());
                             if (MiscUtils.matchStateExact(current, testState)) {
-                                foundResult.addBlock(search, current);
+                                // 1.7.10: addBlock takes individual coordinates, not BlockPos
+                                foundResult.addBlock(search.getX(), search.getY(), search.getZ(), current);
                                 searchNext.add(search);
                             }
                         }
@@ -157,13 +179,19 @@ public class BlockDiscoverer {
     public static BlockArray discoverBlocksWithSameStateAround(List<Block> states, World world, BlockPos origin,
         boolean onlyExposed, int cubeSize, int limit, boolean searchCorners) {
         BlockArray foundResult = new BlockArray();
-        foundResult.addBlock(origin, world.getBlock(origin.posX, origin.posY, origin.posZ));
+        // 1.7.10: addBlock takes individual coordinates, not BlockPos
+        foundResult.addBlock(
+            origin.getX(),
+            origin.getY(),
+            origin.getZ(),
+            world.getBlock(origin.posX, origin.posY, origin.posZ));
         List<BlockPos> visited = new LinkedList<>();
 
         Deque<BlockPos> searchNext = new LinkedList<>();
         searchNext.addFirst(origin);
 
-        while (!(searchNext == null || searchNext.stackSize <= 0)) {
+        // 1.7.10: Collection uses isEmpty() not stackSize
+        while (!(searchNext == null || searchNext.isEmpty())) {
             Deque<BlockPos> currentSearch = searchNext;
             searchNext = new LinkedList<>();
 
@@ -180,9 +208,10 @@ public class BlockDiscoverer {
                                 visited.add(search);
 
                                 if (!onlyExposed || isExposedToAir(world, search)) {
-                                    Block current = world.getBlock(search.posX, search.posY, search.posZ);
+                                    Block current = world.getBlock(search.getX(), search.getY(), search.getZ());
                                     if (MiscUtils.getMatchingState(states, current) != null) {
-                                        foundResult.addBlock(search, current);
+                                        // 1.7.10: addBlock takes individual coordinates, not BlockPos
+                                        foundResult.addBlock(search.getX(), search.getY(), search.getZ(), current);
                                         searchNext.add(search);
                                     }
                                 }
@@ -191,7 +220,11 @@ public class BlockDiscoverer {
                     }
                 } else {
                     for (EnumFacing face : EnumFacing.values()) {
-                        BlockPos search = offsetPos.offset(face);
+                        // 1.7.10: offset() expects ForgeDirection, calculate manually
+                        BlockPos search = new BlockPos(
+                            offsetPos.getX() + face.getFrontOffsetX(),
+                            offsetPos.getY() + face.getFrontOffsetY(),
+                            offsetPos.getZ() + face.getFrontOffsetZ());
                         if (visited.contains(search)) continue;
                         if (getCubeDistance(search, origin) > cubeSize) continue;
                         if (limit != -1 && foundResult.getBlockSize() + 1 > limit) continue;
@@ -199,9 +232,10 @@ public class BlockDiscoverer {
                         visited.add(search);
 
                         if (!onlyExposed || isExposedToAir(world, search)) {
-                            Block current = world.getBlock(search.posX, search.posY, search.posZ);
+                            Block current = world.getBlock(search.getX(), search.getY(), search.getZ());
                             if (MiscUtils.getMatchingState(states, current) != null) {
-                                foundResult.addBlock(search, current);
+                                // 1.7.10: addBlock takes individual coordinates, not BlockPos
+                                foundResult.addBlock(search.getX(), search.getY(), search.getZ(), current);
                                 searchNext.add(search);
                             }
                         }
@@ -227,16 +261,26 @@ public class BlockDiscoverer {
     }
 
     public static int getCubeDistance(BlockPos p1, BlockPos p2) {
-        return (int) WrapMathHelper
-            .absMax(WrapMathHelper.absMax(p1.getX() - p2.getX(), p1.getY() - p2.getY()), p1.getZ() - p2.getZ());
+        // 1.7.10: absMax doesn't exist, calculate manually using Math.max
+        int dx = Math.abs(p1.getX() - p2.getX());
+        int dy = Math.abs(p1.getY() - p2.getY());
+        int dz = Math.abs(p1.getZ() - p2.getZ());
+        int maxD = Math.max(dx, dy);
+        return Math.max(maxD, dz);
     }
 
     public static boolean isExposedToAir(World world, BlockPos pos) {
         for (EnumFacing face : EnumFacing.values()) {
-            BlockPos offset = pos.offset(face);
-            if (getWorld().isAirBlock(offset) || world.getBlock(offset.posX, offset.posY, offset.posZ)
-                .getBlock()
-                .isReplaceable(world, offset)) return true;
+            // 1.7.10: offset() expects ForgeDirection, calculate manually
+            BlockPos offset = new BlockPos(
+                pos.getX() + face.getFrontOffsetX(),
+                pos.getY() + face.getFrontOffsetY(),
+                pos.getZ() + face.getFrontOffsetZ());
+            // 1.7.10: Check isAirBlock on world, and simplify Block check
+            if (world.isAirBlock(offset.getX(), offset.getY(), offset.getZ())
+                || world.getBlock(offset.getX(), offset.getY(), offset.getZ())
+                    .isReplaceable(world, offset.getX(), offset.getY(), offset.getZ()))
+                return true;
         }
         return false;
     }

@@ -14,10 +14,10 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import hellfirepvp.astralsorcery.common.migration.Vec3i;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Vec3i;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.util.Constants;
 
@@ -51,7 +51,10 @@ public class StructureMatcherPatternArray extends StructureMatcher {
         MatchableStructure struct = StructureRegistry.INSTANCE.getStructure(structName);
         if (struct instanceof PatternBlockArray) {
             this.structure = (PatternBlockArray) struct;
-            this.structureArea = new ObservableAreaBoundingBox(structure.getMin(), structure.getMax());
+            // 1.7.10: ObservableAreaBoundingBox expects Vec3i, not BlockPos
+            this.structureArea = new ObservableAreaBoundingBox(
+                new Vec3i(structure.getMin().posX, structure.getMin().posY, structure.getMin().posZ),
+                new Vec3i(structure.getMax().posX, structure.getMax().posY, structure.getMax().posZ));
         } else {
             throw new IllegalArgumentException(
                 "Passed structure matcher key does not have a registered underlying structure pattern: " + structName);
@@ -106,8 +109,9 @@ public class StructureMatcherPatternArray extends StructureMatcher {
                 + mismatchesPost
                 + " mismatches afterwards.");
         if (mismatchesPost > 0) {
+            // 1.7.10: Use joinBlockPositions for BlockPos set instead of joinPositions
             LogCategory.STRUCTURE_MATCH
-                .info(() -> "Found mismatches at (relative to center): " + joinPositions(this.mismatches));
+                .info(() -> "Found mismatches at (relative to center): " + joinBlockPositions(this.mismatches));
         }
         return mismatchesPost <= 0;
     }
@@ -154,6 +158,15 @@ public class StructureMatcherPatternArray extends StructureMatcher {
             first = false;
         }
         return sb.toString();
+    }
+
+    // 1.7.10: Add helper to convert BlockPos set to Vec3i set for logging
+    private String joinBlockPositions(Set<BlockPos> positions) {
+        Set<Vec3i> vecSet = new HashSet<>();
+        for (BlockPos pos : positions) {
+            vecSet.add(new Vec3i(pos.posX, pos.posY, pos.posZ));
+        }
+        return joinPositions(vecSet);
     }
 
 }

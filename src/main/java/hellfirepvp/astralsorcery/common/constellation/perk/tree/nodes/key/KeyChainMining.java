@@ -145,7 +145,7 @@ public class KeyChainMining extends KeyPerk {
                 FakePlayer fp = AstralSorcery.proxy.getASFakePlayerServer(world);
                 for (BlockPos at : chain.getPattern()
                     .keySet()) {
-                    Block atState = at.getBlock(world.posX, world.posY, world.posZ);
+                    Block atState = at.getBlock(world);
                     int meta = at.getBlockMetadata(world);
                     int exp;
                     try {
@@ -169,8 +169,8 @@ public class KeyChainMining extends KeyPerk {
                         BlockDropCaptureAssist.startCapturing();
                         capturing = true;
 
-                        // 1.7.10: Use BlockPos.getTileEntity(World.posX, World.posY, World.posZ) method
-                        TileEntity te = at.getTileEntity(world.posX, world.posY, world.posZ);
+                        // 1.7.10: Use BlockPos.getTileEntity(World) method
+                        TileEntity te = at.getTileEntity(world);
                         if (atState.removedByPlayer(world, player, at.getX(), at.getY(), at.getZ())) {
                             atState.onBlockDestroyedByPlayer(world, at.getX(), at.getY(), at.getZ(), meta);
                             atState.harvestBlock(world, player, at.getX(), at.getY(), at.getZ(), meta);

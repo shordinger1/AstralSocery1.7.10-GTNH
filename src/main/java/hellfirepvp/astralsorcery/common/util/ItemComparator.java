@@ -8,6 +8,8 @@
 
 package hellfirepvp.astralsorcery.common.util;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -32,7 +34,7 @@ import hellfirepvp.astralsorcery.common.util.nbt.NBTComparator;
 public class ItemComparator {
 
     public static boolean compare(@Nonnull ItemStack thisStack, @Nonnull ItemStack sampleCompare, Clause... clauses) {
-        Set<Clause> lClauses = Sets.newHashSet(clauses);
+        Set<Clause> lClauses = new HashSet<>(Arrays.asList(clauses));
 
         if (lClauses.contains(Clause.ITEM)) {
             if ((thisStack == null || thisStack.stackSize <= 0)
@@ -56,12 +58,12 @@ public class ItemComparator {
         }
 
         if (lClauses.contains(Clause.META_STRICT)) {
-            if (thisStack.getMetadata() != sampleCompare.getMetadata()) {
+            if (thisStack.getItemDamage() != sampleCompare.getItemDamage()) {
                 return false;
             }
         } else if (lClauses.contains(Clause.META_WILDCARD)) {
-            if (thisStack.getMetadata() != sampleCompare.getMetadata()
-                && thisStack.getMetadata() != OreDictionary.WILDCARD_VALUE
+            if (thisStack.getItemDamage() != sampleCompare.getItemDamage()
+                && thisStack.getItemDamage() != OreDictionary.WILDCARD_VALUE
                 && sampleCompare.getItemDamage() != OreDictionary.WILDCARD_VALUE) {
                 return false;
             }

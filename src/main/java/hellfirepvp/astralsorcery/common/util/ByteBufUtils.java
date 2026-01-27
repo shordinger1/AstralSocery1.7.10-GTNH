@@ -149,7 +149,7 @@ public class ByteBufUtils {
     public static ItemStack readItemStack(ByteBuf byteBuf) {
         boolean defined = byteBuf.readBoolean();
         if (defined) {
-            return new ItemStack(readNBTTag(byteBuf));
+            return ItemStack.loadItemStackFromNBT(readNBTTag(byteBuf));
         } else {
             return null;
         }

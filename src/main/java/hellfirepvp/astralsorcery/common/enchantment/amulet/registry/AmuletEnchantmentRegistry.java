@@ -53,7 +53,7 @@ public class AmuletEnchantmentRegistry implements ConfigDataAdapter<WeightedAmul
 
     @Nullable
     public static Enchantment getRandomEnchant() {
-        if (possibleEnchants == null || possibleEnchants.stackSize <= 0) {
+        if (possibleEnchants == null || possibleEnchants.isEmpty() ) {
             return null;
         }
         return WeightedRandom.getRandomItem(rand, possibleEnchants)

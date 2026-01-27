@@ -42,13 +42,13 @@ public class NonDuplicateCappedList<T> implements Iterable<T> {
 
     @Nullable
     public T getRandomElement() {
-        if (elements == null || elements.stackSize <= 0) return null;
+        if (elements == null || elements.isEmpty()) return null;
         return elements.get(rand.nextInt(elements.size()));
     }
 
     @Nullable
     public T getRandomElementByChance(Random rand, float rngMultiplier) {
-        if (elements == null || elements.stackSize <= 0) return null;
+        if (elements == null || elements.isEmpty()) return null;
         if (Math.max(0, rand.nextInt(((int) ((cap - elements.size()) * rngMultiplier)) / 2 + 1)) == 0) {
             return getRandomElement();
         }

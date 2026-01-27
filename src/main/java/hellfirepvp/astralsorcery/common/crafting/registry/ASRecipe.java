@@ -14,7 +14,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import hellfirepvp.astralsorcery.common.constellation.IConstellation;
@@ -198,6 +197,7 @@ public class ASRecipe {
      * Builder class for ASRecipe using fluent API
      */
     public static class Builder {
+
         private final Type type;
 
         // Common

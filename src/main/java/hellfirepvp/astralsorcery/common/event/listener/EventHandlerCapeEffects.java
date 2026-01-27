@@ -10,8 +10,6 @@ package hellfirepvp.astralsorcery.common.event.listener;
 
 import java.util.*;
 
-import hellfirepvp.astralsorcery.common.constellation.perk.AbstractPerk;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -45,6 +43,7 @@ import hellfirepvp.astralsorcery.common.auxiliary.tick.ITickHandler;
 import hellfirepvp.astralsorcery.common.base.Plants;
 import hellfirepvp.astralsorcery.common.constellation.cape.CapeArmorEffect;
 import hellfirepvp.astralsorcery.common.constellation.cape.impl.*;
+import hellfirepvp.astralsorcery.common.constellation.perk.AbstractPerk;
 import hellfirepvp.astralsorcery.common.constellation.perk.tree.nodes.key.KeyMantleFlight;
 import hellfirepvp.astralsorcery.common.data.research.PlayerProgress;
 import hellfirepvp.astralsorcery.common.data.research.ResearchManager;
@@ -161,8 +160,8 @@ public class EventHandlerCapeEffects implements ITickHandler {
                         EnumFacing enumFace = EnumFacing.getFront(faceHit);
                         BlockPos pos = new BlockPos(event.x, event.y, event.z);
                         // 1.7.10: Convert EnumFacing to ForgeDirection for Evorsio methods
-                        net.minecraftforge.common.util.ForgeDirection dir = net.minecraftforge.common.util.ForgeDirection.getOrientation(
-                            enumFace.ordinal());
+                        net.minecraftforge.common.util.ForgeDirection dir = net.minecraftforge.common.util.ForgeDirection
+                            .getOrientation(enumFace.ordinal());
                         if (enumFace == EnumFacing.UP || enumFace == EnumFacing.DOWN) {
                             ev.breakBlocksPlaneHorizontal((EntityPlayerMP) pl, dir, event.world, pos);
                         } else {

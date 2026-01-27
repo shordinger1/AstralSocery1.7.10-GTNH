@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import hellfirepvp.astralsorcery.common.migration.Ingredient;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -24,6 +23,7 @@ import net.minecraftforge.fluids.FluidStack;
 
 import hellfirepvp.astralsorcery.AstralSorcery;
 import hellfirepvp.astralsorcery.common.crafting.ItemHandle;
+import hellfirepvp.astralsorcery.common.migration.Ingredient;
 import hellfirepvp.astralsorcery.common.util.ItemUtils;
 
 /**

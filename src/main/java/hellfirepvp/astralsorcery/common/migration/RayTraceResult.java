@@ -6,6 +6,7 @@
 package hellfirepvp.astralsorcery.common.migration;
 
 import net.minecraft.util.Vec3;
+import net.minecraft.entity.Entity;
 
 import hellfirepvp.astralsorcery.common.util.BlockPos;
 
@@ -28,25 +29,25 @@ public class RayTraceResult extends net.minecraft.util.MovingObjectPosition {
     public BlockPos blockPos;
 
     public RayTraceResult(net.minecraft.util.MovingObjectPosition mop) {
-        this(mop.typeOfHit, mop.hitVec, mop.blockX, mop.blockY, mop.blockZ, mop.sideHit);
+        // In 1.7.10, constructor signature is (int, int, int, int, Vec3)
+        super(mop.blockX, mop.blockY, mop.blockZ, mop.sideHit, mop.hitVec);
+        this.blockPos = new BlockPos(mop.blockX, mop.blockY, mop.blockZ);
     }
 
     public RayTraceResult(MovingObjectType type, Vec3 vec, BlockPos pos) {
         this(type, vec, pos.getX(), pos.getY(), pos.getZ(), 0);
     }
 
-    public RayTraceResult(MovingObjectType type, Vec3 vec, BlockPos pos, net.minecraft.entity.Entity entity) {
-        this(type, vec, pos.getX(), pos.getY(), pos.getZ(), 0);
+    public RayTraceResult(MovingObjectType type, Vec3 vec, BlockPos pos, Entity entity) {
+        // For entity hits, call the entity constructor
+        super(entity);
+        this.blockPos = pos;
     }
 
     public RayTraceResult(MovingObjectType type, Vec3 vec, int x, int y, int z, int side) {
-        super(type, vec);
+        // In 1.7.10, constructor signature is (int, int, int, int, Vec3)
+        super(x, y, z, side, vec);
         this.blockPos = new BlockPos(x, y, z);
-        // 1.7.10 stores these in parent class fields
-        this.blockX = x;
-        this.blockY = y;
-        this.blockZ = z;
-        this.sideHit = side;
     }
 
     // Return EnumFacing instead of int for sideHit

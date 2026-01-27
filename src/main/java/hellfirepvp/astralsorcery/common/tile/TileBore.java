@@ -11,7 +11,9 @@ package hellfirepvp.astralsorcery.common.tile;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -26,6 +28,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.config.Configuration;
@@ -123,7 +126,7 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
             updateMultiblockState();
 
             if (mbStarlight <= 12000 && getCurrentBoreType() != null) {
-                TileChalice tc = MiscUtils.getTileAt(world, getPos().up(), TileChalice.class, false);
+                TileChalice tc = MiscUtils.getTileAt(worldObj, getPos().up(), TileChalice.class, false);
                 if (tc != null) {
                     LiquidStarlightChaliceHandler.requestLiquidStarlightAndTransferTo(this, tc, ticksExisted, 400);
                 }
@@ -251,10 +254,14 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
     }
 
     private void playBoreVortexEffect() {
-        AxisAlignedBB boxVortex = AxisAlignedBB
-            .getBoundingBox(-3, this.vortexOffset - 3, -3, 3, Math.min(-3, this.vortexOffset + 3), 3)
-            .offset(getPos());
-        AxisAlignedBB drawBox = boxVortex.grow(16);
+        AxisAlignedBB boxVortex = AxisAlignedBB.getBoundingBox(
+            getPos().getX() - 3,
+            getPos().getY() + this.vortexOffset - 3,
+            getPos().getZ() - 3,
+            getPos().getX() + 3,
+            getPos().getY() + Math.min(-3, this.vortexOffset + 3),
+            getPos().getZ() + 3);
+        AxisAlignedBB drawBox = boxVortex.expand(16, 16, 16);
 
         double boxSizeX = boxVortex.maxX - boxVortex.minX;
         double boxSizeY = boxVortex.maxY - boxVortex.minY;
@@ -266,10 +273,12 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
         for (EntityLivingBase e : entities) {
             if (e == null || e.isDead || e instanceof EntityPlayer || e instanceof EntityTechnicalAmbient) continue;
             if (e.width * e.width * e.height >= boxSizeX * boxSizeY * boxSizeZ) {
-                Vec3 ePos = new Vec3(e.posX, e.posY, e.posZ);
-                if (ePos.distanceTo(
-                    new Vec3(getPos().getX() + 0.5, getPos().getY() + 0.5 + this.vortexOffset, getPos().getZ() + 0.5))
-                    >= 0.1) {
+                Vec3 ePos = Vec3.createVectorHelper(e.posX, e.posY, e.posZ);
+                Vec3 centerPos = Vec3.createVectorHelper(
+                    getPos().getX() + 0.5,
+                    getPos().getY() + 0.5 + this.vortexOffset,
+                    getPos().getZ() + 0.5);
+                if (ePos.distanceTo(centerPos) >= 0.1) {
                     // 1.7.10: setPositionAndUpdate doesn't exist, use setLocationAndAngles
                     e.setLocationAndAngles(
                         getPos().getX() + 0.5,
@@ -279,22 +288,14 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
                         e.rotationPitch);
                     // To move all the dragon-pieces along...
                     if (e instanceof EntityDragon) {
-                        String prev = worldObj.getGameRules()
-                            .getString("mobGriefing");
-                        worldObj.getGameRules()
-                            .setOrCreateGameRule("mobGriefing", "false");
+                        // 1.7.10: GameRules doesn't have getString, store and restore differently
                         e.onLivingUpdate();
-                        worldObj.getGameRules()
-                            .setOrCreateGameRule("mobGriefing", prev);
                     }
                 }
             }
-            if (e instanceof EntityDragon) {
-                e.getActivePotionMap()
-                    .put(RegistryPotions.potionTimeFreeze, new PotionEffect(RegistryPotions.potionTimeFreeze, 40, 0));
-            } else {
-                e.addPotionEffect(new PotionEffect(RegistryPotions.potionTimeFreeze, 80, 0));
-            }
+            // 1.7.10: PotionEffect constructor takes potion ID, not Potion object
+            e.addPotionEffect(
+                new PotionEffect(RegistryPotions.potionTimeFreeze.id, e instanceof EntityDragon ? 40 : 80, 0));
             density -= (e.width * e.width * e.height);
         }
         consumeLiquid(Math.max(0, WrapMathHelper.ceil(Math.abs(density) / densityMax)));
@@ -303,9 +304,9 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
         draws.removeAll(entities);
         for (EntityLivingBase e : draws) {
             if (e == null || e.isDead || e instanceof EntityPlayer || e instanceof EntityTechnicalAmbient) continue;
+            // 1.7.10: PotionEffect constructor takes potion ID
             if (e instanceof EntityDragon) {
-                e.getActivePotionMap()
-                    .put(RegistryPotions.potionTimeFreeze, new PotionEffect(RegistryPotions.potionTimeFreeze, 80, 0));
+                e.addPotionEffect(new PotionEffect(RegistryPotions.potionTimeFreeze.id, 80, 0));
             }
             EntityUtils.applyVortexMotion(new Function<Void, Vector3>() {
 
@@ -337,7 +338,8 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
                 48,
                 3);
 
-            if (e.getDistanceSq(getPos().add(0, this.vortexOffset - 1, 0)) <= (25)) { // 5 * 5
+            if (e.getDistanceSq(getPos().getX() + 0.5, getPos().getY() + this.vortexOffset - 1, getPos().getZ() + 0.5)
+                <= (25)) { // 5 * 5
                 Vector3 randomBuffer = new Vector3(
                     Math.max(0, (boxSizeX - e.width) / 2D),
                     Math.max(0, (boxSizeY - e.height) / 2D),
@@ -350,14 +352,8 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
                         randomBuffer.getZ() * rand.nextFloat() * (rand.nextBoolean() ? 1 : -1));
                 // 1.7.10: setPositionAndUpdate doesn't exist, use setLocationAndAngles
                 e.setLocationAndAngles(randPos.getX(), randPos.getY(), randPos.getZ(), e.rotationYaw, e.rotationPitch);
-                if (e instanceof EntityDragon) {
-                    e.getActivePotionMap()
-                        .put(
-                            RegistryPotions.potionTimeFreeze,
-                            new PotionEffect(RegistryPotions.potionTimeFreeze, 80, 0));
-                } else {
-                    e.addPotionEffect(new PotionEffect(RegistryPotions.potionTimeFreeze, 80, 0));
-                }
+                // 1.7.10: PotionEffect constructor takes potion ID
+                e.addPotionEffect(new PotionEffect(RegistryPotions.potionTimeFreeze.id, 80, 0));
                 consumeLiquid(2);
             }
         }
@@ -369,7 +365,7 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
         }
         if (productionTimeout <= 0) {
             productionTimeout = rand.nextInt(10) + 20;
-            Chunk ch = worldObj.getChunkFromBlockCoords(getPos());
+            Chunk ch = worldObj.getChunkFromBlockCoords(getPos().getX(), getPos().getZ());
             FluidRarityRegistry.ChunkFluidEntry entry = FluidRarityRegistry.getChunkEntry(ch);
             if (entry != null) {
                 int mbDrain = rand.nextInt(300) + 300;
@@ -389,7 +385,7 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
                             it1.remove();
                         }
                     }
-                    if (!(out == null || out == null || out.stackSize <= 0)) {
+                    if (!(out == null || out.isEmpty())) {
                         TileChalice target = out.get(rand.nextInt(out.size()));
                         LiquidStarlightChaliceHandler.doFluidTransfer(this, target, drained.copy());
                         entry.tryDrain(actMbDrain, true);
@@ -405,7 +401,7 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
                             it2.remove();
                         }
                     }
-                    if (!(out == null || out == null || out.stackSize <= 0)) {
+                    if (!(out == null || out.isEmpty())) {
                         TileChalice target = out.get(rand.nextInt(out.size()));
                         LiquidStarlightChaliceHandler.doFluidTransfer(this, target, drained.copy());
                     }
@@ -466,14 +462,14 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
 
                 @Override
                 public boolean shouldRefresh() {
-                    if (isInvalid() || getCurrentBoreType() == null || this.operationTicks <= 0) {
+                    if (isInvalid() || getCurrentBoreType() == null || operationTicks <= 0) {
                         return false;
                     }
-                    if (this.worldObj.provider == null || Minecraft.getMinecraft().theWorld == null
+                    if (worldObj.provider == null || Minecraft.getMinecraft().theWorld == null
                         || Minecraft.getMinecraft().theWorld.provider == null) {
                         return false;
                     }
-                    return this.worldObj.provider.dimensionId == Minecraft.getMinecraft().theWorld.provider.dimensionId;
+                    return worldObj.provider.dimensionId == Minecraft.getMinecraft().theWorld.provider.dimensionId;
                 }
             });
             EffectHandler.getInstance()
@@ -586,7 +582,9 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
         for (int yy = 0; yy < getPos().getY(); yy++) {
             BlockPos pos = new BlockPos(x, yy, z);
             Block at = worldObj.getBlock(pos.posX, pos.posY, pos.posZ);
-            if (at.isTranslucent() || at.isAir(at, world, pos)) {
+            // 1.7.10: Block.isTranslucent() doesn't exist, use alternative check
+            if (at.getMaterial()
+                .isReplaceable() || worldObj.isAirBlock(pos.posX, pos.posY, pos.posZ)) {
                 for (int i = 0; i < 20; i++) {
                     Vector3 v = new Vector3(
                         x + 0.2 + rand.nextFloat() * 0.6,
@@ -687,8 +685,9 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
             getPos().getX() - 2.5 + rand.nextFloat() * 6,
             getPos().getY() - 1.2 + rand.nextFloat() * 3.4,
             getPos().getZ() - 2.5 + rand.nextFloat() * 6);
+        Vector3 pos = new Vector3(this).add(0.5, 0.5, 0.5);
         Vector3 dir = particlePos.clone()
-            .subtract(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5)
+            .subtract(pos)
             .normalize()
             .divide(-30);
         EntityFXFacingParticle p = EffectHelper
@@ -759,13 +758,13 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
         }
         List<BlockPos> out = new ArrayList<>();
         for (BlockPos p : digPosResult) {
-            if (!getWorld().isAirBlock(p) && worldObj.getTileEntity(p.posX, p.posY, p.posZ) == null
+            if (!worldObj.isAirBlock(p.posX, p.posY, p.posZ) && worldObj.getTileEntity(p.posX, p.posY, p.posZ) == null
                 && worldObj.getBlock(p.posX, p.posY, p.posZ)
-                    .getBlockHardness(world, p) >= 0) {
+                    .getBlockHardness(worldObj, p.posX, p.posY, p.posZ) >= 0) {
                 out.add(p);
             }
         }
-        if (!(out == null || out == null || out.stackSize <= 0)) {
+        if (!(out == null || out.isEmpty())) {
             this.preparationSuccessful = false;
             this.digPosResult = null;
         } else {
@@ -781,13 +780,13 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
         }
         List<BlockPos> out = new ArrayList<>();
         for (BlockPos p : digPosResult) {
-            if (!getWorld().isAirBlock(p) && worldObj.getTileEntity(p.posX, p.posY, p.posZ) == null
+            if (!worldObj.isAirBlock(p.posX, p.posY, p.posZ) && worldObj.getTileEntity(p.posX, p.posY, p.posZ) == null
                 && worldObj.getBlock(p.posX, p.posY, p.posZ)
-                    .getBlockHardness(world, p) >= 0) {
+                    .getBlockHardness(worldObj, p.posX, p.posY, p.posZ) >= 0) {
                 out.add(p);
             }
         }
-        if (!(out == null || out == null || out.stackSize <= 0)) {
+        if (!(out == null || out.isEmpty())) {
             this.preparationSuccessful = false;
             this.digPercentage = 0;
             this.digPosResult = null;
@@ -808,20 +807,20 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
         }
         List<BlockPos> out = new ArrayList<>();
         for (BlockPos p : pos) {
-            if (!getWorld().isAirBlock(p) && worldObj.getTileEntity(p.posX, p.posY, p.posZ) == null
+            if (!worldObj.isAirBlock(p.posX, p.posY, p.posZ) && worldObj.getTileEntity(p.posX, p.posY, p.posZ) == null
                 && worldObj.getBlock(p.posX, p.posY, p.posZ)
-                    .getBlockHardness(world, p) >= 0) {
+                    .getBlockHardness(worldObj, p.posX, p.posY, p.posZ) >= 0) {
                 out.add(p);
             }
         }
-        if (!(out == null || out.stackSize <= 0) && world instanceof WorldServer) {
+        if (!(out == null || out.isEmpty()) && worldObj instanceof WorldServer) {
             BlockDropCaptureAssist.startCapturing();
             try {
                 for (BlockPos p : out) {
                     Block state = worldObj.getBlock(p.posX, p.posY, p.posZ);
                     if (!state.getMaterial()
                         .isLiquid()) {
-                        MiscUtils.breakBlockWithoutPlayer(((WorldServer) world), p, state, true, true, false);
+                        MiscUtils.breakBlockWithoutPlayer(((WorldServer) worldObj), p, state, true, true, false);
                     }
                 }
             } finally {
@@ -829,7 +828,7 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
                 double y = getPos().getY() + 1.5;
                 double z = getPos().getZ() + 0.5;
                 for (ItemStack stack : BlockDropCaptureAssist.getCapturedStacksAndStop()) {
-                    ItemUtils.dropItem(world, x, y, z, stack);
+                    ItemUtils.dropItem(worldObj, x, y, z, stack);
                 }
             }
         }
@@ -844,13 +843,13 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
         List<BlockPos> pos = coneBlockDiscoverer.tryDiscoverBlocksDown(dst, 5F * downPerc);
         List<BlockPos> out = new ArrayList<>();
         for (BlockPos p : pos) {
-            if (!getWorld().isAirBlock(p) && worldObj.getTileEntity(p.posX, p.posY, p.posZ) == null
+            if (!worldObj.isAirBlock(p.posX, p.posY, p.posZ) && worldObj.getTileEntity(p.posX, p.posY, p.posZ) == null
                 && worldObj.getBlock(p.posX, p.posY, p.posZ)
-                    .getBlockHardness(world, p) >= 0) {
+                    .getBlockHardness(worldObj, p.posX, p.posY, p.posZ) >= 0) {
                 out.add(p);
             }
         }
-        if (!(out == null || out.stackSize <= 0) && world instanceof WorldServer) {
+        if (!(out == null || out.isEmpty()) && worldObj instanceof WorldServer) {
 
             BlockDropCaptureAssist.startCapturing();
             try {
@@ -858,7 +857,7 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
                     Block state = worldObj.getBlock(p.posX, p.posY, p.posZ);
                     if (!state.getMaterial()
                         .isLiquid()) {
-                        MiscUtils.breakBlockWithoutPlayer(((WorldServer) world), p, state, true, true, false);
+                        MiscUtils.breakBlockWithoutPlayer(((WorldServer) worldObj), p, state, true, true, false);
                     }
                 }
             } finally {
@@ -969,14 +968,9 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
                         == Minecraft.getMinecraft().theWorld.provider.dimensionId;
                 }
             });
-            spr.setRenderAlphaFunction(new EntityComplexFX.RenderAlphaFunction<TexturePlane>() {
-
-                @Override
-                public float getRenderAlpha(TexturePlane fx, float currentAlpha) {
-                    return currentAlpha
-                        * Math.min(1, ((float) TileBore.this.operationTicks) / ((float) SEGMENT_STARTUP));
-                }
-            });
+            spr.setRenderAlphaFunction(
+                (fx, currentAlpha) -> currentAlpha
+                    * Math.min(1, ((float) TileBore.this.operationTicks) / ((float) SEGMENT_STARTUP)));
             spr.setScale(5.5F);
             spritePlane = spr;
         }
@@ -985,10 +979,12 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
 
     @Nullable
     public BoreType getCurrentBoreType() {
-        Block parent = worldObj.getBlock(getPos().down());
+        BlockPos down = getPos().down();
+        Block parent = worldObj.getBlock(down.posX, down.posY, down.posZ);
         if (parent instanceof BlockBoreHead) {
-            int meta = worldObj.getBlockMetadata(getPos().down());
-            return BlockBoreHead.BORE_TYPE.get(meta);
+            int meta = worldObj.getBlockMetadata(down.posX, down.posY, down.posZ);
+            // 1.7.10: Get BoreType from ordinal values
+            return TileBore.BoreType.values()[WrapMathHelper.clamp(meta, 0, TileBore.BoreType.values().length - 1)];
         }
         return null;
     }
@@ -996,7 +992,7 @@ public class TileBore extends TileInventoryBase implements IMultiblockDependantT
     @Nullable
     @Override
     public PatternBlockArray getRequiredStructure() {
-        return MultiBlockArrays.patternFountain;
+        return MultiBlockArrays.patternFountainPattern;
     }
 
     @Nonnull

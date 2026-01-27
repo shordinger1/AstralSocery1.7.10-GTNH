@@ -53,7 +53,7 @@ public class DamageSourceUtil {
 
     @Nullable
     public static DamageSource setToFireDamage(@Nonnull DamageSource src) {
-        return changeAttribute(src, src -> src.setFireDamage());
+        return changeAttribute(src, ds -> ds.setFireDamage());
     }
 
     @Nullable
@@ -94,12 +94,12 @@ public class DamageSourceUtil {
             .equals(EntityDamageSource.class)) {
                 dst = new EntityDamageSource(
                     src.getDamageType(),
-                    directSource != null ? directSource : src.getImmediateSource());
+                    directSource != null ? directSource : src.getSourceOfDamage());
             } else { // equals EntityDamageSourceIndirect.class
                 dst = new EntityDamageSourceIndirect(
                     src.getDamageType(),
-                    directSource != null ? directSource : src.getImmediateSource(),
-                    trueSource != null ? trueSource : (directSource != null ? directSource : src.getTrueSource()));
+                    directSource != null ? directSource : src.getSourceOfDamage(),
+                    trueSource != null ? trueSource : (directSource != null ? directSource : src.getEntity()));
             }
         copy(src, dst);
         return dst;

@@ -17,10 +17,7 @@ public final class ASRecipeMaps {
     private ASRecipeMaps() {}
 
     // Infusion Recipe Map
-    public static final ASRecipeMap INFUSION = new ASRecipeMap(
-        "astralsorcery.infusion",
-        ASRecipe.Type.INFUSION,
-        1);
+    public static final ASRecipeMap INFUSION = new ASRecipeMap("astralsorcery.infusion", ASRecipe.Type.INFUSION, 1);
 
     // Grindstone Recipe Map
     public static final ASRecipeMap GRINDSTONE = new ASRecipeMap(
@@ -56,10 +53,7 @@ public final class ASRecipeMaps {
         25); // SLOT_COUNT_T4
 
     // Lightwell Recipe Map
-    public static final ASRecipeMap WELL = new ASRecipeMap(
-        "astralsorcery.well",
-        ASRecipe.Type.WELL,
-        1);
+    public static final ASRecipeMap WELL = new ASRecipeMap("astralsorcery.well", ASRecipe.Type.WELL, 1);
 
     // Liquid Interaction Recipe Map
     public static final ASRecipeMap LIQUID_INTERACTION = new ASRecipeMap(

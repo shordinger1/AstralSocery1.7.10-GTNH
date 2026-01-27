@@ -42,11 +42,11 @@ public class MappingMigrationHandler {
     // 1.7.10: RegistryEvent doesn't exist, event system is different
     // Removed @SubscribeEvent
     // public void onMissingMapping(RegistryEvent.MissingMappings<Item> event) {
-    //     for (RegistryEvent.MissingMappings.Mapping<Item> mapping : event.getMappings()) {
-    //         if (mapping.key.equals(ILLUMINATION_POWDER_KEY)) {
-    //             mapping.remap(ItemsAS.useableDust);
-    //         }
-    //     }
+    // for (RegistryEvent.MissingMappings.Mapping<Item> mapping : event.getMappings()) {
+    // if (mapping.key.equals(ILLUMINATION_POWDER_KEY)) {
+    // mapping.remap(ItemsAS.useableDust);
+    // }
+    // }
     // }
 
     public static void listenTileMigration(String name) {

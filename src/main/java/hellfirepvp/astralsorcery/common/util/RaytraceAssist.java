@@ -67,8 +67,11 @@ public class RaytraceAssist {
 
     public void setCollectEntities(double additionalCollectRadius) {
         this.collectEntities = true;
+        // 1.7.10: Create a zero-size box at origin, then expand it
         this.collectBox = AxisAlignedBB.getBoundingBox(0, 0, 0, 0, 0, 0);
-        this.collectBox = this.collectBox.grow(additionalCollectRadius);
+        // 1.7.10: expand() is used instead of grow(), takes x, y, z parameters
+        this.collectBox = this.collectBox
+            .expand(additionalCollectRadius, additionalCollectRadius, additionalCollectRadius);
     }
 
     public boolean isClear(World world) {
@@ -95,9 +98,11 @@ public class RaytraceAssist {
             }
 
             if (MiscUtils.isChunkLoaded(world, new ChunkPos(at))) {
-                if (!isStartEnd(at) && !world.isAirBlock(at)) {
-                    Block state = world.getBlock(at.posX, at.posY, at.posZ);
-                    if (!isAllowed(state, at)) {
+                // 1.7.10: isAirBlock takes x, y, z coordinates
+                if (!isStartEnd(at) && !world.isAirBlock(at.getX(), at.getY(), at.getZ())) {
+                    // 1.7.10: getBlock takes x, y, z coordinates
+                    Block state = world.getBlock(at.getX(), at.getY(), at.getZ());
+                    if (!isAllowed(world, state, at)) {
                         hit = at;
                         return false;
                     }
@@ -110,7 +115,8 @@ public class RaytraceAssist {
              * if(rtr != null && rtr.typeOfHit == RayTraceResult.Type.BLOCK) {
              * BlockPos hit = rtr.getBlockPos();
              * if(!isStartEnd(hit)) {
-             * Block state = world.getBlock(hit.posX, hit.posY, hit.posZ);
+             * // 1.7.10: getBlock takes x, y, z coordinates
+             * Block state = world.getBlock(hit.getX(), hit.getY(), hit.getZ());
              * if(!isAllowed(state)) {
              * return false;
              * }
@@ -138,9 +144,8 @@ public class RaytraceAssist {
         return entities;
     }
 
-    private boolean isAllowed(Block state, BlockPos pos) {
-        Block b = state;
-        List<Integer> accepted = passable.get(b);
+    private boolean isAllowed(World world, Block state, BlockPos pos) {
+        List<Integer> accepted = passable.get(state);
         if (accepted != null) {
             if (accepted.size() == 1 && accepted.get(0) == -1) return true;
             // In 1.7.10, get metadata from world using BlockPos
@@ -165,10 +170,10 @@ public class RaytraceAssist {
     }
 
     static {
-        addPassable(Blocks.GLASS);
-        addPassable(Blocks.GLASS_PANE);
-        addPassable(Blocks.STAINED_GLASS);
-        addPassable(Blocks.STAINED_GLASS_PANE);
+        // 1.7.10: Block field names are lowercase, not uppercase
+        addPassable(Blocks.glass);
+        addPassable(Blocks.glass_pane); // glass_pane in 1.7.10
+        addPassable(Blocks.stained_glass); // May not exist in all 1.7.10 versions
     }
 
     @SideOnly(Side.CLIENT)

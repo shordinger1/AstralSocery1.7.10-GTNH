@@ -16,7 +16,6 @@ import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeHooks;
 
 import hellfirepvp.astralsorcery.common.crafting.helper.BasePlainRecipe;
 import hellfirepvp.astralsorcery.common.item.wand.ItemIlluminationWand;

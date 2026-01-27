@@ -23,7 +23,7 @@ import hellfirepvp.astralsorcery.common.integrations.ModIntegrationCrafttweaker;
  * Replaces CraftTweaker-based InfusionRecipe class
  *
  * Usage:
- *   InfusionRecipe.add(new ItemStack(Items.iron_ingot), new ItemStack(Items.gold_ingot), false, 0.5F, 100);
+ * InfusionRecipe.add(new ItemStack(Items.iron_ingot), new ItemStack(Items.gold_ingot), false, 0.5F, 100);
  */
 public final class InfusionRecipe {
 
@@ -32,11 +32,11 @@ public final class InfusionRecipe {
     /**
      * Adds an infusion recipe
      *
-     * @param input            The input item
-     * @param output           The output item
-     * @param consumeMultiple  Whether to consume multiple input items
+     * @param input             The input item
+     * @param output            The output item
+     * @param consumeMultiple   Whether to consume multiple input items
      * @param consumptionChance Chance (0-1) to consume liquid starlight per tick
-     * @param craftingTickTime Crafting duration in ticks
+     * @param craftingTickTime  Crafting duration in ticks
      */
     public static void add(@Nullable ItemStack input, @Nullable ItemStack output, boolean consumeMultiple,
         float consumptionChance, int craftingTickTime) {
@@ -66,11 +66,11 @@ public final class InfusionRecipe {
     /**
      * Adds an infusion recipe using ore dictionary
      *
-     * @param oreDict          The ore dictionary entry
-     * @param output           The output item
-     * @param consumeMultiple  Whether to consume multiple input items
+     * @param oreDict           The ore dictionary entry
+     * @param output            The output item
+     * @param consumeMultiple   Whether to consume multiple input items
      * @param consumptionChance Chance (0-1) to consume liquid starlight per tick
-     * @param craftingTickTime Crafting duration in ticks
+     * @param craftingTickTime  Crafting duration in ticks
      */
     public static void addOre(String oreDict, @Nullable ItemStack output, boolean consumeMultiple,
         float consumptionChance, int craftingTickTime) {

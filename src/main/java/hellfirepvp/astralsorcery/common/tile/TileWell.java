@@ -50,7 +50,6 @@ import hellfirepvp.astralsorcery.common.tile.base.TileReceiverBaseInventory;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
 import hellfirepvp.astralsorcery.common.util.SkyCollectionHelper;
-import hellfirepvp.astralsorcery.common.util.SoundHelper;
 import hellfirepvp.astralsorcery.common.util.block.PrecisionSingleFluidCapabilityTank;
 import hellfirepvp.astralsorcery.common.util.data.Vector3;
 
@@ -97,9 +96,9 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
         if (!getWorld().isRemote) {
             if (MiscUtils.canSeeSky(this.worldObj, this.getPos(), true, false)) {
                 double sbDayDistribution = ConstellationSkyHandler.getInstance()
-                    .getCurrentDaytimeDistribution(world);
+                    .getCurrentDaytimeDistribution(worldObj);
                 sbDayDistribution = 0.3 + (0.7 * sbDayDistribution);
-                int yLevel = getPos().getY();
+                int yLevel = yCoord;
                 float dstr;
                 if (yLevel > 120) {
                     dstr = 1F;
@@ -107,7 +106,8 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
                     dstr = yLevel / 120F;
                 }
                 if (posDistribution == -1) {
-                    posDistribution = SkyCollectionHelper.getSkyNoiseDistribution(world, getPos());
+                    posDistribution = SkyCollectionHelper
+                        .getSkyNoiseDistribution(worldObj, new BlockPos(xCoord, yCoord, zCoord));
                 }
 
                 sbDayDistribution *= dstr;
@@ -117,7 +117,8 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
 
             ItemStack stack = getInventoryHandler().getStackInSlot(0);
             if (!(stack == null || stack.stackSize <= 0)) {
-                if (!getWorld().isAirBlock(getPos().up())) {
+                // 1.7.10: isAirBlock takes x, y, z coordinates
+                if (!getWorld().isAirBlock(xCoord, yCoord + 1, zCoord)) {
                     breakCatalyst();
                 } else {
                     running = WellLiquefaction.getLiquefactionEntry(stack);
@@ -131,7 +132,7 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
                             fillAndDiscardRest(running, gain);
                             if (rand.nextInt(2000) == 0) {
                                 EntityFlare.spawnAmbient(
-                                    world,
+                                    worldObj,
                                     new Vector3(this).add(-3 + rand.nextFloat() * 7, 0.6, -3 + rand.nextFloat() * 7));
                             }
                         }
@@ -139,7 +140,7 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
                         if (rand.nextInt(1 + (int) (1000 * running.shatterMultiplier)) == 0) {
                             breakCatalyst();
                             EntityFlare.spawnAmbient(
-                                world,
+                                worldObj,
                                 new Vector3(this).add(-3 + rand.nextFloat() * 7, 0.6, -3 + rand.nextFloat() * 7));
                         }
                     }
@@ -154,7 +155,7 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
                 FluidStack fluidStack = new FluidStack(getHeldFluid(), mb);
                 java.util.List<TileChalice> out = LiquidStarlightChaliceHandler
                     .findNearbyChalicesWithSpaceFor(this, fluidStack);
-                if (!(out == null || out.stackSize <= 0)) {
+                if (!(out == null || out.isEmpty())) {
                     TileChalice target = out.get(rand.nextInt(out.size()));
                     LiquidStarlightChaliceHandler.doFluidTransfer(this, target, fluidStack.copy());
                     this.tank.drain(mb, true);
@@ -185,19 +186,20 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
         getInventoryHandler().setStackInSlot(0, null);
         PktParticleEvent ev = new PktParticleEvent(
             PktParticleEvent.ParticleEventType.WELL_CATALYST_BREAK,
-            getPos().getX(),
-            getPos().getY(),
-            getPos().getZ());
-        PacketChannel.CHANNEL.sendToAllAround(ev, PacketChannel.pointFromPos(world, getPos(), 32));
-        SoundHelper
-            .playSoundAround(null /* TODO: SoundEvents - needs 1.7.10 sound string */, getWorld(), getPos(), 1F, 1F);
+            xCoord,
+            yCoord,
+            zCoord);
+        PacketChannel.CHANNEL
+            .sendToAllAround(ev, PacketChannel.pointFromPos(worldObj, new BlockPos(xCoord, yCoord, zCoord), 32));
+        // 1.7.10: playSoundAround requires Vector3, not BlockPos. Sound string needed.
+        // TODO: Add correct sound string
+        // SoundHelper.playSoundAround(null, worldObj, new Vector3(xCoord, yCoord, zCoord), 1F, 1F);
     }
 
     @SideOnly(Side.CLIENT)
     private void doStarlightEffect() {
         if (rand.nextInt(3) == 0) {
-            EntityFXFacingParticle p = EffectHelper
-                .genericFlareParticle(getPos().getX() + 0.5, getPos().getY() + 0.4, getPos().getZ() + 0.5);
+            EntityFXFacingParticle p = EffectHelper.genericFlareParticle(xCoord + 0.5, yCoord + 0.4, zCoord + 0.5);
             p.offset(0, getPercFilled() * 0.5, 0);
             p.offset(
                 rand.nextFloat() * 0.35 * (rand.nextBoolean() ? 1 : -1),
@@ -214,9 +216,10 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
         if (rand.nextInt(6) == 0) {
             Entity rView = Minecraft.getMinecraft().renderViewEntity;
             if (rView == null) rView = Minecraft.getMinecraft().thePlayer;
-            if (rView.getDistanceSq(getPos()) > Config.maxEffectRenderDistanceSq) return;
-            EntityFXFacingParticle p = EffectHelper
-                .genericFlareParticle(getPos().getX() + 0.5, getPos().getY() + 1.3, getPos().getZ() + 0.5);
+            // 1.7.10: getDistanceSq takes x, y, z coordinates
+            if (rView.getDistanceSq(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5) > Config.maxEffectRenderDistanceSq)
+                return;
+            EntityFXFacingParticle p = EffectHelper.genericFlareParticle(xCoord + 0.5, yCoord + 1.3, zCoord + 0.5);
             p.offset(
                 rand.nextFloat() * 0.1 * (rand.nextBoolean() ? 1 : -1),
                 rand.nextFloat() * 0.1,
@@ -286,7 +289,8 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
     public void readCustomNBT(NBTTagCompound compound) {
         super.readCustomNBT(compound);
         this.tank = PrecisionSingleFluidCapabilityTank.deserialize(compound.getCompoundTag("tank"));
-        if (!tank.hasCapability(EnumFacing.DOWN)) {
+        // 1.7.10: Use canAccess() instead of hasCapability()
+        if (!tank.canAccess(EnumFacing.DOWN)) {
             tank.accessibleSides.add(EnumFacing.DOWN);
         }
         this.tank.setOnUpdate(new Runnable() {
@@ -301,7 +305,7 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
     // IFluidHandler implementation for 1.7.10 compatibility
     @Override
     public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
-        if (tank.hasCapability(convertForgeDirection(from))) {
+        if (tank.canAccess(convertForgeDirection(from))) {
             return tank.fill(resource, doFill);
         }
         return 0;
@@ -309,7 +313,7 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
 
     @Override
     public FluidStack drain(ForgeDirection from, FluidStack resource, boolean doDrain) {
-        if (tank.hasCapability(convertForgeDirection(from))) {
+        if (tank.canAccess(convertForgeDirection(from))) {
             return tank.drain(resource, doDrain);
         }
         return null;
@@ -317,7 +321,7 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
 
     @Override
     public FluidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
-        if (tank.hasCapability(convertForgeDirection(from))) {
+        if (tank.canAccess(convertForgeDirection(from))) {
             return tank.drain(maxDrain, doDrain);
         }
         return null;
@@ -325,17 +329,17 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
 
     @Override
     public boolean canFill(ForgeDirection from, Fluid fluid) {
-        return tank.hasCapability(convertForgeDirection(from)) && tank.canFill();
+        return tank.canAccess(convertForgeDirection(from)) && tank.canFill();
     }
 
     @Override
     public boolean canDrain(ForgeDirection from, Fluid fluid) {
-        return tank.hasCapability(convertForgeDirection(from)) && tank.canDrain();
+        return tank.canAccess(convertForgeDirection(from)) && tank.canDrain();
     }
 
     @Override
     public FluidTankInfo[] getTankInfo(ForgeDirection from) {
-        if (tank.hasCapability(convertForgeDirection(from))) {
+        if (tank.canAccess(convertForgeDirection(from))) {
             return new FluidTankInfo[] { tank.getInfo() };
         }
         return new FluidTankInfo[0];

@@ -22,7 +22,6 @@ import com.google.common.collect.Iterables;
 
 import hellfirepvp.astralsorcery.AstralSorcery;
 import hellfirepvp.astralsorcery.client.gui.journal.page.*;
-import hellfirepvp.astralsorcery.common.base.Mods;
 import hellfirepvp.astralsorcery.common.crafting.altar.AbstractAltarRecipe;
 import hellfirepvp.astralsorcery.common.crafting.altar.AltarRecipeRegistry;
 import hellfirepvp.astralsorcery.common.crafting.altar.recipes.AttunementRecipe;
@@ -48,8 +47,7 @@ public class JournalRecipeDisplayRecovery {
     private JournalRecipeDisplayRecovery() {}
 
     public static void attemptRecipeRecovery() {
-        if (!Mods.CRAFTTWEAKER.isPresent()) return; // Well, i guess noone changed recipes then?
-
+        // 1.7.10: CraftTweaker integration removed - recipe recovery not available without CraftTweaker
         int rec = 0;
         for (ResearchProgression prog : ResearchProgression.values()) {
             for (ResearchNode rn : prog.getResearchNodes()) {
@@ -68,7 +66,7 @@ public class JournalRecipeDisplayRecovery {
                                 matchingRecipes = CraftingRecipeHelper.findRecipesWithOutput(actual.getRecipeOutput());
                                 // 1.7.10: Recipes don't have registry names, check if any recipe with same output
                                 // exists
-                                found = !matchingRecipes == null || matchingRecipes.stackSize <= 0;
+                                found = matchingRecipes == null || matchingRecipes.isEmpty();
                                 if (!found) {
                                     rec++;
                                     update.put(i, findReplacementPage(actual.getRecipeOutput()));
@@ -80,7 +78,7 @@ public class JournalRecipeDisplayRecovery {
                                     .findRecipesWithOutput(recipeAd.getRecipeOutput());
                                 // 1.7.10: Recipes don't have registry names, check if any recipe with same output
                                 // exists
-                                found = !matchingRecipes == null || matchingRecipes.stackSize <= 0;
+                                found = matchingRecipes == null || matchingRecipes.isEmpty();
                                 if (!found) {
                                     rec++;
                                     update.put(i, findReplacementPage(recipeAd.getRecipeOutput()));
@@ -148,26 +146,26 @@ public class JournalRecipeDisplayRecovery {
     @Nonnull
     private static IJournalPage findReplacementPage(ItemStack output) {
         List<IRecipe> matchingRecipes = CraftingRecipeHelper.findRecipesWithOutput(output);
-        if (!matchingRecipes == null || matchingRecipes.stackSize <= 0) {
+        if (matchingRecipes != null && !matchingRecipes.isEmpty()) {
             IRecipe recipe = Iterables.getFirst(matchingRecipes, null);
             return new JournalPageRecipe(
                 new AccessibleRecipeAdapater(recipe, AbstractRecipeAccessor.buildAccessorFor(recipe)));
         }
         List<AbstractAltarRecipe> recipesMatched = AltarRecipeRegistry
             .getAltarRecipesByOutput(output, TileAltar.AltarLevel.DISCOVERY);
-        if (!recipesMatched == null || recipesMatched.stackSize <= 0) {
+        if (recipesMatched != null && !recipesMatched.isEmpty()) {
             return new JournalPageDiscoveryRecipe((DiscoveryRecipe) Iterables.getFirst(recipesMatched, null));
         }
         recipesMatched = AltarRecipeRegistry.getAltarRecipesByOutput(output, TileAltar.AltarLevel.ATTUNEMENT);
-        if (!recipesMatched == null || recipesMatched.stackSize <= 0) {
+        if (recipesMatched != null && !recipesMatched.isEmpty()) {
             return new JournalPageAttunementRecipe((AttunementRecipe) Iterables.getFirst(recipesMatched, null));
         }
         recipesMatched = AltarRecipeRegistry.getAltarRecipesByOutput(output, TileAltar.AltarLevel.CONSTELLATION_CRAFT);
-        if (!recipesMatched == null || recipesMatched.stackSize <= 0) {
+        if (recipesMatched != null && !recipesMatched.isEmpty()) {
             return new JournalPageConstellationRecipe((ConstellationRecipe) Iterables.getFirst(recipesMatched, null));
         }
         recipesMatched = AltarRecipeRegistry.getAltarRecipesByOutput(output, TileAltar.AltarLevel.TRAIT_CRAFT);
-        if (!recipesMatched == null || recipesMatched.stackSize <= 0) {
+        if (recipesMatched != null && !recipesMatched.isEmpty()) {
             return new JournalPageTraitRecipe((TraitRecipe) Iterables.getFirst(recipesMatched, null));
         }
         return new JournalPageText("astralsorcery.journal.recipe.removalinfo");

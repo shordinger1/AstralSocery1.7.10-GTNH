@@ -27,7 +27,6 @@ import hellfirepvp.astralsorcery.common.structure.array.StructureBlockArray;
 import hellfirepvp.astralsorcery.common.tile.network.TileCollectorCrystal;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.util.BlockStateCheck;
-import hellfirepvp.astralsorcery.common.util.LootTableUtil;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
 
 /**

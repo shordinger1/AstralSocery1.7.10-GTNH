@@ -105,19 +105,22 @@ public class TileTreeBeacon extends TileReceiverBase implements IStructureAreaOf
                     .getRandomElementByChance(rand, ConfigEntryTreeBeacon.speedLimiter);
                 BlockPos actPos = randPos.getValue();
                 if (actPos != null) {
-                    TileFakeTree tft = MiscUtils.getTileAt(world, actPos, TileFakeTree.class, false);
+                    // 1.7.10: Use worldObj instead of world
+                    TileFakeTree tft = MiscUtils.getTileAt(worldObj, actPos, TileFakeTree.class, false);
                     if (tft != null && tft.getFakedState() != null) {
                         Block fake = tft.getFakedState();
-                        if (tryHarvestBlock(world, pos, actPos, fake)) { // True, if block disappeared.
-                            if (world.setBlockToAir(actPos) && treePositions.removeElement(randPos)) {
+                        if (tryHarvestBlock(worldObj, getPos(), actPos, fake)) { // True, if block disappeared.
+                            // 1.7.10: setBlockToAir takes x, y, z coordinates
+                            if (worldObj.setBlockToAir(actPos.getX(), actPos.getY(), actPos.getZ())
+                                && treePositions.removeElement(randPos)) {
                                 changed = true;
                             }
                         }
-                        if (ParticleEffectWatcher.INSTANCE.mayFire(world, actPos)) {
+                        if (ParticleEffectWatcher.INSTANCE.mayFire(worldObj, actPos)) {
                             PktParticleEvent ev = new PktParticleEvent(
                                 PktParticleEvent.ParticleEventType.TREE_VORTEX,
                                 actPos);
-                            PacketChannel.CHANNEL.sendToAllAround(ev, PacketChannel.pointFromPos(world, actPos, 32));
+                            PacketChannel.CHANNEL.sendToAllAround(ev, PacketChannel.pointFromPos(worldObj, actPos, 32));
                         }
                     } else {
                         if (treePositions.removeElement(randPos)) {
@@ -135,7 +138,8 @@ public class TileTreeBeacon extends TileReceiverBase implements IStructureAreaOf
 
     private boolean tryHarvestBlock(World world, BlockPos out, BlockPos treeBlockPos, Block fakedState) {
         if (rand.nextInt(ConfigEntryTreeBeacon.dropsChance) == 0) {
-            if (MiscUtils.canEntityTickAt(world, pos)) {
+            // 1.7.10: Use out parameter instead of undefined pos
+            if (MiscUtils.canEntityTickAt(world, out)) {
                 Block b = fakedState;
                 // 1.7.10: getDrops takes x, y, z, metadata, fortune
                 List<ItemStack> drops = b.getDrops(
@@ -166,7 +170,9 @@ public class TileTreeBeacon extends TileReceiverBase implements IStructureAreaOf
         for (WorldBlockPos possibleSapling : possibleTreePositions) {
             LogCategory.TREE_BEACON
                 .info(() -> "TreeBeacon at " + getPos() + " attempt to capture tree at " + possibleSapling);
-            LogCategory.TREE_BEACON.info(() -> "Existing captured snapshots: " + world.capturedBlockSnapshots.size());
+            // 1.7.10: Use worldObj instead of world
+            LogCategory.TREE_BEACON
+                .info(() -> "Existing captured snapshots: " + worldObj.capturedBlockSnapshots.size());
 
             Block state = possibleSapling.getStateAt();
             Block b = state;
@@ -177,19 +183,25 @@ public class TileTreeBeacon extends TileReceiverBase implements IStructureAreaOf
 
                 LogCategory.TREE_BEACON.info(() -> "Attempt IGrowable growth at " + possibleSapling);
                 int tries = 8;
-                world.captureBlockSnapshots = true;
+                worldObj.captureBlockSnapshots = true;
                 do {
                     tries--;
                     try {
-                        ((IGrowable) b).grow(world, rand, possibleSapling, state);
+                        // 1.7.10: IGrowable.func_149853_a() takes (World, Random, int x, int y, int z)
+                        ((IGrowable) b).func_149853_a(
+                            worldObj,
+                            rand,
+                            possibleSapling.getX(),
+                            possibleSapling.getY(),
+                            possibleSapling.getZ());
                     } catch (Exception ignored) {}
                     state = possibleSapling.getStateAt();
                     b = state;
                 } while (b instanceof IGrowable && TreeCaptureHelper.oneTimeCatches.contains(possibleSapling)
                     && tries > 0);
-                world.captureBlockSnapshots = false;
+                worldObj.captureBlockSnapshots = false;
 
-                return updatePositionsFromSnapshots(world, possibleSapling, pos);
+                return updatePositionsFromSnapshots(worldObj, possibleSapling, getPos());
             } else if (b.getTickRandomly()) { // If it's not an IGrowable it might just grow into a tree with tons of
                                               // block updates.
                 if (!TreeCaptureHelper.oneTimeCatches.contains(possibleSapling))
@@ -197,19 +209,19 @@ public class TileTreeBeacon extends TileReceiverBase implements IStructureAreaOf
 
                 LogCategory.TREE_BEACON.info(() -> "Attempt Block tickrandomly growth at " + possibleSapling);
                 int ticksToExecute = 250;
-                world.captureBlockSnapshots = true;
+                worldObj.captureBlockSnapshots = true;
                 do {
                     ticksToExecute--;
                     try {
-                        b.updateTick(world, possibleSapling, state, rand);
+                        b.updateTick(worldObj, possibleSapling, state, rand);
                     } catch (Exception ignored) {}
                     state = possibleSapling.getStateAt();
                     b = state;
                 } while (b.getTickRandomly() && TreeCaptureHelper.oneTimeCatches.contains(possibleSapling)
                     && ticksToExecute > 0);
-                world.captureBlockSnapshots = false;
+                worldObj.captureBlockSnapshots = false;
 
-                return updatePositionsFromSnapshots(world, possibleSapling, pos);
+                return updatePositionsFromSnapshots(worldObj, possibleSapling, getPos());
             }
         }
         return false;
@@ -218,42 +230,38 @@ public class TileTreeBeacon extends TileReceiverBase implements IStructureAreaOf
     private boolean updatePositionsFromSnapshots(World world, WorldBlockPos saplingPos, BlockPos origin) {
         boolean ret = false;
         try {
-            if (!TreeCaptureHelper.oneTimeCatches.remove(saplingPos) && !world.capturedBlockSnapshots == null || capturedBlockSnapshots.stackSize <= 0
-                && world.capturedBlockSnapshots.size() > 2) { // I guess then something grew after all?
+            // 1.7.10: Fix the boolean logic and use worldObj.capturedBlockSnapshots
+            if (!TreeCaptureHelper.oneTimeCatches.remove(saplingPos) && worldObj.capturedBlockSnapshots != null
+                && worldObj.capturedBlockSnapshots.size() > 2) { // I guess then something grew after all?
                 LogCategory.TREE_BEACON.info(
                     () -> "TreeBeacon at " + getPos()
                         + " captured "
-                        + world.capturedBlockSnapshots.size()
+                        + worldObj.capturedBlockSnapshots.size()
                         + " snapshots.");
                 LogCategory.TREE_BEACON.info(
-                    () -> "Accepts new blocks? " + (treePositions.getSize() + world.capturedBlockSnapshots.size())
+                    () -> "Accepts new blocks? " + (treePositions.getSize() + worldObj.capturedBlockSnapshots.size())
                         + " <= "
                         + ConfigEntryTreeBeacon.maxCount);
 
-                if (treePositions.getSize() + world.capturedBlockSnapshots.size() <= ConfigEntryTreeBeacon.maxCount) {
-                    for (BlockSnapshot snapshot : world.capturedBlockSnapshots) {
+                if (treePositions.getSize() + worldObj.capturedBlockSnapshots.size()
+                    <= ConfigEntryTreeBeacon.maxCount) {
+                    for (BlockSnapshot snapshot : worldObj.capturedBlockSnapshots) {
                         Block setBlock = snapshot.getCurrentBlock();
-                        BlockPos at = snapshot.getPos();
+                        // 1.7.10: BlockSnapshot doesn't have getPos(), use individual coordinates
+                        BlockPos at = new BlockPos(snapshot.x, snapshot.y, snapshot.z);
                         Block current = world.getBlock(at.posX, at.posY, at.posZ);
-                        if (current.getBlockHardness(world, at) == -1 || world.getTileEntity(at.posX, at.posY, at.posZ) != null) {
+                        // 1.7.10: getBlockHardness takes World, x, y, z parameters
+                        if (current.getBlockHardness(world, at.posX, at.posY, at.posZ) == -1
+                            || world.getTileEntity(at.posX, at.posY, at.posZ) != null) {
                             continue;
                         }
                         if (!setBlock.equals(BlocksAS.blockFakeTree) && !setBlock.equals(Blocks.dirt)
                             && !setBlock.equals(Blocks.grass)) {
-                            LogCategory.TREE_BEACON.info(() -> "Change blockstate at " + snapshot.getPos());
-                            if (!world.setBlock(
-                                snapshot.getPos()
-                                    .getX(),
-                                snapshot.getPos()
-                                    .getY(),
-                                snapshot.getPos()
-                                    .getZ(),
-                                BlocksAS.blockFakeTree,
-                                0,
-                                3)) {
+                            LogCategory.TREE_BEACON.info(() -> "Change blockstate at " + at);
+                            if (!world.setBlock(at.getX(), at.getY(), at.getZ(), BlocksAS.blockFakeTree, 0, 3)) {
                                 continue;
                             }
-                            TileFakeTree tft = MiscUtils.getTileAt(world, snapshot.getPos(), TileFakeTree.class, true);
+                            TileFakeTree tft = MiscUtils.getTileAt(world, at, TileFakeTree.class, true);
                             if (tft != null) {
                                 tft.setupTile(origin, setBlock);
                                 if (this.placedBy != null) {
@@ -261,7 +269,8 @@ public class TileTreeBeacon extends TileReceiverBase implements IStructureAreaOf
                                 }
                             }
                             boolean isTreeBlock = false;
-                            if (current.isWood(world, at)) {
+                            // 1.7.10: isWood takes x, y, z coordinates
+                            if (current.isWood(world, at.posX, at.posY, at.posZ)) {
                                 isTreeBlock = true;
                             } else {
                                 TreeTypes tt = TreeTypes.getTree(world, at, current);
@@ -270,23 +279,25 @@ public class TileTreeBeacon extends TileReceiverBase implements IStructureAreaOf
                                     isTreeBlock = true;
                                 }
                             }
-                            WRItemObject<BlockPos> element = new WRItemObject<>(isTreeBlock ? 4 : 1, snapshot.getPos());
+                            WRItemObject<BlockPos> element = new WRItemObject<>(isTreeBlock ? 4 : 1, at);
                             if (treePositions.offerElement(element)) {
-                                LogCategory.TREE_BEACON.info(
-                                    () -> "TreeBeacon at " + getPos() + " captured new position: " + snapshot.getPos());
+                                LogCategory.TREE_BEACON
+                                    .info(() -> "TreeBeacon at " + getPos() + " captured new position: " + at);
                                 ret = true;
                             }
                         }
                     }
                 } else {
-                    for (BlockSnapshot snapshot : world.capturedBlockSnapshots) {
-                        Block current = world.getBlock(snapshot.getPos());
-                        world.notifyBlockUpdate(snapshot.getPos(), current, current, 3);
+                    for (BlockSnapshot snapshot : worldObj.capturedBlockSnapshots) {
+                        BlockPos at = new BlockPos(snapshot.x, snapshot.y, snapshot.z);
+                        Block current = world.getBlock(at);
+                        // 1.7.10: Use markBlockForUpdate instead of notifyBlockUpdate
+                        world.markBlockForUpdate(at.posX, at.posY, at.posZ);
                     }
                 }
             }
         } catch (Exception ignored) {} finally {
-            world.capturedBlockSnapshots.clear();
+            worldObj.capturedBlockSnapshots.clear();
         }
         return ret;
     }
@@ -294,7 +305,8 @@ public class TileTreeBeacon extends TileReceiverBase implements IStructureAreaOf
     @SideOnly(Side.CLIENT)
     private void playEffects() {
         int color = 0xFF3FFF3F;
-        PatreonEffectHelper.PatreonEffect pe;
+        // 1.7.10: Initialize pe to avoid "may not have been initialized" error
+        PatreonEffectHelper.PatreonEffect pe = null;
         if (getPlacedBy() != null) {
             PatreonEffectHelper.PatreonEffect effect = null;
             for (PatreonEffectHelper.PatreonEffect p : PatreonEffectHelper
@@ -314,10 +326,11 @@ public class TileTreeBeacon extends TileReceiverBase implements IStructureAreaOf
         Color col = new Color(color);
 
         if (rand.nextInt(3) == 0) {
+            // 1.7.10: Use getPos() instead of pos
             EntityFXFacingParticle p = EffectHelper.genericFlareParticle(
-                pos.getX() + rand.nextFloat() * 5 * (rand.nextBoolean() ? 1 : -1) + 0.5,
-                pos.getY() + rand.nextFloat() * 2 + 0.5,
-                pos.getZ() + rand.nextFloat() * 5 * (rand.nextBoolean() ? 1 : -1) + 0.5);
+                getPos().getX() + rand.nextFloat() * 5 * (rand.nextBoolean() ? 1 : -1) + 0.5,
+                getPos().getY() + rand.nextFloat() * 2 + 0.5,
+                getPos().getZ() + rand.nextFloat() * 5 * (rand.nextBoolean() ? 1 : -1) + 0.5);
             p.motion(
                 (rand.nextFloat() * 0.03F) * (rand.nextBoolean() ? 1 : -1),
                 (rand.nextFloat() * 0.03F) * (rand.nextBoolean() ? 1 : -1),
@@ -329,7 +342,8 @@ public class TileTreeBeacon extends TileReceiverBase implements IStructureAreaOf
         }
         if ((ticksExisted % 32) == 0) {
             float alphaDaytime = ConstellationSkyHandler.getInstance()
-                .getCurrentDaytimeDistribution(world);
+                // 1.7.10: Use worldObj instead of world
+                .getCurrentDaytimeDistribution(worldObj);
             alphaDaytime *= 0.8F;
             Vector3 from = new Vector3(this).add(0.5, 0.05, 0.5);
             MiscUtils.applyRandomOffset(from, EffectHandler.STATIC_EFFECT_RAND, 0.05F);
@@ -359,7 +373,8 @@ public class TileTreeBeacon extends TileReceiverBase implements IStructureAreaOf
                 .getTileAt(Minecraft.getMinecraft().theWorld, tft.getReference(), TileTreeBeacon.class, false);
             if (ttb != null) {
                 int color = 0xFF00FF00; // Green
-                PatreonEffectHelper.PatreonEffect pe;
+                // 1.7.10: Initialize pe to avoid "may not have been initialized" error
+                PatreonEffectHelper.PatreonEffect pe = null;
                 if (ttb.getPlacedBy() != null) {
                     PatreonEffectHelper.PatreonEffect effect = null;
                     for (PatreonEffectHelper.PatreonEffect p : PatreonEffectHelper
@@ -408,7 +423,8 @@ public class TileTreeBeacon extends TileReceiverBase implements IStructureAreaOf
         super.validate();
 
         treeWatcher = new TreeCaptureHelper.TreeWatcher(
-            world.provider.dimensionId,
+            // 1.7.10: Use worldObj instead of world
+            worldObj.provider.dimensionId,
             getPos(),
             ConfigEntryTreeBeacon.treeBeaconRange);
         TreeCaptureHelper.offerWeakWatcher(treeWatcher);

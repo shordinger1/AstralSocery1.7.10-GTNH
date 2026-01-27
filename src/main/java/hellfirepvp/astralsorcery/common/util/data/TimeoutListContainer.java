@@ -8,10 +8,7 @@
 
 package hellfirepvp.astralsorcery.common.util.data;
 
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import javax.annotation.Nullable;
 
@@ -75,7 +72,7 @@ public class TimeoutListContainer<K, V> implements ITickHandler {
             Map.Entry<K, TimeoutList<V>> entry = it.next();
             TimeoutList<V> list = entry.getValue();
             list.tick(type, context);
-            if (list == null || list.stackSize <= 0) {
+            if (list == null || list.isEmpty()) {
                 it.remove();
             }
         }

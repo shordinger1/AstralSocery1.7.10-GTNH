@@ -84,7 +84,7 @@ public class ItemArchitectWand extends ItemBlockStorage
     @SideOnly(Side.CLIENT)
     public void onRenderInHandHUD(ItemStack lastCacheInstance, float fadeAlpha, float pTicks) {
         Collection<ItemStack> stored = getMappedStoredStates(lastCacheInstance).values();
-        if ((stored == null || stored == null || stored.stackSize <= 0)) return;
+        if ((stored == null || stored == null || stored.isEmpty())) return;
 
         Map<ItemStack, Integer> amountMap = new LinkedHashMap<>();
         for (ItemStack stack : stored) {
@@ -189,15 +189,16 @@ public class ItemArchitectWand extends ItemBlockStorage
     @SideOnly(Side.CLIENT)
     public void onRenderWhileInHand(ItemStack stack, float pTicks) {
         List<Block> storedStates = Lists.newArrayList(getMappedStoredStates(stack).keySet());
-        if (storedStates == null || storedStates.stackSize <= 0) return;
+        if (storedStates == null || storedStates.isEmpty()) return;
         Random r = getPreviewRandomFromWorld(Minecraft.getMinecraft().theWorld);
 
         Deque<BlockPos> placeable = filterBlocksToPlace(
             Minecraft.getMinecraft().thePlayer,
             Minecraft.getMinecraft().theWorld,
             architectRange);
-        if (!(placeable == null || placeable == null || placeable.stackSize <= 0)) {
-            RayTraceResult rtr = ItemHandRenderHelper.getLookBlock(Minecraft.getMinecraft().thePlayer, false, true, architectRange);
+        if (!(placeable == null || placeable == null || placeable.isEmpty())) {
+            RayTraceResult rtr = ItemHandRenderHelper
+                .getLookBlock(Minecraft.getMinecraft().thePlayer, false, true, architectRange);
             if (rtr == null || rtr.typeOfHit != hellfirepvp.astralsorcery.common.migration.RayTraceResult.Type.BLOCK) {
                 return;
             }
@@ -226,11 +227,11 @@ public class ItemArchitectWand extends ItemBlockStorage
     @Override
     public ItemStack onItemRightClick(ItemStack itemStackIn, World world, EntityPlayer playerIn) {
         ItemStack stack = itemStackIn;
-        if ((stack == null || stack.stackSize <= 0)) return stack;
+        if ((stack == null || stack.stackSize<=0)) return stack;
         if (world.isRemote) return stack;
 
         Map<Block, ItemStack> storedStates = getMappedStoredStates(stack);
-        if (storedStates == null || storedStates.stackSize <= 0) return stack;
+        if (storedStates == null || storedStates.isEmpty()) return stack;
 
         RayTraceResult rtr = ItemHandRenderHelper.getLookBlock(playerIn, false, true, architectRange);
         if (rtr == null || rtr.sideHit == -1 || rtr.hitVec == null) return stack;
@@ -240,7 +241,7 @@ public class ItemArchitectWand extends ItemBlockStorage
 
         Random r = getPreviewRandomFromWorld(world);
         Deque<BlockPos> placeable = filterBlocksToPlace(playerIn, world, architectRange);
-        if (!(placeable == null || placeable == null || placeable.stackSize <= 0)) {
+        if (!(placeable == null || placeable == null || placeable.isEmpty())) {
             for (BlockPos placePos : placeable) {
                 Collections.shuffle(shuffleable, r);
                 Tuple<Block, ItemStack> applicable = playerIn.capabilities.isCreativeMode
@@ -263,13 +264,7 @@ public class ItemArchitectWand extends ItemBlockStorage
                     int meta = applicable.value.getItemDamage();
                     // 1.7.10: canPlayerPlaceBlockPos takes int for side
                     if (MiscUtils.canPlayerPlaceBlockPos(playerIn, place, placePos, sideHit.ordinal())) {
-                        if (world.setBlock(
-                            placePos.getX(),
-                            placePos.getY(),
-                            placePos.getZ(),
-                            place,
-                            meta,
-                            3)) {
+                        if (world.setBlock(placePos.getX(), placePos.getY(), placePos.getZ(), place, meta, 3)) {
                             drainTempCharge(playerIn, Config.architectWandUseCost, false);
                             if (!playerIn.capabilities.isCreativeMode) {
                                 ItemUtils.consumeFromPlayerInventory(
@@ -296,7 +291,7 @@ public class ItemArchitectWand extends ItemBlockStorage
     public boolean onItemUse(ItemStack itemStack, EntityPlayer playerIn, World world, int x, int y, int z, int side,
         float hitX, float hitY, float hitZ) {
         ItemStack stack = itemStack;
-        if ((stack == null || stack.stackSize <= 0)) return true;
+        if ((stack == null || stack.stackSize<=0)) return true;
 
         if (playerIn.isSneaking()) {
             tryStoreBlock(stack, world, new BlockPos(x, y, z));
@@ -304,14 +299,14 @@ public class ItemArchitectWand extends ItemBlockStorage
         } else {
             if (!world.isRemote) {
                 Map<Block, ItemStack> storedStates = getMappedStoredStates(stack);
-                if (storedStates == null || storedStates.stackSize <= 0) return true;
+                if (storedStates == null || storedStates.isEmpty()) return true;
 
                 List<Tuple<Block, ItemStack>> shuffleable = MiscUtils
                     .flatten(storedStates, (block, stackItem) -> new Tuple<>(block, stackItem));
                 Random r = getPreviewRandomFromWorld(world);
 
                 Deque<BlockPos> placeable = filterBlocksToPlace(playerIn, world, architectRange);
-                if (!(placeable == null || placeable == null || placeable.stackSize <= 0)) {
+                if (!(placeable == null || placeable == null || placeable.isEmpty())) {
                     for (BlockPos placePos : placeable) {
                         Collections.shuffle(shuffleable, r);
                         Tuple<Block, ItemStack> applicable = playerIn.capabilities.isCreativeMode
@@ -333,15 +328,13 @@ public class ItemArchitectWand extends ItemBlockStorage
                             // 1.7.10: Extract metadata from ItemStack
                             int meta = applicable.value.getItemDamage();
                             // 1.7.10: canPlayerPlaceBlockPos takes int for side
-                            if (MiscUtils
-                                .canPlayerPlaceBlockPos(playerIn, place, placePos, EnumFacing.getFront(side).ordinal())) {
-                                if (world.setBlock(
-                                    placePos.getX(),
-                                    placePos.getY(),
-                                    placePos.getZ(),
-                                    place,
-                                    meta,
-                                    3)) {
+                            if (MiscUtils.canPlayerPlaceBlockPos(
+                                playerIn,
+                                place,
+                                placePos,
+                                EnumFacing.getFront(side)
+                                    .ordinal())) {
+                                if (world.setBlock(placePos.getX(), placePos.getY(), placePos.getZ(), place, meta, 3)) {
                                     drainTempCharge(playerIn, Config.architectWandUseCost, false);
                                     if (!playerIn.capabilities.isCreativeMode) {
                                         ItemUtils.consumeFromPlayerInventory(

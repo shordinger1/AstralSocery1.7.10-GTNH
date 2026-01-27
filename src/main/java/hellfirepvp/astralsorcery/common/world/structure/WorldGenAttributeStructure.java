@@ -102,7 +102,8 @@ public abstract class WorldGenAttributeStructure extends WorldGenAttributeCommon
             Block now = placedStates.getOrDefault(pos, airState);
             if (MiscUtils.isFluidBlock(prev)) {
                 BlockPos it = pos;
-                while (now.isAir(now, world, it) && world.setBlock(it.getX(), it.getY(), it.getZ(), prev, 0, 3)) {
+                while (now.isAir(world, it.getX(), it.getY(), it.getZ())
+                    && world.setBlock(it.getX(), it.getY(), it.getZ(), prev, 0, 3)) {
                     it = it.down();
                     if (!placedStates.containsKey(it)) {
                         break;

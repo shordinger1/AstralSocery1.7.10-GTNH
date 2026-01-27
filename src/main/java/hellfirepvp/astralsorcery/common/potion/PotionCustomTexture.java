@@ -34,8 +34,14 @@ public abstract class PotionCustomTexture extends Potion {
 
     protected static final Random rand = new Random();
 
+    // In 1.7.10, Potion constructor requires an ID parameter
+    // We need to use a custom potion registration system
+    protected PotionCustomTexture(int id, boolean isBadEffectIn, int liquidColorIn) {
+        super(id, isBadEffectIn, liquidColorIn);
+    }
+
     protected PotionCustomTexture(boolean isBadEffectIn, int liquidColorIn) {
-        super(isBadEffectIn, liquidColorIn);
+        this(32, isBadEffectIn, liquidColorIn); // Placeholder ID, will be replaced by proper registration
     }
 
     @Override
@@ -70,7 +76,6 @@ public abstract class PotionCustomTexture extends Potion {
         tes.draw();
         TextureHelper.refreshTextureBindState();
     }
-
 
     @SideOnly(Side.CLIENT)
     public void renderHUDEffect(int x, int y, PotionEffect effect, Minecraft mc, float alpha) {

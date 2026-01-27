@@ -14,7 +14,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.boss.EntityDragon;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.world.WorldEvent;
@@ -49,7 +48,8 @@ public class TimeStopController implements ITickHandler {
         if (world.isRemote) return null;
         int dimId = world.provider.dimensionId;
         List<TimeStopZone> zones = INSTANCE.activeTimeStopZones.get(dimId);
-        if (zones == null || zones == null || zones.stackSize <= 0) return null;
+        // 1.7.10: List uses isEmpty() and size(), not stackSize
+        if (zones == null || zones.isEmpty()) return null;
         for (TimeStopZone zone : zones) {
             if (zone.offset.equals(pos)) {
                 return zone;
@@ -92,7 +92,8 @@ public class TimeStopController implements ITickHandler {
         if (w != null && w.provider != null) {
             int id = w.provider.dimensionId;
             List<TimeStopZone> freezeAreas = activeTimeStopZones.get(id);
-            if (freezeAreas != null && !freezeAreas == null || freezeAreas.stackSize <= 0) {
+            // 1.7.10: Fix boolean logic and use isEmpty()
+            if (freezeAreas != null && !freezeAreas.isEmpty()) {
                 for (TimeStopZone stop : freezeAreas) {
                     stop.stopEffect();
                 }
@@ -104,17 +105,20 @@ public class TimeStopController implements ITickHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onLivingTickTest(LivingEvent.LivingUpdateEvent event) {
-        EntityLivingBase e = event.getEntityLiving();
+        // 1.7.10: LivingUpdateEvent has 'entity' field, not getEntityLiving() method
+        EntityLivingBase e = (EntityLivingBase) event.entity;
         if (e.isPotionActive(RegistryPotions.potionTimeFreeze)) {
             boolean shouldFreeze = true;
+            // 1.7.10: Simplify if statement
             if (e.isDead || e.getHealth() <= 0) {
                 shouldFreeze = false;
             }
-            if (e instanceof EntityDragon && ((EntityDragon) e).getPhaseManager()
-                .getCurrentPhase()
-                .getType() == PhaseList.DYING) {
-                shouldFreeze = false;
-            }
+            // 1.7.10: EntityDragon doesn't have getPhaseManager(), remove phase check
+            // if (e instanceof EntityDragon && ((EntityDragon) e).getPhaseManager()
+            // .getCurrentPhase()
+            // .getType() == PhaseList.DYING) {
+            // shouldFreeze = false;
+            // }
             if (shouldFreeze) {
                 if (e.worldObj.isRemote && e.worldObj.rand.nextInt(5) == 0) {
                     TimeStopEffectHelper.playEntityParticles(e);
@@ -128,7 +132,8 @@ public class TimeStopController implements ITickHandler {
         if (w != null && w.provider != null) {
             int id = w.provider.dimensionId;
             List<TimeStopZone> freezeAreas = activeTimeStopZones.get(id);
-            if (freezeAreas != null && !freezeAreas == null || freezeAreas.stackSize <= 0) {
+            // 1.7.10: Fix boolean logic and use isEmpty()
+            if (freezeAreas != null && !freezeAreas.isEmpty()) {
                 for (TimeStopZone stop : freezeAreas) {
                     if (stop.interceptEntityTick(e)) {
                         TimeStopZone.handleImportantEntityTicks(e);

@@ -20,25 +20,21 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.common.MinecraftForge;
 
 import com.google.common.collect.Lists;
 
-import hellfirepvp.astralsorcery.common.base.Mods;
 import hellfirepvp.astralsorcery.common.constellation.perk.AbstractPerk;
 import hellfirepvp.astralsorcery.common.constellation.perk.PerkConverter;
 import hellfirepvp.astralsorcery.common.constellation.perk.attribute.AttributeModifierPerk;
 import hellfirepvp.astralsorcery.common.constellation.perk.attribute.PerkAttributeModifier;
 import hellfirepvp.astralsorcery.common.constellation.perk.attribute.PerkAttributeType;
 import hellfirepvp.astralsorcery.common.constellation.perk.attribute.type.*;
-import hellfirepvp.astralsorcery.common.constellation.perk.reader.AttributeReader;
 import hellfirepvp.astralsorcery.common.constellation.perk.reader.impl.*;
 import hellfirepvp.astralsorcery.common.constellation.perk.tree.PerkTree;
 import hellfirepvp.astralsorcery.common.constellation.perk.tree.PerkTreePoint;
-import hellfirepvp.astralsorcery.common.constellation.perk.tree.PointConnector;
 import hellfirepvp.astralsorcery.common.constellation.perk.tree.constellation.PerkAlcara;
 import hellfirepvp.astralsorcery.common.constellation.perk.tree.constellation.PerkGelu;
 import hellfirepvp.astralsorcery.common.constellation.perk.tree.constellation.PerkUlteria;
@@ -111,9 +107,6 @@ public class RegistryPerks {
         for (PerkTreePoint point : PerkTree.PERK_TREE.getPerkPoints()) {
             copyPerks.add(point.getPerk());
         }
-        if (Mods.CRAFTTWEAKER.isPresent()) {
-            applyCraftTweakerModifications(copyPerks);
-        }
 
         for (AbstractPerk perk : copyPerks) {
             APIRegistryEvent.PerkPostRemove remove = new APIRegistryEvent.PerkPostRemove(perk);
@@ -124,13 +117,6 @@ public class RegistryPerks {
         }
 
         PerkTree.PERK_TREE.freeze();
-    }
-
-    @Optional.Method(modid = "crafttweaker")
-    private static void applyCraftTweakerModifications(List<AbstractPerk> perks) {
-        for (AbstractPerk perk : perks) {
-            perk.adjustMultipliers();
-        }
     }
 
     private static void initializeMinorConstellationPerks() {
@@ -1921,9 +1907,9 @@ public class RegistryPerks {
             .addModifier(1.05F, PerkAttributeModifier.Mode.STACKING_MULTIPLY, ATTR_TYPE_INC_HARVEST_SPEED);
         perkRootMajorHarvest.addModifier(0.1F, PerkAttributeModifier.Mode.ADDED_MULTIPLY, ATTR_TYPE_MELEE_DAMAGE);
 
-        PointConnector ctHarvest1 = PERK_TREE.registerPerk(breakRoot1);
-        PointConnector ctHarvest2 = PERK_TREE.registerPerk(breakRoot2);
-        PointConnector ctMajorHarvest = PERK_TREE.registerPerk(perkRootMajorHarvest);
+        PerkTree.PointConnector ctHarvest1 = PERK_TREE.registerPerk(breakRoot1);
+        PerkTree.PointConnector ctHarvest2 = PERK_TREE.registerPerk(breakRoot2);
+        PerkTree.PointConnector ctMajorHarvest = PERK_TREE.registerPerk(perkRootMajorHarvest);
 
         breakRoot1.setRequireDiscoveredConstellation(Constellations.evorsio);
         breakRoot2.setRequireDiscoveredConstellation(Constellations.evorsio);
@@ -1944,9 +1930,9 @@ public class RegistryPerks {
         perkRootMajorDamage.addModifier(1.05F, PerkAttributeModifier.Mode.STACKING_MULTIPLY, ATTR_TYPE_PROJ_DAMAGE);
         perkRootMajorDamage.addModifier(2F, PerkAttributeModifier.Mode.ADDITION, ATTR_TYPE_INC_CRIT_CHANCE);
 
-        PointConnector ctDamage1 = PERK_TREE.registerPerk(dmgRoot1);
-        PointConnector ctDamage2 = PERK_TREE.registerPerk(dmgRoot2);
-        PointConnector ctMajorDamage = PERK_TREE.registerPerk(perkRootMajorDamage);
+        PerkTree.PointConnector ctDamage1 = PERK_TREE.registerPerk(dmgRoot1);
+        PerkTree.PointConnector ctDamage2 = PERK_TREE.registerPerk(dmgRoot2);
+        PerkTree.PointConnector ctMajorDamage = PERK_TREE.registerPerk(perkRootMajorDamage);
 
         dmgRoot1.setRequireDiscoveredConstellation(Constellations.discidia);
         dmgRoot2.setRequireDiscoveredConstellation(Constellations.discidia);
@@ -1966,9 +1952,9 @@ public class RegistryPerks {
         perkRootMajorArmor = new MajorPerk("major_inc_armor", 12, 6);
         perkRootMajorArmor.addModifier(1.20F, PerkAttributeModifier.Mode.STACKING_MULTIPLY, ATTR_TYPE_ARMOR);
 
-        PointConnector ctArmor1 = PERK_TREE.registerPerk(armorRoot1);
-        PointConnector ctArmor2 = PERK_TREE.registerPerk(armorRoot2);
-        PointConnector ctMajorArmor = PERK_TREE.registerPerk(perkRootMajorArmor);
+        PerkTree.PointConnector ctArmor1 = PERK_TREE.registerPerk(armorRoot1);
+        PerkTree.PointConnector ctArmor2 = PERK_TREE.registerPerk(armorRoot2);
+        PerkTree.PointConnector ctMajorArmor = PERK_TREE.registerPerk(perkRootMajorArmor);
 
         armorRoot1.setRequireDiscoveredConstellation(Constellations.armara);
         armorRoot2.setRequireDiscoveredConstellation(Constellations.armara);
@@ -1988,9 +1974,9 @@ public class RegistryPerks {
         perkRootMajorMovespeed.addModifier(0.05F, PerkAttributeModifier.Mode.ADDED_MULTIPLY, ATTR_TYPE_MOVESPEED);
         perkRootMajorMovespeed.addModifier(5F, PerkAttributeModifier.Mode.ADDITION, ATTR_TYPE_INC_DODGE);
 
-        PointConnector ctMove1 = PERK_TREE.registerPerk(moveRoot1);
-        PointConnector ctMove2 = PERK_TREE.registerPerk(moveRoot2);
-        PointConnector ctMajorMobility = PERK_TREE.registerPerk(perkRootMajorMovespeed);
+        PerkTree.PointConnector ctMove1 = PERK_TREE.registerPerk(moveRoot1);
+        PerkTree.PointConnector ctMove2 = PERK_TREE.registerPerk(moveRoot2);
+        PerkTree.PointConnector ctMajorMobility = PERK_TREE.registerPerk(perkRootMajorMovespeed);
 
         moveRoot1.setRequireDiscoveredConstellation(Constellations.vicio);
         moveRoot2.setRequireDiscoveredConstellation(Constellations.vicio);
@@ -2014,9 +2000,9 @@ public class RegistryPerks {
         lifeRoot2.setRequireDiscoveredConstellation(Constellations.aevitas);
         perkRootMajorHealth.setRequireDiscoveredConstellation(Constellations.aevitas);
 
-        PointConnector ctLife1 = PERK_TREE.registerPerk(lifeRoot1);
-        PointConnector ctLife2 = PERK_TREE.registerPerk(lifeRoot2);
-        PointConnector ctMajorLife = PERK_TREE.registerPerk(perkRootMajorHealth);
+        PerkTree.PointConnector ctLife1 = PERK_TREE.registerPerk(lifeRoot1);
+        PerkTree.PointConnector ctLife2 = PERK_TREE.registerPerk(lifeRoot2);
+        PerkTree.PointConnector ctMajorLife = PERK_TREE.registerPerk(perkRootMajorHealth);
 
         ctLife1.connect(PERK_TREE.getRootPerk(Constellations.aevitas));
         ctLife2.connect(ctLife1);
@@ -2072,10 +2058,13 @@ public class RegistryPerks {
         registerPerkType(new AttributeTypeMeleeAttackDamage());
         registerPerkType(new AttributeTypeMaxHealth());
         registerPerkType(new AttributeTypeMovementSpeed());
-        registerPerkType(new AttributeTypeSwimSpeed());
+        // 1.7.10: AttributeTypeSwimSpeed doesn't exist - skip for now
+        // registerPerkType(new AttributeTypeSwimSpeed());
         registerPerkType(new AttributeTypeArmor());
-        registerPerkType(new AttributeTypeArmorToughness());
-        registerPerkType(new AttributeTypeAttackSpeed());
+        // 1.7.10: AttributeTypeArmorToughness doesn't exist (added in 1.9) - skip for now
+        // registerPerkType(new AttributeTypeArmorToughness());
+        // 1.7.10: AttributeTypeAttackSpeed doesn't exist (added in 1.9) - skip for now
+        // registerPerkType(new AttributeTypeAttackSpeed());
         registerPerkType(new AttributeTypeMaxReach());
 
         limitPerkType(ATTR_TYPE_INC_DODGE, 0F, 0.75F);
@@ -2088,22 +2077,28 @@ public class RegistryPerks {
     private static void initializeAttributeInterpreters() {
         registerTypeReader(
             ATTR_TYPE_MELEE_DAMAGE,
-            new VanillaAttributeReader(SharedMonsterAttributes.ATTACK_DAMAGE).formatAsDecimal());
-        registerTypeReader(ATTR_TYPE_HEALTH, new VanillaAttributeReader(SharedMonsterAttributes.MAX_HEALTH));
+            new VanillaAttributeReader(SharedMonsterAttributes.attackDamage).formatAsDecimal());
+        registerTypeReader(ATTR_TYPE_HEALTH, new VanillaAttributeReader(SharedMonsterAttributes.maxHealth));
         registerTypeReader(
             ATTR_TYPE_MOVESPEED,
-            new VanillaAttributeReader(SharedMonsterAttributes.MOVEMENT_SPEED).formatAsDecimal());
-        registerTypeReader(
-            ATTR_TYPE_SWIMSPEED,
-            new VanillaAttributeReader(EntityLivingBase.SWIM_SPEED).formatAsDecimal());
-        registerTypeReader(ATTR_TYPE_ARMOR, new VanillaAttributeReader(SharedMonsterAttributes.ARMOR));
-        registerTypeReader(
-            ATTR_TYPE_ARMOR_TOUGHNESS,
-            new VanillaAttributeReader(SharedMonsterAttributes.ARMOR_TOUGHNESS));
-        registerTypeReader(
-            ATTR_TYPE_ATTACK_SPEED,
-            new VanillaAttributeReader(SharedMonsterAttributes.ATTACK_SPEED).formatAsDecimal());
-        registerTypeReader(ATTR_TYPE_REACH, new VanillaAttributeReader(EntityPlayer.REACH_DISTANCE).formatAsDecimal());
+            new VanillaAttributeReader(SharedMonsterAttributes.movementSpeed).formatAsDecimal());
+        // 1.7.10: SWIM_SPEED doesn't exist on EntityLivingBase - skip for now
+        // registerTypeReader(
+        // ATTR_TYPE_SWIMSPEED,
+        // new VanillaAttributeReader(EntityLivingBase.SWIM_SPEED).formatAsDecimal());
+        // 1.7.10: ARMOR is not an attribute in 1.7.10 - skip for now
+        // registerTypeReader(ATTR_TYPE_ARMOR, new VanillaAttributeReader(SharedMonsterAttributes.ARMOR));
+        // 1.7.10: ARMOR_TOUGHNESS doesn't exist (added in 1.9) - skip for now
+        // registerTypeReader(
+        // ATTR_TYPE_ARMOR_TOUGHNESS,
+        // new VanillaAttributeReader(SharedMonsterAttributes.ARMOR_TOUGHNESS));
+        // 1.7.10: ATTACK_SPEED doesn't exist (added in 1.9) - skip for now
+        // registerTypeReader(
+        // ATTR_TYPE_ATTACK_SPEED,
+        // new VanillaAttributeReader(SharedMonsterAttributes.ATTACK_SPEED).formatAsDecimal());
+        // 1.7.10: REACH_DISTANCE doesn't exist on EntityPlayer - skip for now
+        // registerTypeReader(ATTR_TYPE_REACH, new
+        // VanillaAttributeReader(EntityPlayer.REACH_DISTANCE).formatAsDecimal());
 
         registerDefaultReader(ATTR_TYPE_INC_PERK_EFFECT);
         registerDefaultReader(ATTR_TYPE_INC_PERK_EXP);
@@ -2119,24 +2114,21 @@ public class RegistryPerks {
         registerDefaultReader(ATTR_TYPE_ATTACK_LIFE_LEECH);
         registerDefaultReader(ATTR_TYPE_INC_THORNS);
 
-        registerReader(ATTR_TYPE_INC_HARVEST_SPEED, type -> new BreakSpeedAttributeReader(type));
+        // 1.7.10: Replace lambda with anonymous class (Java 7 compatible)
+        PerkAttributeType harvestType = getType(ATTR_TYPE_INC_HARVEST_SPEED);
+        if (harvestType != null) {
+            registerTypeReader(ATTR_TYPE_INC_HARVEST_SPEED, new BreakSpeedAttributeReader(harvestType));
+        }
     }
 
     private static void registerDefaultReader(String typeStr) {
         PerkAttributeType type = getType(typeStr);
         if (type != null) {
             if (type.isMultiplicative()) {
-                registerReader(typeStr, type -> new PercentageAttributeReader(type));
+                registerTypeReader(typeStr, new PercentageAttributeReader(type));
             } else {
-                registerReader(typeStr, type -> new AddedPercentageAttributeReader(type));
+                registerTypeReader(typeStr, new AddedPercentageAttributeReader(type));
             }
-        }
-    }
-
-    private static void registerReader(String typeStr, Function<PerkAttributeType, AttributeReader> fct) {
-        PerkAttributeType type = getType(typeStr);
-        if (type != null) {
-            registerTypeReader(typeStr, fct.apply(type));
         }
     }
 

@@ -24,7 +24,7 @@ import hellfirepvp.astralsorcery.common.integrations.ModIntegrationCrafttweaker;
  * Replaces CraftTweaker-based LiquidInteraction class
  *
  * Usage:
- *   LiquidInteraction.add(FluidRegistry.WATER, FluidRegistry.LAVA, 1.0F, 1.0F, 10, new ItemStack(Items.diamond));
+ * LiquidInteraction.add(FluidRegistry.WATER, FluidRegistry.LAVA, 1.0F, 1.0F, 10, new ItemStack(Items.diamond));
  */
 public final class LiquidInteraction {
 
@@ -33,12 +33,12 @@ public final class LiquidInteraction {
     /**
      * Adds a liquid interaction recipe
      *
-     * @param fluidIn1  First input fluid
-     * @param chance1   Consumption chance for fluid 1
-     * @param fluidIn2  Second input fluid
-     * @param chance2   Consumption chance for fluid 2
-     * @param weight    Recipe weight (for selection priority)
-     * @param output    Output item
+     * @param fluidIn1 First input fluid
+     * @param chance1  Consumption chance for fluid 1
+     * @param fluidIn2 Second input fluid
+     * @param chance2  Consumption chance for fluid 2
+     * @param weight   Recipe weight (for selection priority)
+     * @param output   Output item
      */
     public static void add(@Nullable Fluid fluidIn1, float chance1, @Nullable Fluid fluidIn2, float chance2, int weight,
         @Nullable ItemStack output) {

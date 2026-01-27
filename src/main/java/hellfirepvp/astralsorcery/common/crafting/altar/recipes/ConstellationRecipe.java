@@ -23,6 +23,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.cleanroommc.modularui.utils.item.ItemStackHandler;
 import com.google.common.collect.Lists;
 
 import cpw.mods.fml.relauncher.Side;
@@ -30,8 +31,6 @@ import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.client.effect.EffectHelper;
 import hellfirepvp.astralsorcery.client.effect.fx.EntityFXFacingParticle;
 import hellfirepvp.astralsorcery.common.crafting.ItemHandle;
-
-import com.cleanroommc.modularui.utils.item.ItemStackHandler;
 import hellfirepvp.astralsorcery.common.crafting.altar.ActiveCraftingTask;
 import hellfirepvp.astralsorcery.common.crafting.helper.AccessibleRecipe;
 import hellfirepvp.astralsorcery.common.data.research.ResearchProgression;

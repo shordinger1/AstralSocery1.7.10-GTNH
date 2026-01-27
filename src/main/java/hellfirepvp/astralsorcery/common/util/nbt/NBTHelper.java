@@ -171,7 +171,12 @@ public class NBTHelper {
     }
 
     public static void setStack(NBTTagCompound compound, String tag, ItemStack stack) {
-        setAsSubTag(compound, tag, (tag1, stack1) -> stack1.writeToNBT(tag1));
+        // 1.7.10: Use ItemStack.writeToNBT() through reflection or manual serialization
+        NBTTagCompound stackTag = new NBTTagCompound();
+        if (stack != null) {
+            stack.writeToNBT(stackTag);
+        }
+        compound.setTag(tag, stackTag);
     }
 
     public static void removeUUID(NBTTagCompound compound, String key) {
@@ -201,7 +206,8 @@ public class NBTHelper {
     // Get tags with default value
     public static ItemStack getStack(NBTTagCompound compound, String tag, ItemStack defaultValue) {
         if (compound.hasKey(tag)) {
-            return new ItemStack(compound.getCompoundTag(tag));
+            // 1.7.10: Use loadItemStackFromNBT()
+            return ItemStack.loadItemStackFromNBT(compound.getCompoundTag(tag));
         }
         return defaultValue;
     }

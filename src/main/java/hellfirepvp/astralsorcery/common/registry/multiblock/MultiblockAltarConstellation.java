@@ -57,22 +57,29 @@ public class MultiblockAltarConstellation {
 
     private final String[][] shape = new String[][] {
         // Y = -1 (Base layer)
-        {"CCCCCCCC", "CCRRRCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCRRRCCC", "CCCCCCCC"},
-        {"CCCCCCCC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CCCCCCCC"},
-        {"CCCCCCCC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CCCCCCCC"},
+        { "CCCCCCCC", "CCRRRCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC",
+            "CCCCCCCC", "CCRRRCCC", "CCCCCCCC" },
+        { "CCCCCCCC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC",
+            "CBBBBBBC", "CBBBBBBC", "CCCCCCCC" },
+        { "CCCCCCCC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC",
+            "CBBBBBBC", "CBBBBBBC", "CCCCCCCC" },
 
         // Y = 0 (Runed corners)
-        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
-        {"        ", "        ", "        ", "U       ", "        ", "        ", "        ", "        ", "        ", "U       ", "        ", "        "},
+        { "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ",
+            "        ", "        ", "        " },
+        { "        ", "        ", "        ", "U       ", "        ", "        ", "        ", "        ", "        ",
+            "U       ", "        ", "        " },
 
         // Y = 1 (Pillars)
-        {"        ", "        ", "        ", "P       ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        "},
+        { "        ", "        ", "        ", "P       ", "        ", "        ", "        ", "        ", "        ",
+            "P       ", "        ", "        " },
 
         // Y = 2 (Pillars)
-        {"        ", "        ", "        ", "P       ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        "},
+        { "        ", "        ", "        ", "P       ", "        ", "        ", "        ", "        ", "        ",
+            "P       ", "        ", "        " },
 
         // Y = 3 (Top)
-        {"        ", "        ", "        ", "H       ", "        ", "        ", "        ", "        ", "        ", "H       ", "        ", "        "},
-    };
+        { "        ", "        ", "        ", "H       ", "        ", "        ", "        ", "        ", "        ",
+            "H       ", "        ", "        " }, };
 
 }

@@ -18,6 +18,7 @@ import javax.annotation.Nonnull;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidHandler;
 
@@ -52,7 +53,7 @@ public class LiquidStarlightChaliceHandler {
         if (targetHandler == null) {
             return false;
         }
-        if (targetHandler.fill(toTransfer, false) < toTransfer.amount) {
+        if (targetHandler.fill(ForgeDirection.UNKNOWN, toTransfer, false) < toTransfer.amount) {
             return false;
         }
         World world = source.getWorldObj();
@@ -76,9 +77,8 @@ public class LiquidStarlightChaliceHandler {
         if (source.getTank() != null && source.getTank()
             .getFluid() != null
             && source.getTank()
-                .getFluid()
-                .getFluid().fluidID == expected.fluidID
-            && getFluid().amount >= expected.amount) {
+                .getFluid().getFluidID() == expected.getFluidID()
+            && source.getTank().getFluid().amount >= expected.amount) {
             FluidStack drained = source.getTank()
                 .drain(expected, true);
             if (drained != null) {
@@ -146,9 +146,8 @@ public class LiquidStarlightChaliceHandler {
                             if (tc.getTank() != null && tc.getTank()
                                 .getFluid() != null
                                 && tc.getTank()
-                                    .getFluid()
-                                    .getFluid().fluidID == expected.fluidID
-                                && getFluid().amount >= expected.amount) {
+                                    .getFluid().getFluidID() == expected.getFluidID()
+                                && tc.getTank().getFluid().amount >= expected.amount) {
                                 FluidStack drained = tc.getTank()
                                     .drain(expected, true);
                                 if (drained != null) {
@@ -200,7 +199,7 @@ public class LiquidStarlightChaliceHandler {
                                     if (tc.getTank() != null && tc.getTank()
                                         .canFillFluidType(expected)
                                         && tc.getTank()
-                                            .fill(expected, false) >= expected.amount) {
+                                            .fill(ForgeDirection.UNKNOWN, expected, false) >= expected.amount) {
                                         out.add(tc);
                                     }
                                 }
@@ -252,12 +251,9 @@ public class LiquidStarlightChaliceHandler {
                                         continue;
                                     TileChalice tc = (TileChalice) te;
                                     if (tc.getTank() != null && tc.getTank()
-                                        .getFluid() != null
-                                        && tc.getTank()
-                                            .getFluid()
-                                            .getFluid().fluidID == expected.fluidID
-                                        && getFluid().amount >= expected.amount) {
-                                        out.add(tc);
+                                        .getFluid() != null && tc.getTank()
+                                        .getFluid().getFluidID() == expected.getFluidID()) {
+                                        tc.getTank().getFluid();
                                     }
                                 }
                             }

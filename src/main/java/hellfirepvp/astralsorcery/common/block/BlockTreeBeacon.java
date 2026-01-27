@@ -8,6 +8,7 @@
 
 package hellfirepvp.astralsorcery.common.block;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import hellfirepvp.astralsorcery.common.block.network.BlockStarlightNetwork;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.migration.ModelResourceLocation;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
 import hellfirepvp.astralsorcery.common.tile.TileTreeBeacon;
@@ -53,23 +53,6 @@ public class BlockTreeBeacon extends BlockStarlightNetwork implements BlockDynam
         setCreativeTab(RegistryItems.creativeTabAstralSorcery);
     }
 
-    public IBlockState getDefaultState() {
-        return new IBlockState(this, 0);
-    }
-
-    @Override
-    public Map<IBlockState, ModelResourceLocation> getModelLocations(Block blockIn) {
-        // 1.7.10: Model loading works differently - simplified implementation
-        return Maps.newHashMap();
-    }
-
-    @Override
-    public String getStateName(IBlockState state) {
-        if (handleRegisterStateMapper()) {
-            return "festive";
-        }
-        return "normal";
-    }
 
     @Override
     public void onBlockPlacedBy(World worldIn, int x, int y, int z, EntityLivingBase placer, ItemStack stack) {
@@ -84,8 +67,16 @@ public class BlockTreeBeacon extends BlockStarlightNetwork implements BlockDynam
     }
 
     @Override
-    public List<IBlockState> getValidStates() {
-        return Lists.newArrayList(getDefaultState());
+    public List<Block> getValidStates() {
+        // BlockTreeBeacon has no variants, return itself once
+        List<Block> ret = new LinkedList<>();
+        ret.add(this);
+        return ret;
+    }
+
+    @Override
+    public String getStateName(int metadata) {
+        return "";
     }
 
     @Override
@@ -113,4 +104,8 @@ public class BlockTreeBeacon extends BlockStarlightNetwork implements BlockDynam
         return -1; // Custom model renderer
     }
 
+    @Override
+    public Map<Integer, ModelResourceLocation> getModelLocations(Block blockIn) {
+        return new java.util.HashMap<>();
+    }
 }

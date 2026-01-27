@@ -73,9 +73,9 @@ public class AstralWorldGenerator implements IWorldGenerator {
     }
 
     @Override
-    public void generate(Random random, int chunkX, int chunkZ, World world, IChunkProvider chunkProvider) {
-        if (!Config.enableFlatGen && world.getWorldType()
-            .equals(WorldType.FLAT)) return;
+    public void generate(Random random, int chunkX, int chunkZ, World world, IChunkProvider chunkGenerator,
+        IChunkProvider chunkProvider) {
+        if (!Config.enableFlatGen && world.provider.terrainType == WorldType.FLAT) return;
         if (!Config.worldGenDimWhitelist.contains(world.provider.dimensionId)) return;
 
         ChunkVersionController.instance

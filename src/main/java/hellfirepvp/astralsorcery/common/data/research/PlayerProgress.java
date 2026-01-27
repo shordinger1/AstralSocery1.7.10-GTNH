@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 import javax.annotation.Nullable;
 
-import java.util.function.Predicate;
+import com.google.common.base.Predicate;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -379,7 +379,7 @@ public class PlayerProgress {
     @Nullable
     public NBTTagCompound getPerkData(AbstractPerk perk) {
         NBTTagCompound tag = appliedPerkData.get(perk);
-        return tag == null ? null : tag.copy();
+        return tag == null ? null : (NBTTagCompound) tag.copy();
     }
 
     public boolean hasPerkEffect(Predicate<AbstractPerk> perkMatch) {
@@ -515,7 +515,7 @@ public class PlayerProgress {
         }
         long expThisLevel = PerkLevelManager.INSTANCE.getExpForLevel(currLevel, player);
         long expNextLevel = PerkLevelManager.INSTANCE.getExpForLevel(currLevel + 1, player);
-        long cap = WrapMathHelper.lfloor(((float) (expNextLevel - expThisLevel)) * 0.08F);
+        long cap = WrapMathHelper.floor(((float) (expNextLevel - expThisLevel)) * 0.08F);
         if (exp > cap) {
             exp = cap;
         }

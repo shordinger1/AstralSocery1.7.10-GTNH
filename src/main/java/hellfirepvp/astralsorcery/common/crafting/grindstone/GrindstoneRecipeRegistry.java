@@ -73,7 +73,7 @@ public class GrindstoneRecipeRegistry {
     }
 
     public static void cacheLocalFallback() {
-        if ((localFallback == null || localFallback.stackSize <= 0)) {
+        if ((localFallback == null || localFallback.isEmpty())) {
             localFallback.addAll(recipes);
         }
     }
@@ -96,7 +96,7 @@ public class GrindstoneRecipeRegistry {
                 matching.add(gr);
             }
         }
-        if ((matching == null || matching.stackSize <= 0)) return null;
+        if ((matching == null || matching.isEmpty())) return null;
         return matching.get(rand.nextInt(matching.size()));
     }
 

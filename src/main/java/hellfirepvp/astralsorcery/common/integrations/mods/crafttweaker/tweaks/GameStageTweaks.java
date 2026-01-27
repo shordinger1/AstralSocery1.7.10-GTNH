@@ -19,8 +19,8 @@ import hellfirepvp.astralsorcery.common.config.GameStageConfig;
  * This class now delegates to GameStageConfig
  *
  * Usage:
- *   GameStageTweaks.addLevelCap("stage_name", 10);
- *   GameStageTweaks.addConstellationDiscoveryStage("stage_name", "constellation_name");
+ * GameStageTweaks.addLevelCap("stage_name", 10);
+ * GameStageTweaks.addConstellationDiscoveryStage("stage_name", "constellation_name");
  */
 public final class GameStageTweaks {
 
@@ -39,7 +39,7 @@ public final class GameStageTweaks {
     /**
      * Adds a constellation discovery stage requirement
      *
-     * @param stageName                The game stage name
+     * @param stageName                    The game stage name
      * @param unlocalizedConstellationName The constellation name
      */
     public static void addConstellationDiscoveryStage(String stageName, String unlocalizedConstellationName) {
@@ -59,7 +59,7 @@ public final class GameStageTweaks {
     /**
      * Checks if a constellation can be discovered with the given game stages
      *
-     * @param gameStages      The player's game stages
+     * @param gameStages        The player's game stages
      * @param constellationName The constellation name
      * @return true if the constellation can be discovered
      */

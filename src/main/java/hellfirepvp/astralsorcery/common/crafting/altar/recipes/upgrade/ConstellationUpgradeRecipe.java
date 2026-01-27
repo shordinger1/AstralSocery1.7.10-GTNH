@@ -22,7 +22,6 @@ import hellfirepvp.astralsorcery.client.effect.EffectHelper;
 import hellfirepvp.astralsorcery.client.effect.fx.EntityFXFacingParticle;
 import hellfirepvp.astralsorcery.client.util.SpriteLibrary;
 import hellfirepvp.astralsorcery.common.block.BlockMarble;
-import hellfirepvp.astralsorcery.common.migration.ParticleManager;
 import hellfirepvp.astralsorcery.common.block.network.BlockAltar;
 import hellfirepvp.astralsorcery.common.crafting.IAltarUpgradeRecipe;
 import hellfirepvp.astralsorcery.common.crafting.INighttimeRecipe;
@@ -34,6 +33,7 @@ import hellfirepvp.astralsorcery.common.crafting.altar.recipes.AttunementRecipe;
 import hellfirepvp.astralsorcery.common.crafting.helper.ShapeMap;
 import hellfirepvp.astralsorcery.common.crafting.helper.ShapedRecipeSlot;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
+import hellfirepvp.astralsorcery.common.migration.ParticleManager;
 import hellfirepvp.astralsorcery.common.tile.TileAltar;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
 import hellfirepvp.astralsorcery.common.util.OreDictAlias;
@@ -120,7 +120,15 @@ public class ConstellationUpgradeRecipe extends AttunementRecipe
 
             ParticleManager pm = (ParticleManager) Minecraft.getMinecraft().effectRenderer;
             if (rand.nextInt(18) == 0) {
-                pm.addBlockDestroyEffects(altar.getPos().getX(), altar.getPos().getY(), altar.getPos().getZ(), BlocksAS.blockMarble, 0);
+                pm.addBlockDestroyEffects(
+                    altar.getPos()
+                        .getX(),
+                    altar.getPos()
+                        .getY(),
+                    altar.getPos()
+                        .getZ(),
+                    BlocksAS.blockMarble,
+                    0);
             }
             if (tick % 48 == 0 && rand.nextInt(2) == 0) {
                 EffectHandler.getInstance()

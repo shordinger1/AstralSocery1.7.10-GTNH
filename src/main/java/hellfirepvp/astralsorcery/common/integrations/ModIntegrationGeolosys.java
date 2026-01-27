@@ -10,13 +10,12 @@ package hellfirepvp.astralsorcery.common.integrations;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 
 import cpw.mods.fml.client.registry.ClientRegistry;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.common.event.FMLInterModComms;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.client.util.item.ItemRenderRegistry;
 import hellfirepvp.astralsorcery.common.integrations.mods.geolosys.BlockGeolosysSampleCluster;
 import hellfirepvp.astralsorcery.common.integrations.mods.geolosys.TESRGeolosysSampleCluster;

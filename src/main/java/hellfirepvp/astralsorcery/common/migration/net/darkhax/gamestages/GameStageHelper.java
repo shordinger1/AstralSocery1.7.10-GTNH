@@ -5,9 +5,9 @@
 
 package hellfirepvp.astralsorcery.common.migration.net.darkhax.gamestages;
 
-import net.minecraft.entity.player.EntityPlayer;
-
 import javax.annotation.Nullable;
+
+import net.minecraft.entity.player.EntityPlayer;
 
 /**
  * 1.7.10 Migration of GameStageHelper from GameStages mod
@@ -34,7 +34,7 @@ public final class GameStageHelper {
      * Checks if the player has the specified stage.
      *
      * @param player The player to check.
-     * @param stage The stage to check for.
+     * @param stage  The stage to check for.
      * @return Whether the player has the stage. Returns true if GameStages is not installed.
      */
     public static boolean hasStage(@Nullable EntityPlayer player, String stage) {
@@ -59,7 +59,7 @@ public final class GameStageHelper {
      * Checks if the client player has the specified stage.
      *
      * @param player The player to check.
-     * @param stage The stage to check for.
+     * @param stage  The stage to check for.
      * @return Whether the player has the stage.
      */
     public static boolean clientHasStage(@Nullable EntityPlayer player, String stage) {

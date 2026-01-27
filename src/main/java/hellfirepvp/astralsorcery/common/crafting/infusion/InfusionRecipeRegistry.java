@@ -61,14 +61,14 @@ public class InfusionRecipeRegistry {
 
     public static void cacheLocalRecipes() {
         // localFallbackCache is a List, not ItemStack - use isEmpty() check
-        if (localFallbackCache == null || localFallbackCache.stackSize <= 0) {
+        if (localFallbackCache == null || localFallbackCache.isEmpty()) {
             localFallbackCache.addAll(recipes);
         }
     }
 
     public static void loadFromFallback() {
         // localFallbackCache is a List, not ItemStack - use isEmpty() check
-        if (!localFallbackCache == null || localFallbackCache.stackSize <= 0) {
+        if (!(localFallbackCache == null || localFallbackCache.isEmpty())) {
             recipes.addAll(localFallbackCache);
         }
     }

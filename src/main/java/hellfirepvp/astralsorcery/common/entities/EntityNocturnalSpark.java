@@ -120,20 +120,27 @@ public class EntityNocturnalSpark extends EntityThrowable implements EntityTechn
                 // 1.7.10: getPossibleCreatures takes world coordinates (x, y, z), not chunk coords
                 List<BiomeGenBase.SpawnListEntry> list = ((WorldServer) worldObj).getChunkProvider()
                     .getPossibleCreatures(EnumCreatureType.monster, pos.getX(), pos.getY(), pos.getZ());
-                list = net.minecraftforge.event.ForgeEventFactory
-                    .getPotentialSpawns((WorldServer) worldObj, EnumCreatureType.monster, pos.getX(), pos.getY(), pos.getZ(), list);
-                if (list == null || list == null || list.stackSize <= 0) return;
+                list = net.minecraftforge.event.ForgeEventFactory.getPotentialSpawns(
+                    (WorldServer) worldObj,
+                    EnumCreatureType.monster,
+                    pos.getX(),
+                    pos.getY(),
+                    pos.getZ(),
+                    list);
+                if (list == null  || list.isEmpty()) return;
                 BiomeGenBase.SpawnListEntry entry = list.get(rand.nextInt(list.size())); // Intentionally non-weighted.
                 // 1.7.10: entityClass is a public field, method is getGameRuleBooleanValue
                 if (worldObj.getGameRules()
-                    .getGameRuleBooleanValue("mobGriefing") && EntityCreeper.class.isAssignableFrom(entry.entityClass)) return; // No.
+                    .getGameRuleBooleanValue("mobGriefing") && EntityCreeper.class.isAssignableFrom(entry.entityClass))
+                    return; // No.
 
                 // 1.7.10: BARRIER doesn't exist, check directly
                 Block down = worldObj.getBlock(bp.getX(), bp.getY(), bp.getZ());
                 boolean canAtAll = down != Blocks.bedrock;
                 if (canAtAll && worldObj.isAirBlock(pos.getX(), pos.getY(), pos.getZ())) {
                     // 1.7.10: Create entity using reflection or direct constructor
-                    EntityLiving entity = (EntityLiving) entry.entityClass.getConstructor(World.class).newInstance(worldObj);
+                    EntityLiving entity = (EntityLiving) entry.entityClass.getConstructor(World.class)
+                        .newInstance(worldObj);
                     entity.setPositionAndRotation(
                         pos.getX() + 0.5,
                         pos.getY(),

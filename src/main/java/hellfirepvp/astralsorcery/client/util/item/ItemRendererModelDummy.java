@@ -11,6 +11,8 @@ package hellfirepvp.astralsorcery.client.util.item;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.ResourceLocation;
 
+import com.google.common.base.Function;
+
 import hellfirepvp.astralsorcery.common.migration.IBakedModel;
 import hellfirepvp.astralsorcery.common.migration.IModel;
 import hellfirepvp.astralsorcery.common.migration.IModelState;
@@ -41,7 +43,7 @@ public class ItemRendererModelDummy implements IModel {
 
     @Override
     public IBakedModel bake(IModelState state, VertexFormat format,
-        hellfirepvp.astralsorcery.common.migration.Function<ResourceLocation, TextureAtlasSprite> bakedTextureGetter) {
+        Function<ResourceLocation, TextureAtlasSprite> bakedTextureGetter) {
         return new DummyVanillaBakedModel();
     }
 

@@ -14,7 +14,6 @@ import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
-import net.minecraft.world.World;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -47,15 +46,14 @@ public class TileCelestialCrystals extends TileSkybound {
 
     private static final Random rand = new Random();
 
-    @Override
-    public boolean shouldRefresh(World world, BlockPos pos, Block oldState, Block newSate) {
-        return oldState != newSate;
-    }
+    // shouldRefresh not available in 1.7.10 - removed
 
     public int getGrowth() {
-        Block state = world.getBlock(getPos());
-        if (!(state instanceof BlockCelestialCrystals)) return 0;
-        return state.getValue(BlockCelestialCrystals.STAGE);
+        // 1.7.10: use getWorld() and metadata instead of getValue()
+        Block block = getWorld().getBlock(getPos().getX(), getPos().getY(), getPos().getZ());
+        if (!(block instanceof BlockCelestialCrystals)) return 0;
+        // In 1.7.10, stage is stored as metadata
+        return getWorld().getBlockMetadata(getPos().getX(), getPos().getY(), getPos().getZ());
     }
 
     @Override
@@ -64,21 +62,25 @@ public class TileCelestialCrystals extends TileSkybound {
 
         if (!getWorld().isRemote) {
             double mul = 1;
-            Block downState = world.getBlock(getPos().down());
-            if (downState == BlocksAS.customOre
-                && downState.getValue(BlockCustomOre.ORE_TYPE) == BlockCustomOre.OreType.STARMETAL) {
+            BlockPos downPos = getPos().down();
+            Block downBlock = getWorld().getBlock(downPos.getX(), downPos.getY(), downPos.getZ());
+            int downMeta = getWorld().getBlockMetadata(downPos.getX(), downPos.getY(), downPos.getZ());
+            // 1.7.10: Check metadata instead of property
+            if (downBlock == BlocksAS.customOre && downMeta == BlockCustomOre.OreType.STARMETAL.ordinal()) {
                 mul *= 0.3;
 
                 if (rand.nextInt(300) == 0) {
-                    BlockPos downPos = getPos().add(0, -1, 0);
-                    world.setBlock(downPos.getX(), downPos.getY(), downPos.getZ(), Blocks.IRON_ORE, 0, 3);
+                    // 1.7.10: Use Blocks.iron_ore instead of IRON_ORE
+                    getWorld().setBlock(downPos.getX(), downPos.getY(), downPos.getZ(), Blocks.iron_ore, 0, 3);
                 }
             }
             tryGrowth(mul);
         } else {
-            Block downState = world.getBlock(getPos().down());
-            if (downState == BlocksAS.customOre
-                && downState.getValue(BlockCustomOre.ORE_TYPE) == BlockCustomOre.OreType.STARMETAL) {
+            BlockPos downPos = getPos().down();
+            Block downBlock = getWorld().getBlock(downPos.getX(), downPos.getY(), downPos.getZ());
+            int downMeta = getWorld().getBlockMetadata(downPos.getX(), downPos.getY(), downPos.getZ());
+            // 1.7.10: Check metadata instead of property
+            if (downBlock == BlocksAS.customOre && downMeta == BlockCustomOre.OreType.STARMETAL.ordinal()) {
                 playStarmetalOreParticles();
             }
             int stage = getGrowth();
@@ -91,10 +93,11 @@ public class TileCelestialCrystals extends TileSkybound {
     @SideOnly(Side.CLIENT)
     private void playHarvestEffects() {
         if (rand.nextInt(15) == 0) {
+            // 1.7.10: use getPos() instead of pos
             EntityFXFacingParticle p = EffectHelper.genericFlareParticle(
-                pos.getX() + 0.3 + rand.nextFloat() * 0.4,
-                pos.getY() + rand.nextFloat() * 0.1,
-                pos.getZ() + 0.3 + rand.nextFloat() * 0.4);
+                getPos().getX() + 0.3 + rand.nextFloat() * 0.4,
+                getPos().getY() + rand.nextFloat() * 0.1,
+                getPos().getZ() + 0.3 + rand.nextFloat() * 0.4);
             p.motion(0, rand.nextFloat() * 0.05, 0);
             p.setColor(Color.WHITE);
             p.scale(0.2F);
@@ -104,11 +107,12 @@ public class TileCelestialCrystals extends TileSkybound {
     @SideOnly(Side.CLIENT)
     private void playStarmetalOreParticles() {
         if (rand.nextInt(5) == 0) {
+            // 1.7.10: use getPos() instead of pos
             EntityFXFacingParticle p = EffectHelper.genericFlareParticle(
-                pos.getX() + rand.nextFloat(),
-                pos.down()
+                getPos().getX() + rand.nextFloat(),
+                getPos().down()
                     .getY() + rand.nextFloat(),
-                pos.getZ() + rand.nextFloat());
+                getPos().getZ() + rand.nextFloat());
             p.motion(0, rand.nextFloat() * 0.05, 0);
             p.scale(0.2F);
         }
@@ -130,25 +134,27 @@ public class TileCelestialCrystals extends TileSkybound {
     protected void onFirstTick() {}
 
     public void grow() {
-        Block current = world.getBlock(getPos());
-        int stage = current.getValue(BlockCelestialCrystals.STAGE);
-        if (stage < 4) {
-            Block next = BlocksAS.celestialCrystals;
-            world.setBlock(getPos().getX(), getPos().getY(), getPos().getZ(), next);
+        // 1.7.10: use getWorld() and metadata instead of getValue()
+        int metadata = getWorld().getBlockMetadata(getPos().getX(), getPos().getY(), getPos().getZ());
+        if (metadata < 4) {
+            // Increment stage by setting new metadata
+            getWorld().setBlockMetadataWithNotify(getPos().getX(), getPos().getY(), getPos().getZ(), metadata + 1, 3);
         }
     }
 
     public void tryGrowth(double mul) {
         int r = 24000;
+        // 1.7.10: use getWorld() instead of world
         WorldSkyHandler handle = ConstellationSkyHandler.getInstance()
-            .getWorldHandler(world);
+            .getWorldHandler(getWorld());
         if (doesSeeSky() && handle != null) {
             double dstr = ConstellationSkyHandler.getInstance()
-                .getCurrentDaytimeDistribution(world);
+                .getCurrentDaytimeDistribution(getWorld());
             if (dstr > 0) {
+                // 1.7.10: Use getWorld().provider.dimensionId instead of world.provider.dimensionId
                 Collection<IConstellation> activeConstellations = ((DataActiveCelestials) SyncDataHolder
                     .getDataClient(SyncDataHolder.DATA_CONSTELLATIONS))
-                        .getActiveConstellations(world.provider.dimensionId);
+                        .getActiveConstellations(getWorld().provider.dimensionId);
                 if (activeConstellations != null) {
                     r = 9500; // If this dim has sky handling active.
                 }
@@ -157,7 +163,7 @@ public class TileCelestialCrystals extends TileSkybound {
         }
         r *= Math.abs(mul);
 
-        if (world.rand.nextInt(Math.max(r, 6000)) == 0) {
+        if (getWorld().rand.nextInt(Math.max(r, 6000)) == 0) {
             grow();
         }
     }

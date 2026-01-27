@@ -8,8 +8,7 @@
 
 package hellfirepvp.astralsorcery.common.tile.base;
 
-
-import net.minecraft.util.EnumChatFormatting;import java.util.LinkedList;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -17,6 +16,9 @@ import javax.annotation.Nonnull;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 
 import com.google.common.collect.Lists;
@@ -63,7 +65,7 @@ public abstract class TileTransmissionBase extends TileNetwork implements IStarl
             }
             player.addChatMessage(
                 new ChatComponentTranslation("misc.link.unlink.all")
-                    .setStyle(new Style().setColor(EnumChatFormatting.GREEN)));
+                    .setChatStyle(new ChatStyle().setColor(EnumChatFormatting.GREEN)));
             return false;
         }
         return true;

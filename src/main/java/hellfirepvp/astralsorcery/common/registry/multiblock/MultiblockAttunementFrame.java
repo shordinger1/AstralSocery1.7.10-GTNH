@@ -56,25 +56,42 @@ public class MultiblockAttunementFrame {
 
     private final String[][] shape = new String[][] {
         // Y = -1 (Base floor)
-        {"CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC"},
-        {"CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC"},
+        { "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC",
+            "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CCCCCCCC", "CCCCCCCC",
+            "CCCCCCCC" },
+        { "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC",
+            "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC",
+            "CCCCCCCC" },
 
         // Y = 0 (Altar at center, pillars at corners)
-        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "U       ", "        ", "        ", "        ", "        ", "        ", "        ", "U       ", "        ", "        ", "        "},
-        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
-        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "   A    ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
+        { "        ", "        ", "        ", "        ", "        ", "        ", "        ", "U       ", "        ",
+            "        ", "        ", "        ", "        ", "        ", "U       ", "        ", "        ",
+            "        " },
+        { "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ",
+            "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ",
+            "        " },
+        { "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "   A    ",
+            "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ",
+            "        " },
 
         // Y = 1 (Pillars)
-        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        ", "        "},
+        { "        ", "        ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ",
+            "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        ",
+            "        " },
 
         // Y = 2 (Pillars)
-        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        ", "        "},
+        { "        ", "        ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ",
+            "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        ",
+            "        " },
 
         // Y = 3 (Pillars)
-        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        ", "        "},
+        { "        ", "        ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ",
+            "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        ",
+            "        " },
 
         // Y = 4 (Pillar tops)
-        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "H       ", "        ", "        ", "        ", "        ", "        ", "        ", "H       ", "        ", "        ", "        "},
-    };
+        { "        ", "        ", "        ", "        ", "        ", "        ", "        ", "H       ", "        ",
+            "        ", "        ", "        ", "        ", "        ", "H       ", "        ", "        ",
+            "        " }, };
 
 }

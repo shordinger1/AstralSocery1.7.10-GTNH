@@ -12,14 +12,13 @@ import net.minecraft.item.ItemStack;
 
 import hellfirepvp.astralsorcery.common.crafting.ItemHandle;
 import hellfirepvp.astralsorcery.common.crafting.registry.ASRecipeUtils;
-import hellfirepvp.astralsorcery.common.lib.ItemsAS;
 
 /**
  * Utility class for Astral Sorcery recipe helpers
  * Replaces CraftTweaker-based Utils class
  *
  * Usage:
- *   ItemHandle handle = Utils.getCrystalHandle(false, false);
+ * ItemHandle handle = Utils.getCrystalHandle(false, false);
  */
 public final class Utils {
 

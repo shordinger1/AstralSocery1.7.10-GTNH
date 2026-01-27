@@ -10,7 +10,6 @@ package hellfirepvp.astralsorcery.common.entities;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.EnumFacing;
 
 import hellfirepvp.astralsorcery.common.block.fluid.FluidBlockLiquidStarlight;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
@@ -39,7 +38,8 @@ public interface EntityStarlightReacttant {
         BlockPos down = at.down();
         state = e.worldObj.getBlock(down.getX(), down.getY(), down.getZ());
         // 1.7.10: Block.isSideSolid doesn't exist, check if block is solid via material
-        return state.getMaterial().isSolid();
+        return state.getMaterial()
+            .isSolid();
     }
 
 }

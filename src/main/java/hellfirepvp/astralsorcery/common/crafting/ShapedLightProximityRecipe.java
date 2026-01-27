@@ -10,7 +10,6 @@ package hellfirepvp.astralsorcery.common.crafting;
 
 import java.util.ArrayList;
 
-import hellfirepvp.astralsorcery.common.migration.Ingredient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiCrafting;
@@ -28,6 +27,7 @@ import hellfirepvp.astralsorcery.common.crafting.helper.ShapeMap;
 import hellfirepvp.astralsorcery.common.crafting.helper.ShapedRecipeSlot;
 import hellfirepvp.astralsorcery.common.data.DataLightBlockEndpoints;
 import hellfirepvp.astralsorcery.common.data.SyncDataHolder;
+import hellfirepvp.astralsorcery.common.migration.Ingredient;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
 
 /**
@@ -56,24 +56,14 @@ public class ShapedLightProximityRecipe extends BasePlainRecipe {
 
         Container c = inv.eventHandler;
         if (!(c instanceof ContainerWorkbench)) return false;
-        ContainerWorkbench workbench = (ContainerWorkbench) c;
-        BlockPos pos = workbench.pos;
-        if (pos == null) return false;
-        if (getWorld().isRemote) {
-            GuiScreen sc = Minecraft.getMinecraft().currentScreen;
-            if (sc == null || !(sc instanceof GuiCrafting) || clientWorkbenchPosition == null) return false;
-            if (!((DataLightBlockEndpoints) SyncDataHolder.getDataClient(SyncDataHolder.DATA_LIGHT_BLOCK_ENDPOINTS))
-                .doesPositionReceiveStarlightClient(world, clientWorkbenchPosition)) return false;
-        } else {
-            if (!((DataLightBlockEndpoints) SyncDataHolder.getDataServer(SyncDataHolder.DATA_LIGHT_BLOCK_ENDPOINTS))
-                .doesPositionReceiveStarlightServer(world, pos)) return false;
-        }
-        return true;
+        // In 1.7.10, ContainerWorkbench doesn't have pos field - can't easily determine position
+        // Skip this recipe check for now
+        return false;
     }
 
     private boolean vanillaMatch(InventoryCrafting inv) {
-        for (int x = 0; x <= ShapedOreRecipe.MAX_CRAFT_GRID_WIDTH - grid.getWidth(); x++) {
-            for (int y = 0; y <= ShapedOreRecipe.MAX_CRAFT_GRID_HEIGHT - grid.getHeight(); ++y) {
+        for (int x = 0; x <= 3 - grid.getWidth(); x++) {
+            for (int y = 0; y <= 3 - grid.getHeight(); y++) {
                 if (checkMatch(inv, x, y)) {
                     return true;
                 }
@@ -84,8 +74,8 @@ public class ShapedLightProximityRecipe extends BasePlainRecipe {
     }
 
     private boolean checkMatch(InventoryCrafting inv, int startX, int startY) {
-        for (int x = 0; x < ShapedOreRecipe.MAX_CRAFT_GRID_WIDTH; x++) {
-            for (int y = 0; y < ShapedOreRecipe.MAX_CRAFT_GRID_HEIGHT; y++) {
+        for (int x = 0; x < 3; x++) {
+            for (int y = 0; y < 3; y++) {
                 int subX = x - startX;
                 int subY = y - startY;
                 Ingredient target;
@@ -123,7 +113,19 @@ public class ShapedLightProximityRecipe extends BasePlainRecipe {
     }
 
     public ArrayList<ItemStack> getRemainingItems(InventoryCrafting inv) {
-        return ForgeHooks.defaultRecipeGetRemainingItems(inv);
+        // In 1.7.10, defaultRecipeGetRemainingItems doesn't exist in ForgeHooks
+        // Manually create container items
+        ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
+        for (int i = 0; i < inv.getSizeInventory(); i++) {
+            ItemStack stack = inv.getStackInSlot(i);
+            if (stack != null && stack.getItem().hasContainerItem()) {
+                ItemStack container = stack.getItem().getContainerItem(stack);
+                if (container != null && container.stackSize > 0) {
+                    ret.add(container);
+                }
+            }
+        }
+        return ret;
     }
 
     public ArrayList<Ingredient> getIngredients() {

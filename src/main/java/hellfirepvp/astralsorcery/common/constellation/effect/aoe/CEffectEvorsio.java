@@ -93,16 +93,17 @@ public class CEffectEvorsio extends CEffectPositionListGen<BlockBreakAssist.Brea
                 TileRitualPedestal.class);
             if (pedestal != null) {
                 if (copyResizedPedestal == null) {
-                    if (MultiBlockArrays.patternRitualPedestalWithLink != null) {
+                    BlockArray basePattern = (BlockArray) MultiBlockArrays.patternRitualPedestal;
+                    if (basePattern != null) {
                         copyResizedPedestal = new BlockArray();
                         // 1.7.10: Java 7 doesn't support lambdas, iterate manually
                         for (int i = 0; i < 5; i++) {
-                            for (BlockPos p : MultiBlockArrays.patternRitualPedestalWithLink.getPattern()
-                                .keySet()) {
+                            for (java.util.Map.Entry<BlockPos, BlockArray.BlockInformation> entry : basePattern
+                                .getPattern()
+                                .entrySet()) {
+                                BlockPos p = entry.getKey();
+                                BlockArray.BlockInformation info = entry.getValue();
                                 BlockPos offset = new BlockPos(p.getX(), p.getY() + i, p.getZ());
-                                BlockArray.BlockInformation info = MultiBlockArrays.patternRitualPedestalWithLink
-                                    .getPattern()
-                                    .get(p);
                                 copyResizedPedestal.addBlock(offset, info.state);
                             }
                         }
@@ -129,7 +130,10 @@ public class CEffectEvorsio extends CEffectPositionListGen<BlockBreakAssist.Brea
 
     @Override
     public BlockBreakAssist.BreakEntry newElement(World world, BlockPos at) {
-        return new BlockBreakAssist.BreakEntry(0F, world, at, world.getBlock(at.getX(), at.getY(), at.getZ()));
+        // 1.7.10: BlockBreakAssist.BreakEntry constructor needs metadata
+        Block block = world.getBlock(at.getX(), at.getY(), at.getZ());
+        int metadata = world.getBlockMetadata(at.getX(), at.getY(), at.getZ());
+        return new BlockBreakAssist.BreakEntry(0F, world, at, block, metadata);
     }
 
     @Override
@@ -217,18 +221,19 @@ public class CEffectEvorsio extends CEffectPositionListGen<BlockBreakAssist.Brea
                         return false;
                     }
                     BlockArray ba = new BlockArray();
-                    if (MultiBlockArrays.patternRitualPedestalWithLink != null) {
+                    BlockArray basePattern = (BlockArray) MultiBlockArrays.patternRitualPedestal;
+                    if (basePattern != null) {
                         // 1.7.10: Java 7 doesn't support lambdas, iterate manually
                         for (int i = 0; i < 5; i++) {
-                            for (BlockPos p : MultiBlockArrays.patternRitualPedestalWithLink.getPattern()
-                                .keySet()) {
+                            for (java.util.Map.Entry<BlockPos, BlockArray.BlockInformation> entry : basePattern
+                                .getPattern()
+                                .entrySet()) {
+                                BlockPos p = entry.getKey();
+                                BlockArray.BlockInformation info = entry.getValue();
                                 BlockPos offset = new BlockPos(
                                     pos.getX() + p.getX(),
                                     pos.getY() + p.getY() + i,
                                     pos.getZ() + p.getZ());
-                                BlockArray.BlockInformation info = MultiBlockArrays.patternRitualPedestalWithLink
-                                    .getPattern()
-                                    .get(p);
                                 ba.addBlock(offset, info.state);
                             }
                         }

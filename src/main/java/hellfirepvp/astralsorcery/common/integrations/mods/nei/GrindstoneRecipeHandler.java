@@ -12,6 +12,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
+import codechicken.nei.recipe.TemplateRecipeHandler;
 import net.minecraft.item.ItemStack;
 
 import hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipe;

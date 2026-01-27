@@ -9,6 +9,7 @@
 package hellfirepvp.astralsorcery.common.block;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
@@ -31,7 +32,6 @@ import hellfirepvp.astralsorcery.common.data.config.Config;
 import hellfirepvp.astralsorcery.common.item.crystal.base.ItemRockCrystalBase;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
 import hellfirepvp.astralsorcery.common.migration.BlockStateContainer;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.migration.IStringSerializable;
 import hellfirepvp.astralsorcery.common.migration.PropertyEnum;
 import hellfirepvp.astralsorcery.common.network.packet.server.PktParticleEvent;
@@ -64,14 +64,8 @@ public class BlockCustomOre extends Block implements BlockCustomName, BlockVaria
         this.blockState = new BlockStateContainer(this, ORE_TYPE);
     }
 
-    public IBlockState getDefaultState() {
-        return this.blockState.getBaseState()
-            .withProperty(ORE_TYPE, OreType.ROCK_CRYSTAL);
-    }
-
-    protected void setDefaultState(IBlockState state) {
-        // In 1.7.10, default state is tracked separately
-    }
+    // In 1.7.10, default state is represented by default metadata (0)
+    // OreType.ROCK_CRYSTAL has meta 0, so no special handling needed
 
     @Override
     public void breakBlock(World worldIn, int x, int y, int z, Block block, int meta) {
@@ -90,18 +84,18 @@ public class BlockCustomOre extends Block implements BlockCustomName, BlockVaria
         }
     }
 
-    public int getMetaFromState(IBlockState state) {
-        OreType type = state.getValue(ORE_TYPE);
-        return type.getMeta();
-    }
+    // In 1.7.10, getMetaFromState and getStateFromMeta don't exist
+    // Metadata is handled directly
 
-    public IBlockState getStateFromMeta(int meta) {
-        return meta < OreType.values().length ? getDefaultState().withProperty(ORE_TYPE, OreType.values()[meta])
-            : getDefaultState();
-    }
-
-    protected BlockStateContainer createBlockState() {
-        return new BlockStateContainer(this, ORE_TYPE);
+    @Override
+    public List<Block> getValidStates() {
+        List<Block> ret = new LinkedList<>();
+        // In 1.7.10, all variants are the same block with different metadata
+        // Return the block itself once for each variant type
+        for (OreType type : OreType.values()) {
+            ret.add(this);
+        }
+        return ret;
     }
 
     @Override
@@ -176,13 +170,14 @@ public class BlockCustomOre extends Block implements BlockCustomName, BlockVaria
 
     @Override
     public String getIdentifierForMeta(int meta) {
-        OreType ot = getStateFromMeta(meta).getValue(ORE_TYPE);
+        OreType ot = OreType.values()[meta >= OreType.values().length ? 0 : meta];
         return ot.getName();
     }
 
     @Override
-    public List<IBlockState> getValidStates() {
-        return singleEnumPropertyStates(getDefaultState(), ORE_TYPE, OreType.values());
+    public String getStateName(int metadata) {
+        OreType ot = OreType.values()[metadata >= OreType.values().length ? 0 : metadata];
+        return ot.getName();
     }
 
     public boolean canSilkHarvest(World world, int x, int y, int z, int metadata, EntityPlayer player) {
@@ -193,12 +188,6 @@ public class BlockCustomOre extends Block implements BlockCustomName, BlockVaria
             }
         }
         return false;
-    }
-
-    @Override
-    public String getStateName(IBlockState state) {
-        return state.getValue(ORE_TYPE)
-            .getName();
     }
 
     @SideOnly(Side.CLIENT)

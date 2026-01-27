@@ -18,6 +18,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 
 import com.cleanroommc.modularui.utils.item.ItemStackHandler;
+
 import hellfirepvp.astralsorcery.common.util.ItemUtils;
 
 /**
@@ -87,11 +88,6 @@ public class TileInventoryBase extends TileEntityTick {
     }
 
     protected void onInventoryChanged(int slotChanged) {}
-
-    @Override
-    public void tick() {
-
-    }
 
     public static class ItemHandlerTileFiltered extends ItemHandlerTile {
 

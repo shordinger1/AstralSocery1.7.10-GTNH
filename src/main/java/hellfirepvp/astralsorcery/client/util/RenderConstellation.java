@@ -81,7 +81,7 @@ public class RenderConstellation {
                     .add(
                         dirV.clone()
                             .multiply(con.to.y + 1));
-                Vector3 vecCV = vecB.add(-vecA.posX, -vecA.posY, -vecA.posZ);
+                Vector3 vecCV = vecB.add(-vecA.getX(), -vecA.getY(), -vecA.getZ());
                 Vector3 oPane = dirV.clone()
                     .crossProduct(vecCV);
                 Vector3 vecAD = oPane.clone()
@@ -304,7 +304,7 @@ public class RenderConstellation {
                     .add(
                         dirV.clone()
                             .multiply(con.to.y + 1));
-                Vector3 vecCV = vecB.add(-vecA.posX, -vecA.posY, -vecA.posZ);
+                Vector3 vecCV = vecB.add(-vecA.getX(), -vecA.getY(), -vecA.getZ());
                 Vector3 oPane = dirV.clone()
                     .crossProduct(vecCV);
                 Vector3 vecAD = oPane.clone()

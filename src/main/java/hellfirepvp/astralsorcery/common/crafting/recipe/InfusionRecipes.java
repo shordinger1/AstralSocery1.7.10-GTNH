@@ -22,16 +22,16 @@ import hellfirepvp.astralsorcery.common.crafting.registry.ASRecipeUtils;
  * This replaces the CraftTweaker script-based approach:
  *
  * OLD (ZenScript):
- *   mods.astralsorcery.StarlightInfusion.addInfusion(<minecraft:iron_ingot>, <minecraft:gold_ingot>, false, 0.5, 100);
+ * mods.astralsorcery.StarlightInfusion.addInfusion(<minecraft:iron_ingot>, <minecraft:gold_ingot>, false, 0.5, 100);
  *
  * NEW (Java):
- *   ASRecipe.builder(ASRecipe.Type.INFUSION)
- *       .input(ASRecipeUtils.handle(new ItemStack(Items.iron_ingot)))
- *       .output(new ItemStack(Items.gold_ingot))
- *       .consumeMultiple(false)
- *       .consumptionChance(0.5F)
- *       .duration(100)
- *       .addTo(ASRecipeMaps.INFUSION);
+ * ASRecipe.builder(ASRecipe.Type.INFUSION)
+ * .input(ASRecipeUtils.handle(new ItemStack(Items.iron_ingot)))
+ * .output(new ItemStack(Items.gold_ingot))
+ * .consumeMultiple(false)
+ * .consumptionChance(0.5F)
+ * .duration(100)
+ * .addTo(ASRecipeMaps.INFUSION);
  */
 public class InfusionRecipes {
 
@@ -50,20 +50,20 @@ public class InfusionRecipes {
 
         // Example: Using ore dictionary
         // ASRecipe.builder(ASRecipe.Type.INFUSION)
-        //     .inputs(ASRecipeUtils.oreHandle("ingotIron"))
-        //     .output(new ItemStack(Items.gold_ingot))
-        //     .consumeMultiple(false)
-        //     .consumptionChance(0.5F)
-        //     .duration(100)
-        //     .addTo(ASRecipeMaps.INFUSION);
+        // .inputs(ASRecipeUtils.oreHandle("ingotIron"))
+        // .output(new ItemStack(Items.gold_ingot))
+        // .consumeMultiple(false)
+        // .consumptionChance(0.5F)
+        // .duration(100)
+        // .addTo(ASRecipeMaps.INFUSION);
 
         // Example: Using crystal helper
         // ASRecipe.builder(ASRecipe.Type.INFUSION)
-        //     .inputs(ASRecipeUtils.anyCrystal())
-        //     .output(new ItemStack(Items.diamond))
-        //     .consumeMultiple(true)
-        //     .consumptionChance(0.3F)
-        //     .duration(200)
-        //     .addTo(ASRecipeMaps.INFUSION);
+        // .inputs(ASRecipeUtils.anyCrystal())
+        // .output(new ItemStack(Items.diamond))
+        // .consumeMultiple(true)
+        // .consumptionChance(0.3F)
+        // .duration(200)
+        // .addTo(ASRecipeMaps.INFUSION);
     }
 }

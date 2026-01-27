@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 
 /**
@@ -27,7 +28,11 @@ public class CraftingRecipeHelper {
 
     public static List<IRecipe> findRecipesWithOutput(ItemStack stack) {
         List<IRecipe> ir = new LinkedList<>();
-        for (IRecipe rec : ForgeRegistries.RECIPES) {
+        // 1.7.10: Use CraftingManager instead of ForgeRegistries
+        @SuppressWarnings("unchecked")
+        List<IRecipe> recipes = CraftingManager.getInstance()
+            .getRecipeList();
+        for (IRecipe rec : recipes) {
             if (ItemComparator
                 .compare(stack, rec.getRecipeOutput(), ItemComparator.Clause.ITEM, ItemComparator.Clause.META_STRICT)) {
                 ir.add(rec);

@@ -23,7 +23,6 @@ import net.minecraft.world.World;
 
 import hellfirepvp.astralsorcery.common.item.ItemCraftingComponent;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.migration.IStringSerializable;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
 
@@ -89,19 +88,36 @@ public class BlockCustomSandOre extends BlockFalling implements BlockCustomName,
     }
 
     @Override
-    public List<IBlockState> getValidStates() {
-        List<IBlockState> ret = new LinkedList<>();
+    public List<Block> getValidStates() {
+        List<Block> ret = new LinkedList<>();
+        // In 1.7.10, all variants are the same block with different metadata
+        // Return the block itself once for each variant type
         for (OreType type : OreType.values()) {
-            ret.add(new IBlockState(this, type.ordinal()));
+            ret.add(this);
         }
         return ret;
     }
 
     @Override
-    public String getStateName(IBlockState state) {
-        OreType type = OreType.byMetadata(state.getMetadata());
+    public String getStateName(int metadata) {
+        OreType type = OreType.byMetadata(metadata);
         return type.getName();
     }
+
+//    @Override
+//     public List<IBlockState> getValidStates() {
+//         List<IBlockState> ret = new LinkedList<>();
+//         for (OreType type : OreType.values()) {
+//             ret.add(new IBlockState(this, type.ordinal()));
+//         }
+//         return ret;
+//     }
+
+//    @Override
+//     public String getStateName(IBlockState state) {
+//         OreType type = OreType.byMetadata(state.getMetadata());
+//         return type.getName();
+//     }
 
     public enum OreType implements IStringSerializable {
 

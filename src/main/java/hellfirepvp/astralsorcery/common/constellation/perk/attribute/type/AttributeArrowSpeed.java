@@ -36,8 +36,8 @@ public class AttributeArrowSpeed extends PerkAttributeType {
 
     @SubscribeEvent
     public void onArrowFire(EntityJoinWorldEvent event) {
-        if (event.getEntity() instanceof EntityArrow) {
-            EntityArrow arrow = (EntityArrow) event.getEntity();
+        if (event.entity instanceof EntityArrow) {
+            EntityArrow arrow = (EntityArrow) event.entity;
             if (arrow.shootingEntity != null && arrow.shootingEntity instanceof EntityPlayer) {
                 EntityPlayer player = (EntityPlayer) arrow.shootingEntity;
                 Side side = player.worldObj.isRemote ? Side.CLIENT : Side.SERVER;

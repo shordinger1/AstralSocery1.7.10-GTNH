@@ -10,12 +10,12 @@ package hellfirepvp.astralsorcery.common.container;
 
 import javax.annotation.Nonnull;
 
-import com.cleanroommc.modularui.utils.item.SlotItemHandler;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 
 import com.cleanroommc.modularui.utils.item.IItemHandler;
+import com.cleanroommc.modularui.utils.item.SlotItemHandler;
 
 import hellfirepvp.astralsorcery.common.item.base.ItemConstellationFocus;
 import hellfirepvp.astralsorcery.common.tile.TileAltar;

@@ -69,9 +69,9 @@ public class ActiveInfusionTask {
         // 1.7.10: Iterate through player list to find player by UUID
         for (EntityPlayer player : FMLCommonHandler.instance()
             .getMinecraftServerInstance()
-            .getConfigurationManager()
-            .playerEntityList) {
-            if (player.getUniqueID().equals(playerCraftingUUID)) {
+            .getConfigurationManager().playerEntityList) {
+            if (player.getUniqueID()
+                .equals(playerCraftingUUID)) {
                 return player;
             }
         }
@@ -103,7 +103,8 @@ public class ActiveInfusionTask {
                     || test.getTank()
                         .getFluid() == null
                     || !(test.getTank()
-                        .getFluid().getFluidID() == fl.getFluidID()
+                        .getFluid()
+                        .getFluidID() == fl.getFluidID()
                         && test.getTank()
                             .getFluid().amount >= fl.amount)) {
                     iterator.remove();
@@ -138,7 +139,7 @@ public class ActiveInfusionTask {
 
     public boolean isFinished() {
         return ticksCrafting >= (recipeToCraft.craftingTickTime()
-            * (recipeToCraft.canBeSupportedByChalice() && !supportingChalices == null || supportingChalices.stackSize <= 0 ? 0.3F : 1F));
+            * (recipeToCraft.canBeSupportedByChalice() && !supportingChalices.isEmpty() ? 0.3F : 1F));
     }
 
     public void forceTick(int tick) {

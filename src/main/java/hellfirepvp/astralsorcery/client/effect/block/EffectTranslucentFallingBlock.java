@@ -11,7 +11,6 @@ package hellfirepvp.astralsorcery.client.effect.block;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.WorldType;
 import net.minecraft.world.biome.BiomeGenBase;
 
 import org.lwjgl.opengl.GL11;
@@ -216,7 +215,7 @@ public class EffectTranslucentFallingBlock extends EntityComplexFX {
 
         // In 1.7.10, we use Tessellator directly instead of WorldRenderer
         tes.startDrawing(GL11.GL_QUADS);
-        IBlockAccess world = new AirBlockRenderWorld(BiomeGenBase.plains, WorldType.DEFAULT);
+        IBlockAccess world = new AirBlockRenderWorld(BiomeGenBase.plains);
         RenderingUtils.renderBlockSafely(world, BlockPos.ORIGIN, this.blockState, tes);
         tes.draw();
 

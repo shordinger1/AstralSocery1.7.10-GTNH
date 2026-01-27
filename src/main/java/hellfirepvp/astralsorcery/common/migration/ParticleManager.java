@@ -5,9 +5,10 @@
 
 package hellfirepvp.astralsorcery.common.migration;
 
-import hellfirepvp.astralsorcery.common.util.BlockPos;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.texture.TextureManager;
+
+import hellfirepvp.astralsorcery.common.util.BlockPos;
 
 /**
  * Compatibility alias for 1.7.10

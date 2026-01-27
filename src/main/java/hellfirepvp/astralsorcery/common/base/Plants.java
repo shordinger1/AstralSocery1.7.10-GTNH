@@ -53,7 +53,7 @@ public enum Plants {
         List<Block> available = new LinkedList<>();
         // 1.7.10: BlockVariants doesn't exist, just add the block
         available.add(block);
-        if (available == null || available.stackSize <= 0) {
+        if (available.isEmpty()) {
             available.add(block);
         }
         return available;
@@ -64,7 +64,7 @@ public enum Plants {
     }
 
     private Block getRandomState_Rec() {
-        if (potentialBlockStates == null || potentialBlockStates.stackSize <= 0) {
+        if (potentialBlockStates == null || potentialBlockStates.isEmpty()) {
             return getAnyRandomState(); // Unloaded mod. rec call.
         }
         return potentialBlockStates.get(rand.nextInt(potentialBlockStates.size()));
@@ -76,7 +76,7 @@ public enum Plants {
 
     public static boolean matchesAny(Block test) {
         for (Plants plant : values()) {
-            if (plant.potentialBlockStates == null || potentialBlockStates.stackSize <= 0) continue;
+            if (plant.potentialBlockStates == null || plant.potentialBlockStates.isEmpty()) continue;
 
             for (Block state : plant.potentialBlockStates) {
                 if (state.equals(test)) {

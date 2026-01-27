@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.google.common.base.Predicate;
+
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
@@ -34,7 +36,6 @@ import hellfirepvp.astralsorcery.common.data.research.PlayerProgress;
 import hellfirepvp.astralsorcery.common.data.research.ProgressionTier;
 import hellfirepvp.astralsorcery.common.data.research.ResearchNode;
 import hellfirepvp.astralsorcery.common.data.research.ResearchProgression;
-import java.util.function.Predicate;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
 
 /**
@@ -49,7 +50,7 @@ public abstract class KnowledgeFragment {
     private static final Predicate<PlayerProgress> TRUE = new Predicate<PlayerProgress>() {
 
         @Override
-        public boolean test(PlayerProgress p) {
+        public boolean apply(PlayerProgress p) {
             return true;
         }
     };
@@ -80,7 +81,7 @@ public abstract class KnowledgeFragment {
                     && MiscUtils.contains(cst, new Predicate<IConstellation>() {
 
                         @Override
-                        public boolean test(IConstellation n) {
+                        public boolean apply(IConstellation n) {
                             return n.equals(((GuiJournalConstellationDetails) journalGui).getConstellation());
                         }
                     });
@@ -90,7 +91,7 @@ public abstract class KnowledgeFragment {
             .setCanSeeTest(new Predicate<PlayerProgress>() {
 
                 @Override
-                public boolean test(PlayerProgress prog) {
+                public boolean apply(PlayerProgress prog) {
                     for (IConstellation con : cst) {
                         if (prog.hasConstellationDiscovered(con)) {
                             return true;
@@ -116,7 +117,7 @@ public abstract class KnowledgeFragment {
                 return journalGui instanceof GuiJournalPages && MiscUtils.contains(nds, new Predicate<ResearchNode>() {
 
                     @Override
-                    public boolean test(ResearchNode n) {
+                    public boolean apply(ResearchNode n) {
                         return n.equals(((GuiJournalPages) journalGui).getResearchNode());
                     }
                 });
@@ -126,7 +127,7 @@ public abstract class KnowledgeFragment {
             .setCanSeeTest(new Predicate<PlayerProgress>() {
 
                 @Override
-                public boolean test(PlayerProgress prog) {
+                public boolean apply(PlayerProgress prog) {
                     for (ResearchNode n : nds) {
                         if (!n.canSee(prog)) {
                             continue;
@@ -145,7 +146,7 @@ public abstract class KnowledgeFragment {
             .setCanDiscoverTest(new Predicate<PlayerProgress>() {
 
                 @Override
-                public boolean test(PlayerProgress prog) {
+                public boolean apply(PlayerProgress prog) {
                     for (ResearchNode n : nds) {
                         if (!n.canSee(prog)) {
                             return false;
@@ -176,7 +177,7 @@ public abstract class KnowledgeFragment {
         return new Predicate<PlayerProgress>() {
 
             @Override
-            public boolean test(PlayerProgress p) {
+            public boolean apply(PlayerProgress p) {
                 return p.getTierReached()
                     .isThisLaterOrEqual(tier);
             }
@@ -187,7 +188,7 @@ public abstract class KnowledgeFragment {
         return new Predicate<PlayerProgress>() {
 
             @Override
-            public boolean test(PlayerProgress p) {
+            public boolean apply(PlayerProgress p) {
                 return p.hasConstellationDiscovered(cst);
             }
         };
@@ -232,14 +233,14 @@ public abstract class KnowledgeFragment {
     // If the content of the knowledge fragment can be seen at the current progress
     // Might be earlier than #canDiscover
     public boolean canSee(PlayerProgress progress) {
-        return canSeeTest.test(progress);
+        return canSeeTest.apply(progress);
     }
 
     // If the knowledge fragment can be discovered at this stage
     // Might be later than #canSee
     // Always includes #canSee
     public boolean canDiscover(PlayerProgress progress) {
-        return canSeeTest.test(progress) && canDiscoverTest.test(progress);
+        return canSeeTest.apply(progress) && canDiscoverTest.apply(progress);
     }
 
     @SideOnly(Side.CLIENT)

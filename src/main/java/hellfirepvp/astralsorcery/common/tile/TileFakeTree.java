@@ -10,7 +10,6 @@ package hellfirepvp.astralsorcery.common.tile;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -68,10 +67,11 @@ public class TileFakeTree extends TileEntityTick {
     }
 
     private void cleanUp() {
+        // 1.7.10: use getWorld() instead of world
         if (fakedState != null) {
-            world.setBlock(this.xCoord, this.yCoord, this.zCoord, fakedState, 0, 3);
+            getWorld().setBlock(this.xCoord, this.yCoord, this.zCoord, fakedState, 0, 3);
         } else {
-            world.setBlockToAir(this.xCoord, this.yCoord, this.zCoord);
+            getWorld().setBlockToAir(this.xCoord, this.yCoord, this.zCoord);
         }
     }
 
@@ -124,8 +124,11 @@ public class TileFakeTree extends TileEntityTick {
             this.ta = new ClearAction();
         }
 
-        if (NBTHelper.hasUniqueId(compound, "playerEffectRef")) {
-            this.playerEffectRef = NBTHelper.getUniqueId(compound, "playerEffectRef");
+        // 1.7.10: UUID helper methods don't exist, read manually from most/least significant bits
+        if (compound.hasKey("playerEffectRefMost") && compound.hasKey("playerEffectRefLeast")) {
+            this.playerEffectRef = new UUID(
+                compound.getLong("playerEffectRefMost"),
+                compound.getLong("playerEffectRefLeast"));
         } else {
             this.playerEffectRef = null;
         }
@@ -152,15 +155,17 @@ public class TileFakeTree extends TileEntityTick {
             ta.write(compound);
         }
         if (fakedState != null) {
-            // 1.7.10: Use GameData.getBlockRegistry() instead of Block.REGISTRY
-            String name = net.minecraftforge.fml.common.registry.GameData.getBlockRegistry()
-                .getNameForObject(fakedState);
-            compound.setString("Block", name != null ? name : "");
+            // 1.7.10: Use Block.blockRegistry to get the registry name
+            Object nameObj = net.minecraft.block.Block.blockRegistry.getNameForObject(fakedState);
+            String name = nameObj != null ? nameObj.toString() : "";
+            compound.setString("Block", name);
             compound.setInteger("Data", 0); // 1.7.10: Simplified, metadata is handled differently
         }
 
+        // 1.7.10: UUID helper methods don't exist, write manually as most/least significant bits
         if (this.playerEffectRef != null) {
-            NBTHelper.setUniqueId(compound, "playerEffectRef", this.playerEffectRef);
+            compound.setLong("playerEffectRefMost", this.playerEffectRef.getMostSignificantBits());
+            compound.setLong("playerEffectRefLeast", this.playerEffectRef.getLeastSignificantBits());
         }
     }
 
@@ -185,7 +190,14 @@ public class TileFakeTree extends TileEntityTick {
 
         @Override
         public void update(TileFakeTree tft) {
-            tft.worldObj.setBlockToAir(tft.getPos());
+            // 1.7.10: setBlockToAir takes x, y, z coordinates, not BlockPos
+            tft.worldObj.setBlockToAir(
+                tft.getPos()
+                    .getX(),
+                tft.getPos()
+                    .getY(),
+                tft.getPos()
+                    .getZ());
         }
 
         @Override
@@ -205,11 +217,13 @@ public class TileFakeTree extends TileEntityTick {
             this.player = player;
             if (usedAxe != null && !(usedAxe == null || usedAxe.stackSize <= 0)) {
                 this.usedTool = usedAxe.copy();
-                Map<Enchantment, Integer> levels = EnchantmentHelper.getEnchantments(this.usedTool);
-                if (levels.containsKey(Enchantment.fortune)) {
-                    levels.put(Enchantment.fortune, levels.get(Enchantment.fortune) + 2);
+                // 1.7.10: EnchantmentHelper API differs - uses Map<Integer, Integer> not Map<Enchantment, Integer>
+                java.util.Map<Integer, Integer> levels = EnchantmentHelper.getEnchantments(this.usedTool);
+                int fortuneId = Enchantment.fortune.effectId;
+                if (levels.containsKey(fortuneId)) {
+                    levels.put(fortuneId, levels.get(fortuneId) + 2);
                 } else {
-                    levels.put(Enchantment.fortune, 2);
+                    levels.put(fortuneId, 2);
                 }
                 EnchantmentHelper.setEnchantments(levels, this.usedTool);
             } else {
@@ -227,7 +241,8 @@ public class TileFakeTree extends TileEntityTick {
                 harvestAndAppend(tft, out);
                 Vector3 plPos = Vector3.atEntityCenter(player);
                 for (ItemStack stack : out) {
-                    if (!player.addItemStackToInventory(stack)) {
+                    // 1.7.10: addItemStackToInventory doesn't exist, use inventory manipulation
+                    if (!player.inventory.addItemStackToInventory(stack)) {
                         ItemUtils.dropItemNaturally(
                             player.worldObj,
                             plPos.getX() + rand.nextFloat() - rand.nextFloat(),
@@ -248,19 +263,37 @@ public class TileFakeTree extends TileEntityTick {
                 } else {
                     ev.setAdditionalData(Color.GREEN.getRGB());
                 }
-                PacketChannel.CHANNEL.sendToAllAround(ev, PacketChannel.pointFromPos(tft.world, tft.getPos(), 24));
+                // 1.7.10: use tft.worldObj instead of tft.world
+                PacketChannel.CHANNEL.sendToAllAround(ev, PacketChannel.pointFromPos(tft.worldObj, tft.getPos(), 24));
             }
-            tft.worldObj.setBlockToAir(tft.getPos());
+            // 1.7.10: setBlockToAir takes x, y, z coordinates, not BlockPos
+            tft.worldObj.setBlockToAir(
+                tft.getPos()
+                    .getX(),
+                tft.getPos()
+                    .getY(),
+                tft.getPos()
+                    .getZ());
         }
 
         private void harvestAndAppend(TileFakeTree tft, ArrayList<ItemStack> out) {
             BlockDropCaptureAssist.startCapturing();
             try {
+                // 1.7.10: harvestBlock signature is different - doesn't have IBlockState parameter
                 tft.getFakedState()
-                    .getBlock()
-                    .harvestBlock(player.worldObj, player, tft.getPos(), tft.getFakedState(), null, usedTool);
+                    .harvestBlock(
+                        player.worldObj,
+                        player,
+                        tft.getPos()
+                            .getX(),
+                        tft.getPos()
+                            .getY(),
+                        tft.getPos()
+                            .getZ(),
+                        0);
             } finally {
-                List<ItemStack> captured = BlockDropCaptureAssist.getCapturedStacksAndStop();
+                // 1.7.10: Explicitly use java.util.List to avoid conflict with java.awt.List
+                java.util.List<ItemStack> captured = BlockDropCaptureAssist.getCapturedStacksAndStop();
                 for (ItemStack stack : captured) {
                     if (stack != null && !(stack == null || stack.stackSize <= 0)) {
                         out.add(stack);
@@ -287,8 +320,9 @@ public class TileFakeTree extends TileEntityTick {
 
         @Override
         public void update(TileFakeTree tft) {
-            if (MiscUtils.isChunkLoaded(tft.world, new ChunkPos(ref))) {
-                TileTreeBeacon beacon = MiscUtils.getTileAt(tft.world, ref, TileTreeBeacon.class, true);
+            // 1.7.10: use tft.worldObj instead of tft.world
+            if (MiscUtils.isChunkLoaded(tft.worldObj, new ChunkPos(ref))) {
+                TileTreeBeacon beacon = MiscUtils.getTileAt(tft.worldObj, ref, TileTreeBeacon.class, true);
                 if (beacon == null || beacon.isInvalid()) {
                     tft.cleanUp();
                 }

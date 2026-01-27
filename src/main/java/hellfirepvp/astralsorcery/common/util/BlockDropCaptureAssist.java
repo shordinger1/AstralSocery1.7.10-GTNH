@@ -40,15 +40,17 @@ public class BlockDropCaptureAssist {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onDrop(EntityJoinWorldEvent event) {
-        if (event.world instanceof WorldServer && event.getEntity() instanceof EntityItem) {
-            ItemStack itemStack = ((EntityItem) event.getEntity()).getEntityItem();
+        // 1.7.10: EntityJoinWorldEvent has 'entity' field, not getEntity() method
+        if (event.world instanceof WorldServer && event.entity instanceof EntityItem) {
+            ItemStack itemStack = ((EntityItem) event.entity).getEntityItem();
             if (stack > -1) {
                 event.setCanceled(true);
-                if (!itemStack == null || itemStack.stackSize <= 0) {
-                    if (itemStack.getItem() instanceof ItemBlock && ((ItemBlock) itemStack.getItem()).getBlock()
-                        .equals(Blocks.STONE)) {
-                        event.getEntity()
-                            .setDead();
+                // 1.7.10: Fix null check logic - should be itemStack != null, not !itemStack == null
+                if (itemStack != null && itemStack.stackSize > 0) {
+                    // 1.7.10: ItemBlock uses field_150939_a for block reference
+                    if (itemStack.getItem() instanceof ItemBlock
+                        && ((ItemBlock) itemStack.getItem()).field_150939_a.equals(Blocks.stone)) {
+                        event.entity.setDead();
                         return;
                     }
                     // Apparently concurrency sometimes gets us here...
@@ -60,8 +62,7 @@ public class BlockDropCaptureAssist {
                             .add(itemStack);
                     }
                 }
-                event.getEntity()
-                    .setDead();
+                event.entity.setDead();
             }
         }
     }

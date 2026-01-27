@@ -13,11 +13,13 @@ import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.common.config.Configuration;
+import cpw.mods.fml.common.Optional;
 
 import hellfirepvp.astralsorcery.common.base.Mods;
 import hellfirepvp.astralsorcery.common.data.config.entry.ConfigEntry;
 import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.tweaks.GameStageTweaks;
-import hellfirepvp.astralsorcery.common.util.WrapMathHelper;
+import hellfirepvp.astralsorcery.common.migration.net.darkhax.gamestages.GameStageHelper;
+import hellfirepvp.astralsorcery.common.migration.net.darkhax.gamestages.IStageData;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -38,16 +40,16 @@ public class PerkLevelManager extends ConfigEntry {
     }
 
     private void ensureLevels() {
-        if ((totalExpLevelRequired == null || totalExpLevelRequired.stackSize <= 0)) {
+        if ((totalExpLevelRequired == null || totalExpLevelRequired.isEmpty())) {
             for (int i = 1; i <= LEVEL_CAP; i++) {
                 long prev = totalExpLevelRequired.getOrDefault(i - 1, 0L);
-                totalExpLevelRequired.put(i, prev + 150L + (WrapMathHelper.lfloor(Math.pow(2, (i / 2) + 3))));
+                totalExpLevelRequired.put(i, prev + 150L + ((long) Math.floor(Math.pow(2, (i / 2) + 3))));
             }
         }
     }
 
     public int getLevel(double totalExp, EntityPlayer player) {
-        return getLevel(WrapMathHelper.lfloor(totalExp), player);
+        return getLevel((long) Math.floor(totalExp), player);
     }
 
     private int getLevel(long totalExp, EntityPlayer player) {
@@ -94,7 +96,7 @@ public class PerkLevelManager extends ConfigEntry {
     }
 
     public static int getLevelCapFor(EntityPlayer player) {
-        if (Mods.GAMESTAGES.isPresent() && Mods.CRAFTTWEAKER.isPresent()) {
+        if (Mods.GAMESTAGES.isPresent()) {
             return resolveLevelCap(player);
         }
         return LEVEL_CAP;

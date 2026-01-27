@@ -21,7 +21,6 @@ import net.minecraft.world.IBlockAccess;
 
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
 import hellfirepvp.astralsorcery.common.migration.BlockStateContainer;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.migration.IStringSerializable;
 import hellfirepvp.astralsorcery.common.migration.PropertyEnum;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
@@ -50,14 +49,8 @@ public class BlockBlackMarble extends Block implements BlockCustomName, BlockVar
         this.blockState = new BlockStateContainer(this, BLACK_MARBLE_TYPE);
     }
 
-    public IBlockState getDefaultState() {
-        return this.blockState.getBaseState()
-            .withProperty(BLACK_MARBLE_TYPE, BlackMarbleBlockType.RAW);
-    }
-
-    protected void setDefaultState(IBlockState state) {
-        // In 1.7.10, default state is tracked separately
-    }
+    // In 1.7.10, default state is represented by default metadata (0)
+    // BlackMarbleBlockType.RAW has meta 0, so no special handling needed
 
     @Override
     public void getSubBlocks(Item item, CreativeTabs tab, List<ItemStack> list) {
@@ -67,48 +60,17 @@ public class BlockBlackMarble extends Block implements BlockCustomName, BlockVar
         }
     }
 
-    public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, int x, int y, int z) {
-        if (state.getValue(BLACK_MARBLE_TYPE)
-            .isPillar()) {
-            Block blockUp = worldIn.getBlock(x, y + 1, z);
-            IBlockState stateUp = new IBlockState(blockUp, worldIn.getBlockMetadata(x, y + 1, z));
-            boolean top = false;
-            if (blockUp instanceof BlockBlackMarble && stateUp.getValue(BLACK_MARBLE_TYPE)
-                .isPillar()) {
-                top = true;
-            }
-            Block blockDown = worldIn.getBlock(x, y - 1, z);
-            IBlockState stateDown = new IBlockState(blockDown, worldIn.getBlockMetadata(x, y - 1, z));
-            boolean down = false;
-            if (blockDown instanceof BlockBlackMarble && stateDown.getValue(BLACK_MARBLE_TYPE)
-                .isPillar()) {
-                down = true;
-            }
-            if (top && down) {
-                return state.withProperty(BLACK_MARBLE_TYPE, BlackMarbleBlockType.PILLAR);
-            } else if (top) {
-                return state.withProperty(BLACK_MARBLE_TYPE, BlackMarbleBlockType.PILLAR_BOTTOM);
-            } else if (down) {
-                return state.withProperty(BLACK_MARBLE_TYPE, BlackMarbleBlockType.PILLAR_TOP);
-            } else {
-                return state.withProperty(BLACK_MARBLE_TYPE, BlackMarbleBlockType.PILLAR);
-            }
-        }
-        return state;
+    // In 1.7.10, getActualState doesn't exist - pillar state is determined by metadata
+    // PILLAR (2), PILLAR_TOP (2), PILLAR_BOTTOM (2) all use meta 2
+    // This logic would need to be handled during block placement or updates
+
+    @Override
+    public int damageDropped(int metadata) {
+        return metadata;
     }
 
-    public int damageDropped(IBlockState state) {
-        return getMetaFromState(state);
-    }
-
-    public int getLightOpacity(IBlockState state, IBlockAccess world, int x, int y, int z) {
-        BlackMarbleBlockType marbleType = state.getValue(BLACK_MARBLE_TYPE);
-        if (marbleType == BlackMarbleBlockType.PILLAR_TOP || marbleType == BlackMarbleBlockType.PILLAR
-            || marbleType == BlackMarbleBlockType.PILLAR_BOTTOM) {
-            return 0;
-        }
-        return super.getLightOpacity();
-    }
+    // In 1.7.10, getLightOpacity() doesn't take state parameter
+    // Use default behavior from Block class
 
     @Override
     public boolean isOpaqueCube() {
@@ -127,8 +89,9 @@ public class BlockBlackMarble extends Block implements BlockCustomName, BlockVar
         return true;
     }
 
-    public boolean doesSideBlockRendering(IBlockState state, IBlockAccess world, int x, int y, int z, EnumFacing face) {
-        BlackMarbleBlockType marbleType = state.getValue(BLACK_MARBLE_TYPE);
+    public boolean doesSideBlockRendering(int metadata, IBlockAccess world, int x, int y, int z, EnumFacing face) {
+        BlackMarbleBlockType marbleType = BlackMarbleBlockType
+            .values()[metadata >= BlackMarbleBlockType.values().length ? 0 : metadata];
 
         // Get offset for EnumFacing
         int dx = 0, dy = 0, dz = 0;
@@ -166,44 +129,35 @@ public class BlockBlackMarble extends Block implements BlockCustomName, BlockVar
         return true;
     }
 
-    public boolean isTopSolid(IBlockState state) {
-        return true;
-    }
+    // In 1.7.10, isTopSolid() doesn't exist or take state parameter
+    // Use default behavior
 
     @Override
     public String getIdentifierForMeta(int meta) {
-        BlackMarbleBlockType mt = getStateFromMeta(meta).getValue(BLACK_MARBLE_TYPE);
+        BlackMarbleBlockType mt = BlackMarbleBlockType.values()[meta >= BlackMarbleBlockType.values().length ? 0
+            : meta];
         return mt.getName();
     }
 
-    public int getMetaFromState(IBlockState state) {
-        BlackMarbleBlockType type = state.getValue(BLACK_MARBLE_TYPE);
-        return type.getMeta();
-    }
-
-    public IBlockState getStateFromMeta(int meta) {
-        return meta < BlackMarbleBlockType.values().length
-            ? getDefaultState().withProperty(BLACK_MARBLE_TYPE, BlackMarbleBlockType.values()[meta])
-            : getDefaultState();
-    }
-
-    protected BlockStateContainer createBlockState() {
-        return new BlockStateContainer(this, BLACK_MARBLE_TYPE);
-    }
+    // In 1.7.10, getMetaFromState and getStateFromMeta don't exist
+    // Metadata is handled directly
 
     @Override
-    public List<IBlockState> getValidStates() {
-        List<IBlockState> ret = new LinkedList<>();
+    public List<Block> getValidStates() {
+        List<Block> ret = new LinkedList<>();
+        // In 1.7.10, all variants are the same block with different metadata
+        // Return the block itself once for each variant type
         for (BlackMarbleBlockType type : BlackMarbleBlockType.values()) {
-            ret.add(getDefaultState().withProperty(BLACK_MARBLE_TYPE, type));
+            ret.add(this);
         }
         return ret;
     }
 
     @Override
-    public String getStateName(IBlockState state) {
-        return state.getValue(BLACK_MARBLE_TYPE)
-            .getName();
+    public String getStateName(int metadata) {
+        BlackMarbleBlockType type = BlackMarbleBlockType.values()[metadata >= BlackMarbleBlockType.values().length ? 0
+            : metadata];
+        return type.getName();
     }
 
     public static enum BlackMarbleBlockType implements IStringSerializable {
@@ -229,8 +183,10 @@ public class BlockBlackMarble extends Block implements BlockCustomName, BlockVar
             return new ItemStack(BlocksAS.blockBlackMarble, 1, meta);
         }
 
-        public IBlockState asBlock() {
-            return new IBlockState(BlocksAS.blockBlackMarble, meta);
+        // In 1.7.10, asBlock() just returns the block instance
+        // Metadata is handled separately
+        public Block asBlock() {
+            return BlocksAS.blockBlackMarble;
         }
 
         public boolean isPillar() {

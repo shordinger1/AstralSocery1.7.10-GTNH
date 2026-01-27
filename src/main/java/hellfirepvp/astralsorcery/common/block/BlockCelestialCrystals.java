@@ -34,7 +34,6 @@ import hellfirepvp.astralsorcery.common.item.ItemCraftingComponent;
 import hellfirepvp.astralsorcery.common.item.crystal.CrystalProperties;
 import hellfirepvp.astralsorcery.common.item.crystal.base.ItemRockCrystalBase;
 import hellfirepvp.astralsorcery.common.migration.BlockStateContainer;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.migration.PropertyInteger;
 import hellfirepvp.astralsorcery.common.network.PacketChannel;
 import hellfirepvp.astralsorcery.common.network.packet.server.PktParticleEvent;
@@ -77,14 +76,14 @@ public class BlockCelestialCrystals extends BlockContainer
         this.blockState = new BlockStateContainer(this, STAGE);
     }
 
-    public IBlockState getDefaultState() {
-        return this.blockState.getBaseState()
-            .withProperty(STAGE, 0);
-    }
+//     public IBlockState getDefaultState() {
+//         return this.blockState.getBaseState()
+//             .withProperty(STAGE, 0);
+//     }
 
-    protected void setDefaultState(IBlockState state) {
-        // In 1.7.10, default state is tracked separately
-    }
+//     protected void setDefaultState(IBlockState state) {
+//         // In 1.7.10, default state is tracked separately
+//     }
 
     @Override
     public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z) {
@@ -233,13 +232,13 @@ public class BlockCelestialCrystals extends BlockContainer
         worldIn.setBlockMetadataWithNotify(x, y, z, stack.getItemDamage(), 2);
     }
 
-    public int getMetaFromState(IBlockState state) {
-        return state.getValue(STAGE);
-    }
+//     public int getMetaFromState(IBlockState state) {
+//         return state.getValue(STAGE);
+//     }
 
-    public IBlockState getStateFromMeta(int meta) {
-        return getDefaultState().withProperty(STAGE, meta);
-    }
+//     public IBlockState getStateFromMeta(int meta) {
+//         return getDefaultState().withProperty(STAGE, meta);
+//     }
 
     @Override
     public int damageDropped(int metadata) {
@@ -315,16 +314,18 @@ public class BlockCelestialCrystals extends BlockContainer
     }
 
     @Override
-    public List<IBlockState> getValidStates() {
-        List<IBlockState> ret = new LinkedList<>();
+    public List<Block> getValidStates() {
+        List<Block> ret = new LinkedList<>();
+        // In 1.7.10, this block has 5 growth stages (0-4)
+        // Return the block itself once for each variant type
         for (int stage = 0; stage <= 4; stage++) {
-            ret.add(getDefaultState().withProperty(STAGE, stage));
+            ret.add(this);
         }
         return ret;
     }
 
     @Override
-    public String getStateName(IBlockState state) {
-        return "stage_" + state.getValue(STAGE);
+    public String getStateName(int metadata) {
+        return "stage_" + metadata;
     }
 }

@@ -40,7 +40,6 @@ import hellfirepvp.astralsorcery.common.util.MiscUtils;
 import hellfirepvp.astralsorcery.common.util.PatternMatchHelper;
 import hellfirepvp.astralsorcery.common.util.data.Vector3;
 import hellfirepvp.astralsorcery.common.util.log.LogCategory;
-import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -69,8 +68,9 @@ public class TileCelestialGateway extends TileEntityTick implements IMultiblockD
             playEffects();
         } else {
             if ((ticksExisted & 15) == 0) {
+                // 1.7.10: use getWorld() instead of world, and check dimensionId instead of isNether()
                 updateSkyState(
-                    world.provider.isNether()
+                    getWorld().provider.dimensionId == -1
                         || MiscUtils.canSeeSky(this.worldObj, this.getPos(), true, this.doesSeeSky));
             }
 
@@ -78,14 +78,18 @@ public class TileCelestialGateway extends TileEntityTick implements IMultiblockD
 
             if (gatewayRegistered) {
                 if (!hasMultiblock() || !doesSeeSky()) {
-                    GatewayCache cache = WorldCacheManager.getOrLoadData(world, WorldCacheManager.SaveKey.GATEWAY_DATA);
-                    cache.removePosition(world, pos);
+                    // 1.7.10: use getWorld() and getPos() instead of world, pos
+                    GatewayCache cache = WorldCacheManager
+                        .getOrLoadData(getWorld(), WorldCacheManager.SaveKey.GATEWAY_DATA);
+                    cache.removePosition(getWorld(), getPos());
                     gatewayRegistered = false;
                 }
             } else {
                 if (hasMultiblock() && doesSeeSky()) {
-                    GatewayCache cache = WorldCacheManager.getOrLoadData(world, WorldCacheManager.SaveKey.GATEWAY_DATA);
-                    cache.offerPosition(world, pos, display == null ? "" : display);
+                    // 1.7.10: use getWorld() and getPos() instead of world, pos
+                    GatewayCache cache = WorldCacheManager
+                        .getOrLoadData(getWorld(), WorldCacheManager.SaveKey.GATEWAY_DATA);
+                    cache.offerPosition(getWorld(), getPos(), display == null ? "" : display);
                     gatewayRegistered = true;
                 }
             }
@@ -114,7 +118,8 @@ public class TileCelestialGateway extends TileEntityTick implements IMultiblockD
     @Nullable
     @Override
     public PatternBlockArray getRequiredStructure() {
-        return MultiBlockArrays.patternCelestialGateway;
+        // 1.7.10: Cast to PatternBlockArray since MultiBlockArrays fields are Object type
+        return (PatternBlockArray) MultiBlockArrays.patternCelestialGateway;
     }
 
     @Nonnull
@@ -177,7 +182,8 @@ public class TileCelestialGateway extends TileEntityTick implements IMultiblockD
     @SideOnly(Side.CLIENT)
     private void setupGatewayUI(boolean preconditionsFulfilled) {
         if (preconditionsFulfilled) {
-            Vector3 sphereVec = new Vector3(pos).add(0.5, 1.62, 0.5);
+            // 1.7.10: use getPos() instead of pos
+            Vector3 sphereVec = new Vector3(getPos()).add(0.5, 1.62, 0.5);
             if (clientSphere == null) {
                 CompoundEffectSphere sphere = new CompoundGatewayShield(
                     sphereVec.clone(),
@@ -219,8 +225,9 @@ public class TileCelestialGateway extends TileEntityTick implements IMultiblockD
                 Minecraft.getMinecraft().gameSettings.thirdPersonView = 0;
             }
             if (playerDst < 2.5) {
+                // 1.7.10: use getWorld() and getPos() instead of world, pos
                 EffectHandler.getInstance()
-                    .requestGatewayUIFor(world, pos, sphereVec, 5.5);
+                    .requestGatewayUIFor(getWorld(), getPos(), sphereVec, 5.5);
             }
         } else {
             if (clientSphere != null) {
@@ -234,7 +241,8 @@ public class TileCelestialGateway extends TileEntityTick implements IMultiblockD
     @SideOnly(Side.CLIENT)
     private void playFrameParticles() {
         for (int i = 0; i < 2; i++) {
-            Vector3 offset = new Vector3(pos).add(-2, 0, -2);
+            // 1.7.10: use getPos() instead of pos
+            Vector3 offset = new Vector3(getPos()).add(-2, 0, -2);
             if (rand.nextBoolean()) {
                 offset.add(5 * (rand.nextBoolean() ? 1 : 0), 0, rand.nextFloat() * 5);
             } else {
@@ -270,8 +278,9 @@ public class TileCelestialGateway extends TileEntityTick implements IMultiblockD
         this.doesSeeSky = compound.getBoolean("skyState");
         this.display = compound.getString("display");
 
-        if (NBTHelper.hasUniqueId(compound, "placer")) {
-            this.placedBy = NBTHelper.getUniqueId(compound, "placer");
+        // 1.7.10: UUID helper methods don't exist, read manually from most/least significant bits
+        if (compound.hasKey("placerMost") && compound.hasKey("placerLeast")) {
+            this.placedBy = new UUID(compound.getLong("placerMost"), compound.getLong("placerLeast"));
         } else {
             this.placedBy = null;
         }
@@ -284,8 +293,10 @@ public class TileCelestialGateway extends TileEntityTick implements IMultiblockD
         compound.setBoolean("mbState", this.hasMultiblock);
         compound.setBoolean("skyState", this.doesSeeSky);
         compound.setString("display", display == null ? "" : display);
+        // 1.7.10: UUID helper methods don't exist, write manually as most/least significant bits
         if (this.placedBy != null) {
-            NBTHelper.setUniqueId(compound, "placer", this.placedBy);
+            compound.setLong("placerMost", this.placedBy.getMostSignificantBits());
+            compound.setLong("placerLeast", this.placedBy.getLeastSignificantBits());
         }
     }
 

@@ -14,6 +14,8 @@ import javax.annotation.Nullable;
 
 import net.minecraft.world.World;
 
+import com.google.common.base.Optional;
+
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.common.constellation.distribution.ConstellationSkyHandler;
@@ -33,10 +35,10 @@ public class SkyCollectionHelper {
     @SideOnly(Side.CLIENT)
     @Nullable
     public static Float getSkyNoiseDistributionClient(World world, BlockPos pos) {
-        Long testSeed = ConstellationSkyHandler.getInstance()
+        Optional<Long> testSeed = ConstellationSkyHandler.getInstance()
             .getSeedIfPresent(world);
-        if (testSeed == null) return null;
-        return getDistributionInternal(testSeed, pos);
+        if (!testSeed.isPresent()) return null;
+        return getDistributionInternal(testSeed.get(), pos);
     }
 
     public static float getSkyNoiseDistribution(World world, BlockPos pos) {

@@ -35,6 +35,7 @@ public class LegacyDataMigration {
      * java.util.function.Consumer doesn't exist in Java 7
      */
     public interface StringCallback {
+
         void accept(String message);
     }
 

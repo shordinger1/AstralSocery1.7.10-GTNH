@@ -20,7 +20,6 @@ import net.minecraft.item.ItemStack;
 
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
 import hellfirepvp.astralsorcery.common.migration.BlockStateContainer;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.migration.IStringSerializable;
 import hellfirepvp.astralsorcery.common.migration.PropertyBool;
 import hellfirepvp.astralsorcery.common.migration.PropertyEnum;
@@ -49,11 +48,8 @@ public class BlockMarbleSlab extends BlockSlab {
         super(isDouble, Material.rock);
         this.isDouble = isDouble;
         this.blockState = new BlockStateContainer(this, MARBLE_TYPE, HALF);
-        IBlockState state = this.blockState.getBaseState();
-        if (!isDouble) {
-            state = state.withProperty(HALF, false); // false = BOTTOM
-        }
-        setDefaultState(state.withProperty(MARBLE_TYPE, EnumType.BRICKS));
+        // In 1.7.10, slab state is tracked via metadata, not IBlockState
+        // Metadata format: upper 3 bits = type, lower 1 bit = half (0=bottom, 1=top)
         setStepSound(Block.soundTypePiston);
         setLightOpacity(0);
         setHardness(1.0F);
@@ -62,17 +58,8 @@ public class BlockMarbleSlab extends BlockSlab {
         setCreativeTab(RegistryItems.creativeTabAstralSorcery);
     }
 
-    public IBlockState getDefaultState() {
-        IBlockState state = this.blockState.getBaseState();
-        if (!isDouble) {
-            state = state.withProperty(HALF, false);
-        }
-        return state.withProperty(MARBLE_TYPE, EnumType.BRICKS);
-    }
-
-    protected void setDefaultState(IBlockState state) {
-        // In 1.7.10, default state is tracked separately
-    }
+    // In 1.7.10, getDefaultState() doesn't exist
+    // Metadata is handled directly
 
     @Override
     public Item getItemDropped(int meta, Random rand, int fortune) {

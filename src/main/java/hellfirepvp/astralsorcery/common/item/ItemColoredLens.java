@@ -9,10 +9,7 @@
 package hellfirepvp.astralsorcery.common.item;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
-
-import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.resources.I18n;
@@ -109,7 +106,8 @@ public class ItemColoredLens extends Item implements ItemDynamicColor {
                         pos.getX() + 0.5,
                         pos.getY() + 0.5,
                         pos.getZ() + 0.5,
-                        Sounds.clipSwitch.getSoundName().toString(),
+                        Sounds.clipSwitch.getSoundName()
+                            .toString(),
                         0.8F,
                         1.5F);
                     if (oldType != null) {

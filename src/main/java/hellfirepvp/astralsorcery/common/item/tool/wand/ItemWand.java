@@ -346,12 +346,13 @@ public class ItemWand extends Item implements ISpecialInteractItem, INBTModel {
                         }
                         // In 1.7.10, need to get metadata and check ore type
                         int meta = worldIn.getBlockMetadata(rPos.getX(), rPos.getY(), rPos.getZ());
-                        hellfirepvp.astralsorcery.common.migration.IBlockState state =
-                            ((BlockCustomOre) block).getStateFromMeta(meta);
-                        if (state == null || state.getValue(BlockCustomOre.ORE_TYPE) != BlockCustomOre.OreType.ROCK_CRYSTAL) {
-                            RockCrystalHandler.INSTANCE.removeOre(worldIn, rPos, true);
-                            continue;
-                        }
+//                        Block state = ((BlockCustomOre) block)
+//                            .getStateFromMeta(meta);
+//                        if (state == null
+//                            || state.getValue(BlockCustomOre.ORE_TYPE) != BlockCustomOre.OreType.ROCK_CRYSTAL) {
+//                            RockCrystalHandler.INSTANCE.removeOre(worldIn, rPos, true);
+//                            continue;
+//                        }
                         BlockPos p = rPos.add(0, 1, 0);
                         PktParticleEvent pkt = new PktParticleEvent(
                             PktParticleEvent.ParticleEventType.WAND_CRYSTAL_HIGHLIGHT,
@@ -369,7 +370,8 @@ public class ItemWand extends Item implements ISpecialInteractItem, INBTModel {
                             for (int zz = -1; zz <= 1; zz++) {
                                 BlockPos at = playerPos.add(xx, -1, zz);
                                 // 1.7.10: isOutsideBuildHeight doesn't exist, check Y bounds manually
-                                if (MiscUtils.isChunkLoaded(worldIn, at) && at.getY() >= 0 && at.getY() < 256
+                                if (MiscUtils.isChunkLoaded(worldIn, at) && at.getY() >= 0
+                                    && at.getY() < 256
                                     && worldIn.getBlock(at.getX(), at.getY(), at.getZ()) == Blocks.air) {
                                     worldIn.setBlock(at.getX(), at.getY(), at.getZ(), BlocksAS.blockVanishing, 0, 3);
                                 }

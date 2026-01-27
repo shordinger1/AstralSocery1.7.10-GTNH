@@ -36,30 +36,35 @@ public class MultiBlockArrays {
     public static StructureBlockArray smallRuin;
     public static PatternBlockArray patternSmallRuin;
 
+    public static PatternBlockArray patternFountainPattern;
+    public static PatternBlockArray patternStarlightInfuserPattern;
+
+    // 1.7.10: GregTech StructureLib multiblocks use Object type
+    // since they don't extend PatternBlockArray (they use IStructureDefinition)
     @PasteBlacklist
-    public static PatternBlockArray patternRitualPedestal;
-
-    @PasteBlacklist
-    public static PatternBlockArray patternRitualPedestalWithLink;
-
-    public static PatternBlockArray patternAltarAttunement;
-
-    public static PatternBlockArray patternAltarConstellation;
-
-    public static PatternBlockArray patternAltarTrait;
-
-    public static PatternBlockArray patternAttunementFrame;
-
-    public static PatternBlockArray patternStarlightInfuser;
-
-    public static PatternBlockArray patternCollectorRelay;
-
-    public static PatternBlockArray patternCelestialGateway;
-
-    public static PatternBlockArray patternFountain;
+    public static Object patternRitualPedestal;
 
     @PasteBlacklist
-    public static PatternBlockArray patternCollectorEnhancement;
+    public static Object patternRitualPedestalWithLink;
+
+    public static Object patternAltarAttunement;
+
+    public static Object patternAltarConstellation;
+
+    public static Object patternAltarTrait;
+
+    public static Object patternAttunementFrame;
+
+    public static Object patternStarlightInfuser;
+
+    public static Object patternCollectorRelay;
+
+    public static Object patternCelestialGateway;
+
+    public static Object patternFountain;
+
+    @PasteBlacklist
+    public static Object patternCollectorEnhancement;
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)

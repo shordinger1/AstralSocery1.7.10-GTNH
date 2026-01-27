@@ -101,7 +101,6 @@ public class TESRTranslucentBlock extends TileEntitySpecialRenderer {
     private static int batch(Collection<TranslucentBlockState> set, int color) {
         RenderWorldBuffer iba = new RenderWorldBuffer(
             BiomeGenBase.plains,
-            Minecraft.getMinecraft().theWorld.provider.terrainType,
             new BlockArray());
         iba.appendAll(MiscUtils.splitMap(set, entry -> new Tuple<>(entry.pos, entry.state)));
         int batchDList = GLAllocation.generateDisplayLists(1);

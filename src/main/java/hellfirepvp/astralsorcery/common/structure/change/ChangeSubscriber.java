@@ -73,7 +73,7 @@ public class ChangeSubscriber<T extends StructureMatcher> {
     }
 
     public boolean matches(World world) {
-        if (this.isMatching != null && this.changeSet == null || changeSet.stackSize <= 0) {
+        if (this.isMatching != null && this.changeSet.isEmpty()) {
             return isMatching;
         }
 
@@ -112,8 +112,9 @@ public class ChangeSubscriber<T extends StructureMatcher> {
     }
 
     public void writeToNBT(NBTTagCompound tag) {
-        NBTHelper.setAsSubTag(tag, "matchData", (tag1, matcher1) -> matcher1.writeToNBT(tag1));
-        NBTHelper.setAsSubTag(tag, "changeData", (tag1, changeSet1) -> changeSet1.writeToNBT(tag1));
+        // 1.7.10: Consumer<NBTTagCompound> takes only one parameter
+        NBTHelper.setAsSubTag(tag, "matchData", (tag1) -> matcher.writeToNBT(tag1));
+        NBTHelper.setAsSubTag(tag, "changeData", (tag1) -> changeSet.writeToNBT(tag1));
 
         NBTHelper.writeBlockPosToNBT(this.requester, tag);
         if (this.isMatching != null) {

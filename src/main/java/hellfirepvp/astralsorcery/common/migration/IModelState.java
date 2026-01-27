@@ -7,6 +7,8 @@ package hellfirepvp.astralsorcery.common.migration;
 
 import javax.annotation.Nullable;
 
+import com.google.common.base.Function;
+
 /**
  * Compatibility interface for 1.7.10.
  * In 1.12.2: net.minecraft.client.renderer.block.model.IModelState

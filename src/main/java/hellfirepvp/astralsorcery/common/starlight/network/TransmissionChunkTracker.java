@@ -38,7 +38,8 @@ public class TransmissionChunkTracker {
             .getWorldHandler(event.world);
         if (handle != null) {
             Chunk ch = event.getChunk();
-            handle.informChunkLoad(new ChunkPos(ch.x, ch.z));
+            // 1.7.10: Chunk uses xPosition/zPosition instead of x/z
+            handle.informChunkLoad(new ChunkPos(ch.xPosition, ch.zPosition));
         }
     }
 
@@ -48,7 +49,8 @@ public class TransmissionChunkTracker {
             .getWorldHandler(event.world);
         if (handle != null) {
             Chunk ch = event.getChunk();
-            handle.informChunkUnload(new ChunkPos(ch.x, ch.z));
+            // 1.7.10: Chunk uses xPosition/zPosition instead of x/z
+            handle.informChunkUnload(new ChunkPos(ch.xPosition, ch.zPosition));
         }
     }
 

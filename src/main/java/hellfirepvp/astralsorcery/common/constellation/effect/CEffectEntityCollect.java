@@ -52,7 +52,18 @@ public abstract class CEffectEntityCollect<T extends Entity> extends Constellati
         if (!enabled) return Lists.newArrayList();
         AxisAlignedBB box = BOX.offset(pos.getX(), pos.getY(), pos.getZ())
             .expand(prop.getSize(), prop.getSize(), prop.getSize());
-        return world.getEntitiesWithinAABB(classToSearch, box, searchFilter);
+        // 1.7.10: getEntitiesWithinAABB doesn't take Predicate, filter manually
+        List<T> entities = world.getEntitiesWithinAABB(classToSearch, box);
+        if (searchFilter != null) {
+            List<T> filtered = Lists.newArrayList();
+            for (T entity : entities) {
+                if (searchFilter.apply(entity)) {
+                    filtered.add(entity);
+                }
+            }
+            return filtered;
+        }
+        return entities;
     }
 
     @Override

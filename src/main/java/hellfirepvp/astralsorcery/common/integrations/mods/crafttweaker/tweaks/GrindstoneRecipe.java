@@ -23,7 +23,7 @@ import hellfirepvp.astralsorcery.common.integrations.ModIntegrationCrafttweaker;
  * Replaces CraftTweaker-based GrindstoneRecipe class
  *
  * Usage:
- *   GrindstoneRecipe.add(new ItemStack(Items.iron_ore), new ItemStack(Items.dust), 0.1F);
+ * GrindstoneRecipe.add(new ItemStack(Items.iron_ore), new ItemStack(Items.dust), 0.1F);
  */
 public final class GrindstoneRecipe {
 

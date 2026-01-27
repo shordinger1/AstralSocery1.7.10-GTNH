@@ -84,7 +84,8 @@ public class TileCrystalLens extends TileTransmissionBase {
             boolean shouldIgnore = type == ItemColoredLens.ColorType.SPECTRAL;
             if (node instanceof CrystalTransmissionNode) {
                 if (shouldIgnore != ((CrystalTransmissionNode) node).ignoresBlockCollision()) {
-                    ((CrystalTransmissionNode) node).updateIgnoreBlockCollisionState(world, shouldIgnore);
+                    // 1.7.10: use getWorld() instead of world
+                    ((CrystalTransmissionNode) node).updateIgnoreBlockCollisionState(getWorld(), shouldIgnore);
                 }
                 if (lensColor != null) {
                     ((CrystalTransmissionNode) node).updateAdditionalLoss(1F - lensColor.getFlowReduction());
@@ -93,7 +94,8 @@ public class TileCrystalLens extends TileTransmissionBase {
                 }
             } else if (node instanceof CrystalPrismTransmissionNode) {
                 if (shouldIgnore != ((CrystalPrismTransmissionNode) node).ignoresBlockCollision()) {
-                    ((CrystalPrismTransmissionNode) node).updateIgnoreBlockCollisionState(world, shouldIgnore);
+                    // 1.7.10: use getWorld() instead of world
+                    ((CrystalPrismTransmissionNode) node).updateIgnoreBlockCollisionState(getWorld(), shouldIgnore);
                 }
                 if (lensColor != null) {
                     ((CrystalPrismTransmissionNode) node).updateAdditionalLoss(1F - lensColor.getFlowReduction());
@@ -115,11 +117,29 @@ public class TileCrystalLens extends TileTransmissionBase {
     }
 
     public EnumFacing getPlacedAgainst() {
-        Block state = world.getBlock(getPos());
-        if (!(state instanceof BlockLens)) {
+        // 1.7.10: Use metadata instead of blockstate properties
+        Block block = getWorld().getBlock(getPos().getX(), getPos().getY(), getPos().getZ());
+        if (!(block instanceof BlockLens)) {
             return EnumFacing.DOWN;
         }
-        return state.getValue(BlockLens.PLACED_AGAINST);
+        // Metadata corresponds to: 0=DOWN, 1=UP, 2=NORTH, 3=SOUTH, 4=WEST, 5=EAST
+        int meta = getWorld().getBlockMetadata(getPos().getX(), getPos().getY(), getPos().getZ());
+        switch (meta) {
+            case 0:
+                return EnumFacing.DOWN;
+            case 1:
+                return EnumFacing.UP;
+            case 2:
+                return EnumFacing.NORTH;
+            case 3:
+                return EnumFacing.SOUTH;
+            case 4:
+                return EnumFacing.WEST;
+            case 5:
+                return EnumFacing.EAST;
+            default:
+                return EnumFacing.DOWN;
+        }
     }
 
     @Override
@@ -156,13 +176,14 @@ public class TileCrystalLens extends TileTransmissionBase {
             RaytraceAssist rta = new RaytraceAssist(thisVec, to).includeEndPoint();
             if (lensColor.getType() == ItemColoredLens.TargetType.BLOCK
                 || lensColor.getType() == ItemColoredLens.TargetType.ANY) {
-                boolean clear = rta.isClear(world);
+                // 1.7.10: use getWorld() instead of world
+                boolean clear = rta.isClear(getWorld());
                 if (!clear && rta.blockHit() != null) {
                     BlockPos hit = rta.blockHit();
-                    Block hitState = world.getBlock(hit.posX, hit.posY, hit.posZ);
+                    Block hitState = getWorld().getBlock(hit.posX, hit.posY, hit.posZ);
                     if (!hit.equals(to.toBlockPos())
                         || (!hitState.equals(BlocksAS.lens) && !hitState.equals(BlocksAS.lensPrism))) {
-                        lensColor.onBlockOccupyingBeam(world, hit, hitState, str);
+                        lensColor.onBlockOccupyingBeam(getWorld(), hit, hitState, str);
                     }
                     this.occupiedConnections.add(hit);
                 }
@@ -170,8 +191,8 @@ public class TileCrystalLens extends TileTransmissionBase {
             if (lensColor.getType() == ItemColoredLens.TargetType.ENTITY
                 || lensColor.getType() == ItemColoredLens.TargetType.ANY) {
                 rta.setCollectEntities(0.5);
-                rta.isClear(world);
-                List<Entity> found = rta.collectedEntities(world);
+                rta.isClear(getWorld());
+                List<Entity> found = rta.collectedEntities(getWorld());
                 float pStr = lensColor == ItemColoredLens.ColorType.FIRE ? str / 2F : str;
                 for (Entity entity : found) {
                     lensColor.onEntityInBeam(thisVec, to, entity, pStr);
@@ -184,7 +205,9 @@ public class TileCrystalLens extends TileTransmissionBase {
     private void playColorEffects() {
         Entity rView = Minecraft.getMinecraft().renderViewEntity;
         if (rView == null) rView = Minecraft.getMinecraft().thePlayer;
-        if (rView.getDistanceSq(getPos()) > Config.maxEffectRenderDistanceSq) return;
+        // 1.7.10: getDistanceSq takes individual x, y, z coordinates
+        if (rView.getDistanceSq(getPos().getX(), getPos().getY(), getPos().getZ()) > Config.maxEffectRenderDistanceSq)
+            return;
         Vector3 pos = new Vector3(this).add(0.5, 0.5, 0.5);
         EntityFXFacingParticle particle = EffectHelper.genericFlareParticle(pos.getX(), pos.getY(), pos.getZ());
         particle.setColor(lensColor.wrappedColor);

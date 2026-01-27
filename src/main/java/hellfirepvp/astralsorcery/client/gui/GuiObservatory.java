@@ -29,6 +29,8 @@ import net.minecraft.world.World;
 
 import org.lwjgl.opengl.GL11;
 
+import com.google.common.base.Optional;
+
 import hellfirepvp.astralsorcery.AstralSorcery;
 import hellfirepvp.astralsorcery.client.ClientScheduler;
 import hellfirepvp.astralsorcery.client.data.KnowledgeFragmentData;
@@ -92,21 +94,17 @@ public class GuiObservatory extends GuiTileBase<TileObservatory> implements GuiS
     public GuiObservatory(EntityPlayer owningPlayer, TileObservatory te) {
         super(
             te,
-            new ScaledResolution(Minecraft.getMinecraft(), mc.displayWidth, mc.displayHeight).getScaledHeight()
+            new ScaledResolution(Minecraft.getMinecraft(), Minecraft.getMinecraft().displayWidth, Minecraft.getMinecraft().displayHeight).getScaledHeight()
                 - (frameSize * 2),
-            new ScaledResolution(Minecraft.getMinecraft(), mc.displayWidth, mc.displayHeight).getScaledWidth()
+            new ScaledResolution(Minecraft.getMinecraft(), Minecraft.getMinecraft().displayWidth, Minecraft.getMinecraft().displayHeight).getScaledWidth()
                 - (frameSize * 2));
         this.owningPlayer = owningPlayer;
 
-        Optional<Long> currSeed = ConstellationSkyHandler.getInstance()
+        com.google.common.base.Optional<Long> currSeed = ConstellationSkyHandler.getInstance()
             .getSeedIfPresent(Minecraft.getMinecraft().theWorld);
-        currSeed.ifPresent(new Consumer<Long>() {
-
-            @Override
-            public void accept(Long seed) {
-                setupInitialStars(seed);
-            }
-        });
+        if (currSeed.isPresent()) {
+            setupInitialStars(currSeed.get());
+        }
     }
 
     private void setupInitialStars(long seed) {
@@ -213,8 +211,8 @@ public class GuiObservatory extends GuiTileBase<TileObservatory> implements GuiS
     }
 
     private void drawEffectBackground(float partialTicks, boolean canSeeSky, float transparency) {
-        if (usedStars == null || usedStars.stackSize <= 0) {
-            Optional<Long> currSeed = ConstellationSkyHandler.getInstance()
+        if (usedStars == null || usedStars.isEmpty()) {
+            com.google.common.base.Optional<Long> currSeed = ConstellationSkyHandler.getInstance()
                 .getSeedIfPresent(Minecraft.getMinecraft().theWorld);
             if (currSeed.isPresent()) {
                 setupInitialStars(currSeed.get());
@@ -234,7 +232,7 @@ public class GuiObservatory extends GuiTileBase<TileObservatory> implements GuiS
         WorldSkyHandler handle = ConstellationSkyHandler.getInstance()
             .getWorldHandler(Minecraft.getMinecraft().theWorld);
         int lastTracked = handle == null ? 5 : handle.lastRecordedDay;
-        Optional<Long> seed = ConstellationSkyHandler.getInstance()
+        com.google.common.base.Optional<Long> seed = ConstellationSkyHandler.getInstance()
             .getSeedIfPresent(Minecraft.getMinecraft().theWorld);
         long s = 0;
         if (seed.isPresent()) {
@@ -392,12 +390,12 @@ public class GuiObservatory extends GuiTileBase<TileObservatory> implements GuiS
             List<KnowledgeFragment> fragList = new LinkedList<>();
             for (ItemStack item : fragmentStacks) {
                 KnowledgeFragment frag = ItemKnowledgeFragment.resolveFragment(item);
-                Optional<Long> seedOpt = ItemKnowledgeFragment.getSeed(item);
-                if (seedOpt.isPresent() && frag != null && !fragList.contains(frag)) {
+                long seed = ItemKnowledgeFragment.getSeed(item);
+                if (seed > 0 && frag != null && !fragList.contains(frag)) {
                     fragList.add(frag);
 
-                    IConstellation cst = frag.getDiscoverConstellation(seedOpt.get());
-                    List<MoonPhase> phases = frag.getShowupPhases(seedOpt.get());
+                    IConstellation cst = frag.getDiscoverConstellation(seed);
+                    List<MoonPhase> phases = frag.getShowupPhases(seed);
                     if (cst != null && phases.contains(handle.getCurrentMoonPhase())) {
                         scrollActives.add(cst);
                     }

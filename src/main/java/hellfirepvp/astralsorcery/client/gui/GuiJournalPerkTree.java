@@ -291,7 +291,7 @@ public class GuiJournalPerkTree extends GuiScreenJournal {
                     && s.getItem() instanceof ItemPerkGem
                     && !ItemPerkGem.getModifiers(s)
                         .isEmpty());
-            if (found == null || found.stackSize <= 0) { // Close then.
+            if (found == null || found.isEmpty()) { // Close then.
                 closeSocketMenu();
                 return;
             }

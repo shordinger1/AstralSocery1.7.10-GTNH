@@ -99,7 +99,9 @@ public class GuiAltarTrait extends GuiAltarBase {
             TextureHelper.refreshTextureBindState();
         }
 
-        float pTicks = Minecraft.getMinecraft().timer.renderPartialTicks;
+        // 1.7.10: timer field is private, use system time instead
+        long systemTime = System.currentTimeMillis();
+        float pTicks = (systemTime % 1000) / 1000F;
 
         RenderAstralSkybox.TEX_STAR_1.bind();
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);

@@ -61,7 +61,6 @@ import hellfirepvp.astralsorcery.common.init.BlockRegister;
 import hellfirepvp.astralsorcery.common.init.ItemRegister;
 import hellfirepvp.astralsorcery.common.integrations.ModIntegrationBloodMagic;
 import hellfirepvp.astralsorcery.common.integrations.ModIntegrationChisel;
-import hellfirepvp.astralsorcery.common.integrations.ModIntegrationCrafttweaker;
 import hellfirepvp.astralsorcery.common.integrations.ModIntegrationThaumcraft;
 import hellfirepvp.astralsorcery.common.item.ItemCraftingComponent;
 import hellfirepvp.astralsorcery.common.item.ItemJournal;
@@ -173,13 +172,7 @@ public class CommonProxy implements IGuiHandler {
 
         // 1.7.10: Capability system doesn't exist, capabilities use NBT-based storage
         // registerCapabilities();
-
-        if (Mods.CRAFTTWEAKER.isPresent()) {
-            AstralSorcery.log.info("Crafttweaker found! Adding recipe handlers...");
-            ModIntegrationCrafttweaker.instance.load();
-        } else {
-            AstralSorcery.log.info("Crafttweaker not found!");
-        }
+        AstralSorcery.log.info("CraftTweaker integration removed for 1.7.10");
     }
 
     // 1.7.10: Capability system doesn't exist - commented out
@@ -266,16 +259,18 @@ public class CommonProxy implements IGuiHandler {
     public void init() {
         RegistryStructures.init();
         RegistryResearch.init();
+        // Register all recipes - vanilla crafting table recipes first
+        RegistryRecipes.initVanillaRecipes();
+        // Then Astral Sorcery machine recipes (altars, infusion, etc.)
+        RegistryRecipes.initAstralRecipes();
+        // Finally dynamic grindstone ore recipes
         RegistryRecipes.initGrindstoneOreRecipes();
         SextantFinder.initialize();
         RegistryKnowledgeFragments.init();
         PatreonDataManager.loadPatreonEffects();
 
         RegistryConstellations.initMapEffects();
-
-        if (Mods.CRAFTTWEAKER.isPresent()) {
-            ModIntegrationCrafttweaker.instance.pushChanges();
-        }
+        // 1.7.10: CraftTweaker integration removed
         ModIntegrationChisel.sendVariantIMC();
         MappingMigrationHandler.init();
 

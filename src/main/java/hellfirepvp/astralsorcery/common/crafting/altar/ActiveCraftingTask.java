@@ -93,8 +93,7 @@ public class ActiveCraftingTask {
         // 1.7.10: Iterate through playerEntityList to find player by UUID
         for (Object playerObj : FMLCommonHandler.instance()
             .getMinecraftServerInstance()
-            .getConfigurationManager()
-            .playerEntityList) {
+            .getConfigurationManager().playerEntityList) {
             if (playerObj instanceof EntityPlayer) {
                 EntityPlayer player = (EntityPlayer) playerObj;
                 if (player.getUniqueID()

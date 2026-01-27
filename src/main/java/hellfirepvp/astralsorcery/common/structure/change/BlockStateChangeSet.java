@@ -52,7 +52,7 @@ public final class BlockStateChangeSet {
     }
 
     public boolean isEmpty() {
-        return this.changes == null || changes.stackSize <= 0;
+        return this.changes == null || changes.isEmpty();
     }
 
     public Collection<StateChange> getChanges() {

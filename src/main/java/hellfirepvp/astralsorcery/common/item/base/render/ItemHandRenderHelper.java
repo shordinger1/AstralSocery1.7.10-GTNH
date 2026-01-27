@@ -26,10 +26,10 @@ public class ItemHandRenderHelper {
     /**
      * Gets the block the entity is looking at
      *
-     * @param e                           The entity
-     * @param stopTraceOnLiquids          Whether to stop on liquids
+     * @param e                             The entity
+     * @param stopTraceOnLiquids            Whether to stop on liquids
      * @param ignoreBlockWithoutBoundingBox Whether to ignore blocks without bounding boxes
-     * @param range                       The maximum range
+     * @param range                         The maximum range
      * @return The ray trace result, or null if no block is hit
      */
     @Nullable
@@ -37,7 +37,8 @@ public class ItemHandRenderHelper {
         boolean ignoreBlockWithoutBoundingBox, double range) {
         float pitch = e.rotationPitch;
         float yaw = e.rotationYaw;
-        Vec3 entityVec = new Vec3(e.posX, e.posY + e.getEyeHeight(), e.posZ);
+        // In 1.7.10, Vec3 constructor is protected, use createVectorHelper
+        Vec3 entityVec = Vec3.createVectorHelper(e.posX, e.posY + e.getEyeHeight(), e.posZ);
         float f2 = WrapMathHelper.cos(-yaw * 0.017453292F - (float) Math.PI);
         float f3 = WrapMathHelper.sin(-yaw * 0.017453292F - (float) Math.PI);
         float f4 = -WrapMathHelper.cos(-pitch * 0.017453292F);
@@ -45,8 +46,10 @@ public class ItemHandRenderHelper {
         float f6 = f3 * f4;
         float f7 = f2 * f4;
         Vec3 vec3d1 = entityVec.addVector((double) f6 * range, (double) f5 * range, (double) f7 * range);
+        // In 1.7.10, rayTraceBlocks has signature (Vec3, Vec3, boolean)
+        // ignoreBlockWithoutBoundingBox parameter doesn't exist
         MovingObjectPosition mop = e.worldObj
-            .rayTraceBlocks(entityVec, vec3d1, stopTraceOnLiquids, ignoreBlockWithoutBoundingBox, false);
+            .rayTraceBlocks(entityVec, vec3d1, stopTraceOnLiquids);
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
             return null;
         }

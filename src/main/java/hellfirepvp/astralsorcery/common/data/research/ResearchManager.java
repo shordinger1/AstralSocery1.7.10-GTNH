@@ -144,7 +144,7 @@ public class ResearchManager {
 
         LinkedList<ResearchProgression> progToGive = new LinkedList<>();
         progToGive.add(prog);
-        while (!progToGive == null || progToGive.stackSize <= 0) { // progToGive is LinkedList, not ItemStack
+        while (!(progToGive == null || progToGive.isEmpty())) { // progToGive is LinkedList, not ItemStack
             ResearchProgression give = progToGive.pop();
             if (!progress.getResearchProgression()
                 .contains(give)) {
@@ -798,7 +798,8 @@ public class ResearchManager {
             for (Object playerObj : server.getConfigurationManager().playerEntityList) {
                 if (playerObj instanceof EntityPlayerMP) {
                     EntityPlayerMP p = (EntityPlayerMP) playerObj;
-                    if (p.getUniqueID().equals(pUUID)) {
+                    if (p.getUniqueID()
+                        .equals(pUUID)) {
                         player = p;
                         break;
                     }
@@ -808,7 +809,8 @@ public class ResearchManager {
                 // In 1.7.10, ChatComponentText doesn't have setStyle, use plain text with color codes
                 player.addChatMessage(
                     new ChatComponentText(
-                        EnumChatFormatting.RED + "AstralSorcery: Your progression could not be loaded and can't be recovered from backup. Please contact an administrator to lookup what went wrong and/or potentially recover your data from a backup."));
+                        EnumChatFormatting.RED
+                            + "AstralSorcery: Your progression could not be loaded and can't be recovered from backup. Please contact an administrator to lookup what went wrong and/or potentially recover your data from a backup."));
             }
             // In 1.7.10, use getCommandSenderName() instead of getName()
             String resolvedName = player != null ? player.getCommandSenderName() : pUUID.toString() + " (Not online)";
@@ -816,10 +818,12 @@ public class ResearchManager {
             for (Object playerObj : server.getConfigurationManager().playerEntityList) {
                 if (playerObj instanceof EntityPlayerMP) {
                     EntityPlayerMP pl = (EntityPlayerMP) playerObj;
-                    if (server.getConfigurationManager().func_152596_g(pl.getGameProfile())) { // isOP
+                    if (server.getConfigurationManager()
+                        .func_152596_g(pl.getGameProfile())) { // isOP
                         pl.addChatMessage(
                             new ChatComponentText(
-                                EnumChatFormatting.RED + "AstralSorcery: The progression of " + resolvedName
+                                EnumChatFormatting.RED + "AstralSorcery: The progression of "
+                                    + resolvedName
                                     + " could not be loaded and can't be recovered from backup. Error files might be created from the unloadable progression files, check the console for additional information!"));
                     }
                 }

@@ -12,10 +12,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import hellfirepvp.astralsorcery.common.crafting.ItemHandle;
 import net.minecraft.item.ItemStack;
 
 import org.jetbrains.annotations.Unmodifiable;
@@ -181,16 +183,16 @@ public class ASRecipeMap {
             return 0;
         }
 
-        int count = 0;
+        AtomicInteger count = new AtomicInteger();
         recipes.removeIf(recipe -> {
             ItemStack recipeOutput = recipe.getOutput();
             if (recipeOutput != null && ItemStack.areItemStacksEqual(recipeOutput, output)) {
-                count++;
+                count.getAndIncrement();
                 return true;
             }
             return false;
         });
-        return count;
+        return count.get();
     }
 
     /**

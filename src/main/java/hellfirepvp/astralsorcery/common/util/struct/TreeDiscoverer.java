@@ -13,14 +13,15 @@ import java.util.Stack;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import hellfirepvp.astralsorcery.common.migration.Vec3i;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLeaves;
 import net.minecraft.block.BlockLog;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import hellfirepvp.astralsorcery.common.base.TreeTypes;
+import hellfirepvp.astralsorcery.common.migration.Vec3i;
 import hellfirepvp.astralsorcery.common.structure.array.BlockArray;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.util.BlockStateCheck;
@@ -99,7 +100,10 @@ public class TreeDiscoverer {
                         for (int yy = -1; yy <= 1; yy++) {
                             for (int zz = -1; zz <= 1; zz++) {
                                 BlockPos newPos = offset.add(xx, yy, zz);
-                                if ((xzLimitSq == -1 || flatDistanceSq(newPos, origin) <= xzLimitSq)
+                                // 1.7.10: Convert BlockPos to Vec3i for flatDistanceSq
+                                if ((xzLimitSq == -1 || flatDistanceSq(
+                                    new Vec3i(newPos.posX, newPos.posY, newPos.posZ),
+                                    new Vec3i(origin.posX, origin.posY, origin.posZ)) <= xzLimitSq)
                                     && !out.hasBlockAt(newPos)) {
                                     offsetPositions.push(newPos);
                                 }
@@ -108,8 +112,13 @@ public class TreeDiscoverer {
                     }
                 } else {
                     for (EnumFacing face : EnumFacing.values()) {
-                        BlockPos newPos = offset.offset(face);
-                        if ((xzLimitSq == -1 || flatDistanceSq(newPos, origin) <= xzLimitSq)
+                        // 1.7.10: Convert EnumFacing to ForgeDirection for BlockPos.offset()
+                        ForgeDirection forgeDir = ForgeDirection.values()[face.ordinal()];
+                        BlockPos newPos = offset.offset(forgeDir);
+                        // 1.7.10: Convert BlockPos to Vec3i for flatDistanceSq
+                        if ((xzLimitSq == -1 || flatDistanceSq(
+                            new Vec3i(newPos.posX, newPos.posY, newPos.posZ),
+                            new Vec3i(origin.posX, origin.posY, origin.posZ)) <= xzLimitSq)
                             && !out.hasBlockAt(newPos)) {
                             offsetPositions.push(newPos);
                         }
@@ -146,12 +155,14 @@ public class TreeDiscoverer {
             Block at = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
             if (at instanceof BlockLog) {
                 logCheck = new BlockStateCheck.Block(at);
-            } else if (at.isWood(world, pos)) {
+            } else if (at.isWood(world, pos.getX(), pos.getY(), pos.getZ())) {
+                // 1.7.10: isWood takes x, y, z coordinates
                 logCheck = new BlockStateCheck.Block(at);
             }
             if (at instanceof BlockLeaves) {
                 leafCheck = new BlockStateCheck.Block(at);
-            } else if (at.isLeaves(at, world, pos)) {
+            } else if (at.isLeaves(world, pos.getX(), pos.getY(), pos.getZ())) {
+                // 1.7.10: isLeaves takes x, y, z coordinates
                 leafCheck = new BlockStateCheck.Block(at);
             }
         }

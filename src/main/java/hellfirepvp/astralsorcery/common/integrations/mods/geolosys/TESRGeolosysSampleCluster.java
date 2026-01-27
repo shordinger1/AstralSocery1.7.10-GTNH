@@ -8,7 +8,7 @@
 
 package hellfirepvp.astralsorcery.common.integrations.mods.geolosys;
 
-
+import hellfirepvp.astralsorcery.common.util.data.Tuple;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GLAllocation;
@@ -16,7 +16,7 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Tuple;
+
 
 import org.lwjgl.opengl.GL11;
 
@@ -28,10 +28,8 @@ import hellfirepvp.astralsorcery.client.util.resource.AssetLibrary;
 import hellfirepvp.astralsorcery.client.util.resource.AssetLoader;
 import hellfirepvp.astralsorcery.client.util.resource.BindableResource;
 import hellfirepvp.astralsorcery.common.integrations.ModIntegrationGeolosys;
-
-// 1.7.10: Migrated versions of OreStages mod APIs (optional dependencies)
-import hellfirepvp.astralsorcery.common.migration.net.darkhax.orestages.api.OreTiersAPI;
 import hellfirepvp.astralsorcery.common.migration.net.darkhax.gamestages.GameStageHelper;
+import hellfirepvp.astralsorcery.common.migration.net.darkhax.orestages.api.OreTiersAPI;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -40,8 +38,7 @@ import hellfirepvp.astralsorcery.common.migration.net.darkhax.gamestages.GameSta
  * Created by HellFirePvP
  * Date: 03.10.2017 / 17:39
  */
-public class TESRGeolosysSampleCluster extends TileEntitySpecialRenderer
-    implements IItemRenderer {
+public class TESRGeolosysSampleCluster extends TileEntitySpecialRenderer implements IItemRenderer {
 
     private static int dlC1 = -1;
     private static final BindableResource texCelestialCrystals = AssetLibrary
@@ -88,9 +85,9 @@ public class TESRGeolosysSampleCluster extends TileEntitySpecialRenderer
     private boolean checkShouldHide(Block block) {
         if (OreTiersAPI.hasReplacement(block)) {
             // 1.7.10: Tuple is raw, need to cast
-            Tuple info = OreTiersAPI.getStageInfo(block);
-            if (info != null && info.getFirst() instanceof String && Minecraft.getMinecraft().thePlayer != null) {
-                String stage = (String) info.getFirst();
+            Tuple<String, OreTiersAPI.BlockMeta> info = OreTiersAPI.getStageInfo(block);
+            if (info != null && info.getKey() instanceof String && Minecraft.getMinecraft().thePlayer != null) {
+                String stage = (String) info.getKey();
                 if (!GameStageHelper.hasStage(Minecraft.getMinecraft().thePlayer, stage)) {
                     return true;
                 }

@@ -72,10 +72,11 @@ public class ItemChargedCrystalPickaxe extends ItemCrystalPickaxe implements Cha
             final World scanWorld = world;
             final EntityPlayer scanPlayer = player;
             Thread tr = new Thread(new Runnable() {
+
                 @Override
                 public void run() {
                     BlockArray foundOres = OreDiscoverer.startSearch(scanWorld, Vector3.atEntityCorner(scanPlayer), 14);
-                    if (!foundOres == null || foundOres.stackSize <= 0) {
+                    if (!(foundOres == null) || foundOres.isEmpty() ) {
                         List<BlockPos> positions = new LinkedList<>();
                         BlockPos plPos = new BlockPos(scanPlayer);
                         for (BlockPos pos : foundOres.getPattern()

@@ -99,7 +99,8 @@ public class StructureTreasureShrine extends StructureBlockArray {
         for (int i = 0; i < 5; i++) {
             addBlock(x, 2 + i, z, marble, mpl);
         }
-//        addBlock(x, 7, z, Blocks.prismarine); // 1.7.10 doesn't have sea_lantern, using prismarine as closest equivalent
+        // addBlock(x, 7, z, Blocks.prismarine); // 1.7.10 doesn't have sea_lantern, using prismarine as closest
+        // equivalent
     }
 
     @Override

@@ -238,13 +238,14 @@ public class BlockRegister {
 
     private static void registerBlockRender(Block block) {
         if (block instanceof BlockVariants) {
-            for (hellfirepvp.astralsorcery.common.migration.IBlockState state : ((BlockVariants) block)
-                .getValidStates()) {
-                String unlocName = ((BlockVariants) block).getBlockName(state);
-                String name = unlocName + "_" + ((BlockVariants) block).getStateName(state);
+            BlockVariants variants = (BlockVariants) block;
+            String blockName = variants.getBlockName();
+            List<Block> validStates = variants.getValidStates();
+            for (int meta = 0; meta < validStates.size(); meta++) {
+                String stateName = variants.getStateName(meta);
+                String name = blockName + "_" + stateName;
                 AstralSorcery.proxy.registerVariantName(net.minecraft.item.Item.getItemFromBlock(block), name);
-                // 1.7.10: Use state.getMetadata() instead of block.getMetaFromState(state)
-                AstralSorcery.proxy.registerBlockRender(block, state.getMetadata(), name);
+                AstralSorcery.proxy.registerBlockRender(block, meta, name);
             }
         } else {
             AstralSorcery.proxy

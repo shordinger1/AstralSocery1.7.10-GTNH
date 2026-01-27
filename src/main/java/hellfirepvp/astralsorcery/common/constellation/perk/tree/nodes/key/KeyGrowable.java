@@ -100,8 +100,8 @@ public class KeyGrowable extends KeyPerk implements IPlayerTickPerk {
                     pkt = new PktParticleEvent(PktParticleEvent.ParticleEventType.CE_CROP_INTERACT, pos);
                 }
             } else {
-                // 1.7.10: Use BlockPos.getBlock(World.posX, World.posY, World.posZ) instead of World.getBlock(BlockPos.posX, BlockPos.posY, BlockPos.posZ)
-                Block at = pos.getBlock(w.posX, w.posY, w.posZ);
+                // 1.7.10: Use BlockPos.getBlock(World) instead of World.getBlock(BlockPos)
+                Block at = pos.getBlock(w);
                 /*
                  * if(at instanceof IGrowable) {
                  * if(((IGrowable) at).canUseBonemeal(w, rand, pos, at)) {

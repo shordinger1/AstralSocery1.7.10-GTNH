@@ -14,6 +14,7 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 
 import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -50,11 +51,10 @@ public class BlockBreakAssist {
 
         BreakEntry breakProgress = map.get(pos);
         if (breakProgress == null) {
-            breakProgress = new BreakEntry(
-                expectedHardness,
-                world,
-                pos,
-                world.getBlock(pos.getX(), pos.getY(), pos.getZ()));
+            // 1.7.10: Get block and metadata separately
+            Block block = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
+            int metadata = world.getBlockMetadata(pos.getX(), pos.getY(), pos.getZ());
+            breakProgress = new BreakEntry(expectedHardness, world, pos, block, metadata);
             map.put(pos, breakProgress);
         }
 
@@ -65,7 +65,14 @@ public class BlockBreakAssist {
 
     @SideOnly(Side.CLIENT)
     public static void blockBreakAnimation(PktPlayEffect pktPlayEffect) {
-        RenderingUtils.playBlockBreakParticles(pktPlayEffect.pos, Block.getStateById(pktPlayEffect.data));
+        // 1.7.10: Can't use Block.getStateById(), particles don't need full block state
+        // The data field contains block ID and metadata encoded
+        int blockId = pktPlayEffect.data >> 4; // Upper bits = block ID
+        Block block = Block.getBlockById(blockId);
+        if (block != null) {
+            // 1.7.10: playBlockBreakParticles only takes BlockPos and Block
+            RenderingUtils.playBlockBreakParticles(pktPlayEffect.pos, block);
+        }
     }
 
     public static class BreakEntry
@@ -74,7 +81,8 @@ public class BlockBreakAssist {
         private float breakProgress;
         private final World world;
         private BlockPos pos;
-        private Block expected;
+        private Block expectedBlock;
+        private int expectedMetadata; // 1.7.10: Store metadata instead of state
 
         private int idleTimeout;
 
@@ -82,11 +90,13 @@ public class BlockBreakAssist {
             this.world = world;
         }
 
-        public BreakEntry(@Nonnull Float value, World world, BlockPos at, Block expectedToBreak) {
+        public BreakEntry(@Nonnull Float value, World world, BlockPos at, Block expectedBlock, int metadata) {
+            // 1.7.10: Store block and metadata separately
             this.breakProgress = value;
             this.world = world;
             this.pos = at;
-            this.expected = expectedToBreak;
+            this.expectedBlock = expectedBlock;
+            this.expectedMetadata = metadata;
         }
 
         @Override
@@ -103,15 +113,11 @@ public class BlockBreakAssist {
         public void onTimeout() {
             if (breakProgress > 0) return;
 
-            Block nowAt = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
-            if (MiscUtils.matchStateExact(expected, nowAt)) {
-                MiscUtils.breakBlockWithoutPlayer(
-                    (WorldServer) world,
-                    pos,
-                    world.getBlock(pos.getX(), pos.getY(), pos.getZ()),
-                    true,
-                    true,
-                    true);
+            // 1.7.10: Check block and metadata
+            Block nowBlock = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
+            int nowMetadata = world.getBlockMetadata(pos.getX(), pos.getY(), pos.getZ());
+            if (nowBlock == expectedBlock && nowMetadata == expectedMetadata) {
+                MiscUtils.breakBlockWithoutPlayer((WorldServer) world, pos, nowBlock, true, true, true);
             }
         }
 
@@ -129,14 +135,22 @@ public class BlockBreakAssist {
         public void readFromNBT(NBTTagCompound nbt) {
             this.breakProgress = nbt.getFloat("breakProgress");
             this.pos = NBTHelper.readBlockPosFromNBT(nbt);
-            this.expected = Block.getStateById(nbt.getInteger("expectedStateId"));
+            // 1.7.10: Read block ID and metadata separately
+            int blockId = nbt.getInteger("expectedBlockId");
+            this.expectedBlock = Block.getBlockById(blockId);
+            if (this.expectedBlock == null) {
+                this.expectedBlock = Blocks.air;
+            }
+            this.expectedMetadata = nbt.getInteger("expectedMetadata");
         }
 
         @Override
         public void writeToNBT(NBTTagCompound nbt) {
             nbt.setFloat("breakProgress", this.breakProgress);
             NBTHelper.writeBlockPosToNBT(this.pos, nbt);
-            nbt.setInteger("expectedStateId", Block.getStateId(this.expected));
+            // 1.7.10: Write block ID and metadata separately
+            nbt.setInteger("expectedBlockId", Block.getIdFromBlock(this.expectedBlock));
+            nbt.setInteger("expectedMetadata", this.expectedMetadata);
         }
 
     }

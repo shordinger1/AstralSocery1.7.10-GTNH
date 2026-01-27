@@ -15,7 +15,6 @@ import javax.annotation.Nullable;
 import net.minecraft.entity.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ai.EntityAIBase;
-import net.minecraft.entity.ai.EntityMoveHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
@@ -37,7 +36,6 @@ import hellfirepvp.astralsorcery.common.util.DamageUtil;
 import hellfirepvp.astralsorcery.common.util.EntityUtils;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
 import hellfirepvp.astralsorcery.common.util.WrapMathHelper;
-import hellfirepvp.astralsorcery.common.util.data.Vector3;
 import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
 
 /**
@@ -292,11 +290,15 @@ public class EntitySpectralTool extends EntityFlying implements EntityTechnicalA
         private EntityLivingBase findHostileEntity() {
             BlockPos center = new BlockPos(parentEntity);
             AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
-                center.getX() - 8, center.getY() - 8, center.getZ() - 8,
-                center.getX() + 8, center.getY() + 8, center.getZ() + 8);
+                center.getX() - 8,
+                center.getY() - 8,
+                center.getZ() - 8,
+                center.getX() + 8,
+                center.getY() + 8,
+                center.getZ() + 8);
 
-            java.util.List<EntityLivingBase> allEntities = parentEntity.worldObj.getEntitiesWithinAABB(
-                EntityLivingBase.class, searchBox);
+            java.util.List<EntityLivingBase> allEntities = parentEntity.worldObj
+                .getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
 
             java.util.List<EntityLivingBase> hostile = new java.util.ArrayList<>();
             for (EntityLivingBase e : allEntities) {
@@ -305,9 +307,8 @@ public class EntitySpectralTool extends EntityFlying implements EntityTechnicalA
                 hostile.add(e);
             }
 
-            if (hostile == null || hostile.stackSize <= 0) return null;
-            return EntityUtils.selectClosest(hostile,
-                e -> e.getDistanceSqToEntity(parentEntity));
+//            if (hostile.stackSize <= 0) return null;
+            return EntityUtils.selectClosest(hostile, e -> e.getDistanceSqToEntity(parentEntity));
         }
 
         // 1.7.10: shouldContinueExecuting doesn't override in EntityAIBase
@@ -488,4 +489,3 @@ public class EntitySpectralTool extends EntityFlying implements EntityTechnicalA
     }
 
 }
-

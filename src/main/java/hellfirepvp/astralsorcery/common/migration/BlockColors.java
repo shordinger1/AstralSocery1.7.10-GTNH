@@ -20,7 +20,7 @@ public class BlockColors {
 
     public BlockColors() {}
 
-    public int colorMultiplier(IBlockState state, IBlockAccess world, BlockPos pos, int tintIndex) {
+    public int colorMultiplier(Block block, int metadata, IBlockAccess world, BlockPos pos, int tintIndex) {
         return 0xFFFFFF;
     }
 
@@ -28,7 +28,7 @@ public class BlockColors {
      * Register a block color handler
      * In 1.7.10, this compatibility layer doesn't actually register color handlers
      * Color handling is done through IItemRenderer implementations
-     * 
+     *
      * @param colorHandler The color handler (not used in 1.7.10)
      * @param block        The block to register for
      */

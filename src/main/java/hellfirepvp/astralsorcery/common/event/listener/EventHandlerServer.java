@@ -17,7 +17,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockWorkbench;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -28,7 +27,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
@@ -41,8 +39,6 @@ import net.minecraftforge.event.world.WorldEvent;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
-
-import com.google.common.base.Predicate;
 import cpw.mods.fml.common.LoaderState;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -89,9 +85,9 @@ public class EventHandlerServer {
     // SpellPlague feature disabled for 1.7.10
     // @SubscribeEvent
     // public void attachPlague(AttachCapabilitiesEvent<Entity> event) {
-    //     if(event.getObject() instanceof EntityLivingBase) {
-    //         event.addCapability(SpellPlague.CAPABILITY_NAME, new SpellPlague.Provider());
-    //     }
+    // if(event.getObject() instanceof EntityLivingBase) {
+    // event.addCapability(SpellPlague.CAPABILITY_NAME, new SpellPlague.Provider());
+    // }
     // }
 
     /*
@@ -194,10 +190,8 @@ public class EventHandlerServer {
         entity.addPotionEffect(new PotionEffect(Potion.regeneration.id, 200, 2));
         entity.addPotionEffect(new PotionEffect(Potion.fireResistance.id, 500, 1));
         // 1.7.10: Use boundingBox instead of getEntityBoundingBox()
-        List<EntityLivingBase> others = entity.worldObj.getEntitiesWithinAABB(
-            EntityLivingBase.class,
-            entity.boundingBox
-                .expand(3, 3, 3));
+        List<EntityLivingBase> others = entity.worldObj
+            .getEntitiesWithinAABB(EntityLivingBase.class, entity.boundingBox.expand(3, 3, 3));
         // Filter manually - 1.7.10 doesn't support predicate in getEntitiesWithinAABB
         List<EntityLivingBase> filtered = new java.util.ArrayList<>();
         for (EntityLivingBase e : others) {
@@ -212,7 +206,8 @@ public class EventHandlerServer {
         PktParticleEvent ev = new PktParticleEvent(
             PktParticleEvent.ParticleEventType.PHOENIX_PROC,
             new Vector3(entity.posX, entity.posY, entity.posZ));
-        PacketChannel.CHANNEL.sendToAllAround(ev, PacketChannel.pointFromPos(entity.worldObj, new BlockPos(entity), 32));
+        PacketChannel.CHANNEL
+            .sendToAllAround(ev, PacketChannel.pointFromPos(entity.worldObj, new BlockPos(entity), 32));
 
         // In 1.7.10, removePotionEffect takes int effectId, not Potion
         entity.removePotionEffect(Potion.regeneration.id);
@@ -364,23 +359,23 @@ public class EventHandlerServer {
         if (player == null) return;
 
         // 1.7.10: Can't use lambda, need anonymous class
-        ItemStack heldStack = MiscUtils.getMainOrOffHand(player, ItemsAS.wand, new com.google.common.base.Predicate<ItemStack>() {
-            @Override
-            public boolean apply(ItemStack stack) {
-                return stack != null && ItemWand.getAugment(stack) != null;
-            }
-        });
+        ItemStack heldStack = MiscUtils
+            .getMainOrOffHand(player, ItemsAS.wand, new com.google.common.base.Predicate<ItemStack>() {
+
+                @Override
+                public boolean apply(ItemStack stack) {
+                    return stack != null && ItemWand.getAugment(stack) != null;
+                }
+            });
         if (heldStack != null && ItemWand.getAugment(heldStack) == WandAugment.EVORSIO) {
             if (rand.nextFloat() < Config.evorsioEffectChance) {
                 World w = event.world;
                 // 1.7.10: getBlock takes x, y, z coordinates, not BlockPos
                 Block stateAt = w.getBlock(at.getX(), at.getY(), at.getZ());
                 BlockPos playerPos = new BlockPos(player);
-                BlockArray foundBlocks = BlockDiscoverer.searchForBlocksAround(
-                    w,
-                    at,
-                    2,
-                    new BlockStateCheck.WorldSpecific() {
+                BlockArray foundBlocks = BlockDiscoverer
+                    .searchForBlocksAround(w, at, 2, new BlockStateCheck.WorldSpecific() {
+
                         @Override
                         public boolean isStateValid(World world, BlockPos pos, Block block, int metadata) {
                             // 1.7.10: Manual lambda replacement

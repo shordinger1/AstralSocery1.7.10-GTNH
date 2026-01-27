@@ -167,7 +167,7 @@ public class GuiJournalProgression extends GuiScreenJournal {
         progressionRenderer.drawMouseHighlight(zLevel, mousePoint);
 
         if (starRect != null && starRect.contains(mousePoint)) {
-            RenderingUtils.renderBlueTooltip(mousePoint.x, mousePoint.y, new LinkedList<>() {
+            RenderingUtils.renderBlueTooltip(mousePoint.x, mousePoint.y, new LinkedList<String>() {
 
                 {
                     add(I18n.format("misc.journal.info.1"));

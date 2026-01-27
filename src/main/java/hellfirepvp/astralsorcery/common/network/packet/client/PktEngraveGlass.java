@@ -84,7 +84,7 @@ public class PktEngraveGlass implements IMessage, IMessageHandler<PktEngraveGlas
             TileMapDrawingTable tmt = MiscUtils.getTileAt(w, message.pos, TileMapDrawingTable.class, false);
             if (tmt != null) {
                 List<DrawnConstellation> constellations = message.constellations;
-                if (!constellations == null || constellations.stackSize <= 0) {
+                if (constellations != null && !constellations.isEmpty()) {
                     tmt.tryEngraveGlass(constellations.subList(0, Math.min(3, constellations.size())));
                 }
             }

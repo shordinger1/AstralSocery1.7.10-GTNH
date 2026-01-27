@@ -64,8 +64,7 @@ public class ItemKnowledgeFragment extends Item implements ItemHighlighted {
     }
 
     // 1.7.10: getSubItems signature without @Override
-    public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> items) {
-    }
+    public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> items) {}
 
     @Override
     public boolean hasEffect(ItemStack stack) {
@@ -136,7 +135,7 @@ public class ItemKnowledgeFragment extends Item implements ItemHighlighted {
 
     @Override
     public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
-                             float hitX, float hitY, float hitZ) {
+        float hitX, float hitY, float hitZ) {
         return false;
     }
 
@@ -199,7 +198,7 @@ public class ItemKnowledgeFragment extends Item implements ItemHighlighted {
             if (seed != 0) {
                 IConstellation cst = frag.getDiscoverConstellation(seed);
                 List<MoonPhase> phases = frag.getShowupPhases(seed);
-                if (cst != null && !phases == null || phases.stackSize <= 0) {
+                if (cst != null && !(phases == null) || phases.isEmpty()) {
                     return new Tuple<>(cst, phases);
                 }
             }
@@ -229,8 +228,8 @@ public class ItemKnowledgeFragment extends Item implements ItemHighlighted {
                 it.remove();
             }
         }
-        // 1.7.10: Check List == null || List.stackSize <= 0 instead of stackSize
-        if ((all == null || all == null || all.stackSize <= 0)) return null;
+        // 1.7.10: Check List == null || List.isEmpty() instead of stackSize
+        if ((all == null || all.isEmpty())) return null;
         int index = sRand.nextInt(all.size());
         return all.get(index);
     }

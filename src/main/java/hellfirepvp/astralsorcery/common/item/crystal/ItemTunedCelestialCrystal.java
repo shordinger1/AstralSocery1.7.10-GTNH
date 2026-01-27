@@ -34,7 +34,6 @@ import hellfirepvp.astralsorcery.common.registry.RegistryItems;
  */
 public class ItemTunedCelestialCrystal extends ItemTunedCrystalBase implements ItemGatedVisibility {
 
-
     public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> subItems) {
         // 1.7.10 compatibility: Item.isInCreativeTab() doesn't exist, use tab == this.getCreativeTab() instead
         if (tab == this.getCreativeTab()) {

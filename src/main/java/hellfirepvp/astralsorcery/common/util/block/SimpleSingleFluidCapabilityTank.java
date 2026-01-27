@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
+import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.*;
 import net.minecraftforge.fluids.IFluidHandler;
 
@@ -127,7 +128,7 @@ public class SimpleSingleFluidCapabilityTank implements IFluidTank, IFluidHandle
     }
 
     @Nullable
-    @Override
+    // IFluidTank method - not an override in 1.7.10
     public FluidStack getContents() {
         return getFluid();
     }
@@ -137,23 +138,23 @@ public class SimpleSingleFluidCapabilityTank implements IFluidTank, IFluidHandle
         return this.maxCapacity;
     }
 
-    @Override
+    // IFluidTank methods
     public boolean canFill() {
         return this.allowInput && this.amount < this.maxCapacity;
     }
 
-    @Override
+    // IFluidTank methods
     public boolean canDrain() {
         return this.allowOutput && this.amount > 0 && this.fluid != null;
     }
 
-    @Override
+    // IFluidTank methods - not overrides in 1.7.10
     public boolean canFillFluidType(FluidStack fluidStack) {
         return canFill() && (this.fluid == null || fluidStack.getFluid()
             .equals(this.fluid));
     }
 
-    @Override
+    // IFluidTank methods - not overrides in 1.7.10
     public boolean canDrainFluidType(FluidStack fluidStack) {
         return canDrain() && (this.fluid != null && fluidStack.getFluid()
             .equals(this.fluid));
@@ -163,11 +164,59 @@ public class SimpleSingleFluidCapabilityTank implements IFluidTank, IFluidHandle
         return (((float) amount) / ((float) maxCapacity));
     }
 
-    @Override
+    // IFluidTank method - not an override in 1.7.10
     public FluidTankInfo getInfo() {
         return new FluidTankInfo(this);
     }
 
+    // ========== IFluidHandler implementation for 1.7.10 ==========
+    // These methods take ForgeDirection as first parameter
+
+    @Override
+    public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
+        if (!canAccess(convertForgeDirection(from))) return 0;
+        return fill(resource, doFill);
+    }
+
+    @Override
+    public FluidStack drain(ForgeDirection from, FluidStack resource, boolean doDrain) {
+        if (!canAccess(convertForgeDirection(from))) return null;
+        return drain(resource, doDrain);
+    }
+
+    @Override
+    public FluidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
+        if (!canAccess(convertForgeDirection(from))) return null;
+        return drain(maxDrain, doDrain);
+    }
+
+    @Override
+    public boolean canFill(ForgeDirection from, Fluid fluid) {
+        return canAccess(convertForgeDirection(from)) && canFill();
+    }
+
+    @Override
+    public boolean canDrain(ForgeDirection from, Fluid fluid) {
+        return canAccess(convertForgeDirection(from)) && canDrain();
+    }
+
+    @Override
+    public FluidTankInfo[] getTankInfo(ForgeDirection from) {
+        if (canAccess(convertForgeDirection(from))) {
+            return new FluidTankInfo[] { getInfo() };
+        }
+        return new FluidTankInfo[0];
+    }
+
+    // Helper method to convert ForgeDirection to EnumFacing
+    private EnumFacing convertForgeDirection(ForgeDirection dir) {
+        if (dir == null) return null;
+        return EnumFacing.values()[dir.ordinal()];
+    }
+
+    // ========== End IFluidHandler implementation ==========
+
+    // IFluidTank.fill() - delegates from IFluidHandler.fill(ForgeDirection, ...)
     @Override
     public int fill(FluidStack resource, boolean doFill) {
         if (!canFillFluidType(resource)) return 0;
@@ -182,13 +231,14 @@ public class SimpleSingleFluidCapabilityTank implements IFluidTank, IFluidHandle
         return addable;
     }
 
+    // IFluidTank.drain(FluidStack, ...) - delegates from IFluidHandler.drain(ForgeDirection, ...)
     @Nullable
-    @Override
     public FluidStack drain(FluidStack resource, boolean doDrain) {
         if (!canDrainFluidType(resource)) return null;
         return drain(resource.amount, doDrain);
     }
 
+    // IFluidTank.drain(int, ...) - delegates from IFluidHandler.drain(ForgeDirection, ...)
     @Nullable
     @Override
     public FluidStack drain(int maxDrain, boolean doDrain) {

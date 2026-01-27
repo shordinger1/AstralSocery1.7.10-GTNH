@@ -953,7 +953,7 @@ public class RenderingUtils {
         if (angle != 0.0F) {
             Vector3 pvec = new Vector3(iPX, iPY, iPZ);
             Vector3 tvec = new Vector3(px, py, pz);
-            Vector3 qvec = pvec.add(-tvec.posX, -tvec.posY, -tvec.posZ)
+            Vector3 qvec = pvec.add(-tvec.getX(), -tvec.getY(), -tvec.getZ())
                 .normalize();
             Vector3.Quat q = Vector3.Quat.buildQuatFrom3DVector(qvec, angle);
             q.rotateWithMagnitude(v1);
@@ -999,7 +999,7 @@ public class RenderingUtils {
         if (angle != 0.0F) {
             Vector3 pvec = new Vector3(iPX, iPY, iPZ);
             Vector3 tvec = new Vector3(px, py, pz);
-            Vector3 qvec = pvec.add(-tvec.posX, -tvec.posY, -tvec.posZ)
+            Vector3 qvec = pvec.add(-tvec.getX(), -tvec.getY(), -tvec.getZ())
                 .normalize();
             Vector3.Quat q = Vector3.Quat.buildQuatFrom3DVector(qvec, angle);
             q.rotateWithMagnitude(v1);
@@ -1049,7 +1049,7 @@ public class RenderingUtils {
         if (angle != 0.0F) {
             Vector3 pvec = new Vector3(iPX, iPY, iPZ);
             Vector3 tvec = new Vector3(px, py, pz);
-            Vector3 qvec = pvec.add(-tvec.posX, -tvec.posY, -tvec.posZ)
+            Vector3 qvec = pvec.add(-tvec.getX(), -tvec.getY(), -tvec.getZ())
                 .normalize();
             Vector3.Quat q = Vector3.Quat.buildQuatFrom3DVector(qvec, angle);
             q.rotateWithMagnitude(v1);
@@ -1084,14 +1084,14 @@ public class RenderingUtils {
     public static java.util.List<String> listFormattedStringToWidth(FontRenderer fontRenderer, String text,
         int wrapWidth) {
         java.util.List<String> lines = new java.util.ArrayList<>();
-        if (text == null || text == null || text.stackSize <= 0) {
+        if (text == null || text == null || text.isEmpty()) {
             return lines;
         }
 
         // Split by newlines first to preserve existing line breaks
         String[] paragraphs = text.split("\\\\n");
         for (String paragraph : paragraphs) {
-            if (paragraph == null || paragraph.stackSize <= 0) {
+            if (paragraph == null || paragraph.isEmpty()) {
                 lines.add("");
                 continue;
             }

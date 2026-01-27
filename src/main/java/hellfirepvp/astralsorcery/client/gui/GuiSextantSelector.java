@@ -26,6 +26,7 @@ import net.minecraft.world.World;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
 import hellfirepvp.astralsorcery.client.ClientScheduler;
@@ -147,15 +148,11 @@ public class GuiSextantSelector extends GuiWHScreen implements GuiSkyScreen {
         super(280, 280);
         // 1.7.10: usedHand field removed - doesn't exist in 1.7.10
 
-        Optional<Long> currSeed = ConstellationSkyHandler.getInstance()
+        com.google.common.base.Optional<Long> currSeed = ConstellationSkyHandler.getInstance()
             .getSeedIfPresent(Minecraft.getMinecraft().theWorld);
-        currSeed.ifPresent(new Consumer<Long>() {
-
-            @Override
-            public void accept(Long seed) {
-                setupInitialStars(seed);
-            }
-        });
+        if (currSeed.isPresent()) {
+            setupInitialStars(currSeed.get());
+        }
 
         Tuple<BlockPos, Integer> target = ItemSextant.getCurrentTargetInformation(sextant);
         if (target != null && Minecraft.getMinecraft().theWorld != null
@@ -319,12 +316,13 @@ public class GuiSextantSelector extends GuiWHScreen implements GuiSkyScreen {
 
     private void drawEffectBackground(float partialTicks, boolean canSeeSky, float transparency, double mouseX,
         double mouseY) {
-        if (usedStars == null || usedStars.stackSize <= 0) {
-            Optional<Long> currSeed = ConstellationSkyHandler.getInstance()
+        if (usedStars == null || usedStars.isEmpty()) {
+            com.google.common.base.Optional<Long> currSeed = ConstellationSkyHandler.getInstance()
                 .getSeedIfPresent(Minecraft.getMinecraft().theWorld);
             if (!currSeed.isPresent()) {
                 return;
             }
+
             setupInitialStars(currSeed.get());
         }
 

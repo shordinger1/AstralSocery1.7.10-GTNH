@@ -172,7 +172,8 @@ public class ItemKnowledgeShare extends Item implements INBTModel {
         for (Object obj : server.getConfigurationManager().playerEntityList) {
             if (obj instanceof EntityPlayer) {
                 EntityPlayer p = (EntityPlayer) obj;
-                if (p.getUniqueID().equals(owner)) {
+                if (p.getUniqueID()
+                    .equals(owner)) {
                     return p;
                 }
             }

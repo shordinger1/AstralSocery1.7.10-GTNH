@@ -8,7 +8,6 @@
 
 package hellfirepvp.astralsorcery.common.item;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -23,7 +22,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.world.World;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -99,7 +97,8 @@ public class ItemInfusedGlass extends Item {
                         + EnumChatFormatting.BLUE
                         + I18n.format(c.getUnlocalizedName());
                     // 1.7.10: Use capabilities.isCreativeMode instead of isCreative()
-                    if (Minecraft.getMinecraft().thePlayer != null && Minecraft.getMinecraft().thePlayer.capabilities.isCreativeMode) {
+                    if (Minecraft.getMinecraft().thePlayer != null
+                        && Minecraft.getMinecraft().thePlayer.capabilities.isCreativeMode) {
                         out += EnumChatFormatting.LIGHT_PURPLE + " (Creative) "
                             + (int) (map.getPercentage(c) * 100)
                             + "%";

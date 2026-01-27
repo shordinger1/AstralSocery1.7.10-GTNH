@@ -54,24 +54,24 @@ public class MultiblockRitualPedestal {
 
     private final String[][] shape = new String[][] {
         // Y = -1 (Base layer - complex pattern)
-        {"A     A", "A     A", "A     A", "BB   BB", "B  H  B", "BB   BB", "BB   BB", "B  H  B", "BB   BB"},
-        {"    B  ", "   BBB ", "  BBBBB", " BBBBB ", "BBHBBHBB", " BBBBB ", " BBBBB ", "  BBBBB", "   BBB "},
-        {"    B  ", "   BBB ", "  BBBBB", " BBBBB ", "BBHBBHBB", " BBBBB ", " BBBBB ", "  BBBBB", "   BBB "},
-        {"    B  ", "   BBB ", "  BBBBB", " BBBBB ", "BBHBBHBB", " BBBBB ", " BBBBB ", "  BBBBB", "   BBB "},
-        {"    B  ", "   BBB ", "  BBBBB", " BBBBB ", "BBHBBHBB", " BBBBB ", " BBBBB ", "  BBBBB", "   BBB "},
-        {"A     A", "A     A", "A     A", "BB   BB", "B  H  B", "BB   BB", "BB   BB", "B  H  B", "BB   BB"},
-        {"AAA AAA", "AAA AAA", "AAA AAA", "BB   BB", "B  H  B", "BB   BB", "BB   BB", "B  H  B", "BB   BB"},
-        {"B     B", "B     B", "BB   BB", " B RRB ", " BRH RB", " BRRB  ", " B RRB ", " BRH RB", " BRRB  "},
-        {"B     B", "B     B", "BB   BB", " B RRB ", " BRH RB", " BRRB  ", " B RRB ", " BRH RB", " BRRB  "},
+        { "A     A", "A     A", "A     A", "BB   BB", "B  H  B", "BB   BB", "BB   BB", "B  H  B", "BB   BB" },
+        { "    B  ", "   BBB ", "  BBBBB", " BBBBB ", "BBHBBHBB", " BBBBB ", " BBBBB ", "  BBBBB", "   BBB " },
+        { "    B  ", "   BBB ", "  BBBBB", " BBBBB ", "BBHBBHBB", " BBBBB ", " BBBBB ", "  BBBBB", "   BBB " },
+        { "    B  ", "   BBB ", "  BBBBB", " BBBBB ", "BBHBBHBB", " BBBBB ", " BBBBB ", "  BBBBB", "   BBB " },
+        { "    B  ", "   BBB ", "  BBBBB", " BBBBB ", "BBHBBHBB", " BBBBB ", " BBBBB ", "  BBBBB", "   BBB " },
+        { "A     A", "A     A", "A     A", "BB   BB", "B  H  B", "BB   BB", "BB   BB", "B  H  B", "BB   BB" },
+        { "AAA AAA", "AAA AAA", "AAA AAA", "BB   BB", "B  H  B", "BB   BB", "BB   BB", "B  H  B", "BB   BB" },
+        { "B     B", "B     B", "BB   BB", " B RRB ", " BRH RB", " BRRB  ", " B RRB ", " BRH RB", " BRRB  " },
+        { "B     B", "B     B", "BB   BB", " B RRB ", " BRH RB", " BRRB  ", " B RRB ", " BRH RB", " BRRB  " },
 
         // Y = 0 (Pedestal at center)
-        {"        ", "        ", "        ", "        ", "   P    ", "        ", "        ", "        ", "        "},
+        { "        ", "        ", "        ", "        ", "   P    ", "        ", "        ", "        ", "        " },
 
         // Y = 1 (Air)
-        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
+        { "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        " },
 
         // Y = 2 (Air)
-        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
-    };
+        { "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ",
+            "        " }, };
 
 }

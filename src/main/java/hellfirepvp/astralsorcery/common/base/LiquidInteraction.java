@@ -111,7 +111,7 @@ public class LiquidInteraction {
 
     private static void cacheLocalFallback() {
         // 1.7.10: List doesn't have stackSize, use isEmpty()
-        if ((localFallback == null || localFallback == null || localFallback.stackSize <= 0)) {
+        if (localFallback.isEmpty()) {
             localFallback.addAll(registeredInteractions);
         }
     }
@@ -207,7 +207,7 @@ public class LiquidInteraction {
             }
         }
         // 1.7.10: List doesn't have stackSize, use isEmpty()
-        if (test == null || test.stackSize <= 0) {
+        if (test.isEmpty()) {
             return null;
         }
         return WeightedRandom.getRandomItem(rand, test)
@@ -243,7 +243,7 @@ public class LiquidInteraction {
             }
         }
         // 1.7.10: List doesn't have stackSize, use isEmpty()
-        if (test == null || test.stackSize <= 0) {
+        if (test.isEmpty()) {
             return null;
         }
         return WeightedRandom.getRandomItem(rand, test)

@@ -105,7 +105,8 @@ public class TileChalice extends TileEntityTick
 
             playFluidEffect();
         } else {
-            if (getWorld().isBlockIndirectlyGettingPowered(getPos()) > 0) {
+            // 1.7.10: isBlockIndirectlyGettingPowered(x,y,z) returns boolean, not int
+            if (getWorld().isBlockIndirectlyGettingPowered(getPos().getX(), getPos().getY(), getPos().getZ())) {
                 return;
             }
 
@@ -121,14 +122,23 @@ public class TileChalice extends TileEntityTick
                     return;
                 }
                 List<LiquidInteraction> interactions = LiquidInteraction.getPossibleInteractions(this.tank.getFluid());
-                if (!interactions == null || interactions.stackSize <= 0) {
+                // 1.7.10: Fix logic and use size() instead of stackSize
+                if (interactions != null && interactions.size() > 0) {
                     List<TileChalice> tch = collectChalicesFlat();
                     Collections.shuffle(tch);
                     for (TileChalice ch : tch) {
                         if (ch.getPos()
                             .equals(getPos())) continue;
-                        if (getWorld().isBlockIndirectlyGettingPowered(ch.pos) > 0) continue;
-                        TileChalice other = MiscUtils.getTileAt(worldObj, ch.pos, TileChalice.class, true);
+                        // 1.7.10: use getPos() instead of pos, isBlockIndirectlyGettingPowered returns boolean
+                        if (getWorld().isBlockIndirectlyGettingPowered(
+                            ch.getPos()
+                                .getX(),
+                            ch.getPos()
+                                .getY(),
+                            ch.getPos()
+                                .getZ()))
+                            continue;
+                        TileChalice other = MiscUtils.getTileAt(worldObj, ch.getPos(), TileChalice.class, true);
                         if (other != null) {
                             if (new Vector3(this).distance(ch.getPos()) <= ConfigEntryChalice.chaliceRange) {
                                 RaytraceAssist rta = new RaytraceAssist(getPos(), ch.getPos());
@@ -176,8 +186,22 @@ public class TileChalice extends TileEntityTick
             for (int zz = chMin.z; zz <= chMax.z; zz++) {
                 if (MiscUtils.isChunkLoaded(worldObj, new ChunkPos(xx, zz))) {
                     Chunk lChunk = worldObj.getChunkFromChunkCoords(xx, zz);
-                    for (TileEntity te : lChunk.getTileEntityMap()
-                        .values()) {
+                    // 1.7.10: Chunk doesn't have getTileEntityMap(), need to scan chunk tile entities differently
+                    // Use chunk tile entity list if available, or iterate positions
+                    java.util.List<TileEntity> tileEntities = new java.util.LinkedList<>();
+                    // Scan the chunk for tile entities
+                    for (int x = 0; x < 16; x++) {
+                        for (int z = 0; z < 16; z++) {
+                            for (int y = 0; y < 256; y++) {
+                                TileEntity te = worldObj
+                                    .getTileEntity(lChunk.xPosition * 16 + x, y, lChunk.zPosition * 16 + z);
+                                if (te != null && !tileEntities.contains(te)) {
+                                    tileEntities.add(te);
+                                }
+                            }
+                        }
+                    }
+                    for (TileEntity te : tileEntities) {
                         if (te instanceof TileChalice && !te.isInvalid()) {
                             out.add((TileChalice) te);
                         }
@@ -333,7 +357,8 @@ public class TileChalice extends TileEntityTick
 
     @Override
     public boolean providesEffect() {
-        return this.worldObj.isBlockIndirectlyGettingPowered(getPos()) == 0;
+        // 1.7.10: isBlockIndirectlyGettingPowered returns boolean, invert logic
+        return !this.worldObj.isBlockIndirectlyGettingPowered(getPos().getX(), getPos().getY(), getPos().getZ());
     }
 
     @Override
@@ -398,18 +423,19 @@ public class TileChalice extends TileEntityTick
         });
     }
 
+    // 1.7.10: IFluidHandler methods have different signatures - include ForgeDirection parameter
     @Override
-    public int fill(FluidStack resource, boolean doFill) {
+    public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
         return tank.fill(resource, doFill);
     }
 
     @Override
-    public FluidStack drain(FluidStack resource, boolean doDrain) {
+    public FluidStack drain(ForgeDirection from, FluidStack resource, boolean doDrain) {
         return tank.drain(resource, doDrain);
     }
 
     @Override
-    public FluidStack drain(int maxDrain, boolean doDrain) {
+    public FluidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
         return tank.drain(maxDrain, doDrain);
     }
 

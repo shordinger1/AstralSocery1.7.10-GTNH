@@ -8,8 +8,6 @@
 
 package hellfirepvp.astralsorcery.common.util;
 
-import hellfirepvp.astralsorcery.common.migration.SoundEvent;
-import hellfirepvp.astralsorcery.common.migration.Vec3i;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SoundCategory;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -18,6 +16,8 @@ import net.minecraft.world.World;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.client.util.PositionedLoopSound;
+import hellfirepvp.astralsorcery.common.migration.SoundEvent;
+import hellfirepvp.astralsorcery.common.migration.Vec3i;
 import hellfirepvp.astralsorcery.common.util.data.Vector3;
 
 /**
@@ -68,17 +68,21 @@ public class SoundHelper {
         if (sound instanceof SoundUtils.CategorizedSoundEvent) {
             category = ((SoundUtils.CategorizedSoundEvent) sound).getCategory();
         }
-        world.playSound(null, posX, posY, posZ, sound, category, volume, pitch);
+        world.playSoundEffect(posX, posY, posZ, sound.getSoundNameString(), volume, pitch);
     }
 
     @SideOnly(Side.CLIENT)
     public static PositionedLoopSound playSoundLoopClient(SoundEvent sound, Vector3 pos, float volume, float pitch,
         PositionedLoopSound.ActivityFunction func) {
-        SoundCategory cat = SoundCategory.MASTER;
+        SoundUtils.CategorizedSoundEvent catSound;
         if (sound instanceof SoundUtils.CategorizedSoundEvent) {
-            cat = ((SoundUtils.CategorizedSoundEvent) sound).getCategory();
+            catSound = (SoundUtils.CategorizedSoundEvent) sound;
+        } else {
+            // Wrap non-categorized sound event - need to create a categorized version
+            // For now, create a simple wrapper
+            catSound = new SoundUtils.CategorizedSoundEvent(sound.getSoundName(), SoundCategory.MASTER);
         }
-        PositionedLoopSound posSound = new PositionedLoopSound(sound, cat, volume, pitch, pos);
+        PositionedLoopSound posSound = new PositionedLoopSound(catSound, volume, pitch, pos);
         posSound.setRefreshFunction(func);
         Minecraft.getMinecraft()
             .getSoundHandler()
@@ -95,7 +99,7 @@ public class SoundHelper {
     public static void playSoundClient(SoundEvent sound, float volume, float pitch) {
         EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
         if (player != null) {
-            player.playSound(sound, volume, pitch);
+            player.playSound(sound.getSoundNameString(), volume, pitch);
         }
     }
 
@@ -109,15 +113,8 @@ public class SoundHelper {
     public static void playSoundClientWorld(SoundEvent sound, SoundCategory cat, BlockPos pos, float volume,
         float pitch) {
         if (Minecraft.getMinecraft().theWorld != null) {
-            Minecraft.getMinecraft().theWorld.playSound(
-                Minecraft.getMinecraft().thePlayer,
-                pos.getX(),
-                pos.getY(),
-                pos.getZ(),
-                sound,
-                cat,
-                volume,
-                pitch);
+            Minecraft.getMinecraft().theWorld
+                .playSound(pos.getX(), pos.getY(), pos.getZ(), sound.getSoundNameString(), volume, pitch, false);
         }
     }
 

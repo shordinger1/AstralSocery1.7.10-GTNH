@@ -81,7 +81,7 @@ public class TransmissionWorldHandler {
                 }
 
                 List<ChunkPos> activeChunks = activeChunkMap.get(source);
-                if (activeChunks == null || activeChunks == null || activeChunks.stackSize <= 0) {
+                if (activeChunks == null || activeChunks.isEmpty()) {
                     continue; // Not producing anything.
                 }
 
@@ -114,8 +114,8 @@ public class TransmissionWorldHandler {
                 while (iterator.hasNext()) {
                     BlockPos endPointPos = iterator.next();
                     if (MiscUtils.isChunkLoaded(world, new ChunkPos(endPointPos))) {
-                        Block endState = world.getBlock(endPointPos.getX(), endPointPos.getY(), endPointPos.getZ());
-                        Block b = endState;
+                        // 1.7.10: getBlock returns Block directly, not IBlockState
+                        Block b = world.getBlock(endPointPos.getX(), endPointPos.getY(), endPointPos.getZ());
                         if (b instanceof IBlockStarlightRecipient) {
                             Float multiplier = lossMultipliers.get(endPointPos);
                             if (multiplier != null) {
@@ -123,8 +123,9 @@ public class TransmissionWorldHandler {
                                     .receiveStarlight(world, rand, endPointPos, type, starlight * multiplier);
                             }
                         } else {
+                            // 1.7.10: getStarlightHandler expects Block, not IBlockState
                             StarlightNetworkRegistry.IStarlightBlockHandler handle = StarlightNetworkRegistry
-                                .getStarlightHandler(world, endPointPos, endState, type);
+                                .getStarlightHandler(world, endPointPos, b, type);
                             if (handle != null) {
                                 Float multiplier = lossMultipliers.get(endPointPos);
                                 if (multiplier != null) {
@@ -163,7 +164,7 @@ public class TransmissionWorldHandler {
                     activeChunks.add(pos);
                 }
             }
-            if (!activeChunks == null || activeChunks.stackSize <= 0) {
+            if (!activeChunks.isEmpty()) {
                 activeChunkMap.put(source, activeChunks);
             }
             for (BlockPos pos : chain.getLossMultipliers()
@@ -215,7 +216,7 @@ public class TransmissionWorldHandler {
                     List<IIndependentStarlightSource> sources = involvedSourceMap.get(chPos);
                     if (sources != null) {
                         sources.remove(source);
-                        if (sources == null || sources.stackSize <= 0) {
+                        if (sources.isEmpty()) {
                             involvedSourceMap.remove(chPos);
                         }
                     }
@@ -225,7 +226,7 @@ public class TransmissionWorldHandler {
                     List<IIndependentStarlightSource> sources = posToSourceMap.get(pos);
                     if (sources != null) {
                         sources.remove(source);
-                        if (sources == null || sources.stackSize <= 0) {
+                        if (sources.isEmpty()) {
                             posToSourceMap.remove(pos);
                         }
                     }
@@ -249,7 +250,7 @@ public class TransmissionWorldHandler {
                     List<ChunkPos> activeChunks = activeChunkMap.get(source);
                     if (activeChunks != null) {
                         activeChunks.remove(pos);
-                        if (activeChunks == null || activeChunks.stackSize <= 0) {
+                        if (activeChunks.isEmpty()) {
                             activeChunkMap.remove(source);
                         }
                     }

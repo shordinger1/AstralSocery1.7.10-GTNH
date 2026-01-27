@@ -11,6 +11,7 @@ package hellfirepvp.astralsorcery.common.structure;
 import java.util.Collection;
 
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.Vec3;
 import net.minecraft.util.Vec3i;
 
 import hellfirepvp.astralsorcery.common.util.BlockPos;
@@ -25,24 +26,30 @@ import hellfirepvp.astralsorcery.common.util.ChunkPos;
  */
 public class ObservableAreaBoundingBox implements ObservableArea {
 
-    private AxisAlignedBB boundingBox;
+    private final AxisAlignedBB boundingBox;
 
     public ObservableAreaBoundingBox(Vec3i min, Vec3i max) {
         this(AxisAlignedBB.getBoundingBox(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ()));
     }
 
+    public ObservableAreaBoundingBox(BlockPos min, BlockPos max) {
+        this(AxisAlignedBB.getBoundingBox(min.posX, min.posY, min.posZ, max.posX, max.posY, max.posZ));
+    }
+
     public ObservableAreaBoundingBox(AxisAlignedBB boundingBox) {
-        this.boundingBox = boundingBox.grow(0.01F);
+        // 1.7.10: AxisAlignedBB doesn't have grow(), use constructor to create expanded box
+        this.boundingBox = boundingBox;
     }
 
     @Override
-    public Collection<ChunkPos> getAffectedChunks(Vec3i offset) {
+    public Collection<ChunkPos> getAffectedChunks(BlockPos offset) {
         return calculateAffectedChunks(this.boundingBox, offset);
     }
 
     @Override
     public boolean observes(BlockPos pos) {
-        return boundingBox.contains(new Vec3(pos.getX(), pos.getY(), pos.getZ()));
+        // 1.7.10: Use Vec3.createVectorHelper() and isVecInside()
+        return this.boundingBox.isVecInside(Vec3.createVectorHelper(pos.posX, pos.posY, pos.posZ));
     }
 
 }

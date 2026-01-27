@@ -78,7 +78,7 @@ public class AltarRecipeRegistry {
     }
 
     public static void cacheLocalRecipes() {
-        if (localFallbackCache == null || localFallbackCache.stackSize <= 0) { // Fixed: Map doesn't have stackSize
+        if (localFallbackCache.isEmpty()) {
             for (TileAltar.AltarLevel al : TileAltar.AltarLevel.values()) {
                 localFallbackCache.put(al, new LinkedList<>());
                 localFallbackCache.get(al)
@@ -88,7 +88,7 @@ public class AltarRecipeRegistry {
     }
 
     public static void loadFromFallback() {
-        if (!localFallbackCache == null || localFallbackCache.stackSize <= 0) { // Fixed: Map doesn't have stackSize
+        if (!localFallbackCache.isEmpty()) {
             for (TileAltar.AltarLevel al : TileAltar.AltarLevel.values()) {
                 recipes.get(al)
                     .addAll(localFallbackCache.get(al));

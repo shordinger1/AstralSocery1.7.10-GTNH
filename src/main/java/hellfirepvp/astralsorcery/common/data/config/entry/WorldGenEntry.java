@@ -122,7 +122,8 @@ public class WorldGenEntry extends ConfigEntry {
         String[] def = new String[defaultBiomeTypes.length];
         for (int i = 0; i < defaultBiomeTypes.length; i++) {
             BiomeDictionary.Type t = defaultBiomeTypes[i];
-            def[i] = t.getDeclaringClass().getName();
+            def[i] = t.getDeclaringClass()
+                .getName();
         }
         return def;
     }

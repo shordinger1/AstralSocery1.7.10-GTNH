@@ -18,16 +18,12 @@ import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.cleanroommc.modularui.utils.item.ItemStackHandler;
 import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
-
-import hellfirepvp.astralsorcery.common.util.BlockPos;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
@@ -38,6 +34,7 @@ import net.minecraftforge.oredict.OreDictionary;
 import com.cleanroommc.modularui.utils.item.IItemHandler;
 import com.cleanroommc.modularui.utils.item.IItemHandlerModifiable;
 import com.cleanroommc.modularui.utils.item.InvWrapper;
+import com.cleanroommc.modularui.utils.item.ItemStackHandler;
 import com.google.common.collect.Lists;
 
 import hellfirepvp.astralsorcery.common.base.Mods;
@@ -357,7 +354,8 @@ public class ItemUtils {
 
         @Nullable
         @Override
-        public FluidStack drain(net.minecraftforge.common.util.ForgeDirection from, FluidStack resource, boolean doDrain) {
+        public FluidStack drain(net.minecraftforge.common.util.ForgeDirection from, FluidStack resource,
+            boolean doDrain) {
             return null;
         }
 

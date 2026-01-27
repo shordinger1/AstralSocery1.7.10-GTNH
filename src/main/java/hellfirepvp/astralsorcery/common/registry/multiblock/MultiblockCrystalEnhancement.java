@@ -56,25 +56,24 @@ public class MultiblockCrystalEnhancement {
 
     private final String[][] shape = new String[][] {
         // Y = -5 (Bottom base)
-        {"   R   "},
+        { "   R   " },
 
         // Y = -4 (Main platform)
-        {" HUGUH ", "HUGGUGH", "HUGGUGH", " HUGUH "},
+        { " HUGUH ", "HUGGUGH", "HUGGUGH", " HUGUH " },
 
         // Y = -3
-        {"   H   ", " HGGH ", "HGGGGH", " HGGH ", "   H   "},
+        { "   H   ", " HGGH ", "HGGGGH", " HGGH ", "   H   " },
 
         // Y = -2
-        {"   P   "},
+        { "   P   " },
 
         // Y = -1
-        {"   H   "},
+        { "   H   " },
 
         // Y = 0 (Crystal at center)
-        {"   A   "},
+        { "   A   " },
 
         // Y = 1 (Air)
-        {"       "},
-    };
+        { "       " }, };
 
 }

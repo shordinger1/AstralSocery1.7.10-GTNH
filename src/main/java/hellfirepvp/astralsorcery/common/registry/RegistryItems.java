@@ -22,6 +22,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.common.util.EnumHelper;
 
+import cpw.mods.fml.common.registry.GameRegistry;
 import hellfirepvp.astralsorcery.AstralSorcery;
 import hellfirepvp.astralsorcery.common.item.*;
 import hellfirepvp.astralsorcery.common.item.base.IItemVariants;
@@ -98,15 +99,10 @@ public class RegistryItems {
         rarityCelestial = EnumHelper.addRarity("CELESTIAL", EnumChatFormatting.BLUE, "Celestial");
         rarityRelic = EnumHelper.addRarity("AS_RELIC", EnumChatFormatting.GOLD, "Relic");
 
-        imbuedLeatherMaterial = EnumHelper.addArmorMaterial(
-            "AS_IMBUEDLEATHER",
-            "as.imbuedleather",
-            26,
-            new int[] { 0, 0, 7, 0 },
-            30,
-            null /* TODO: SoundEvents - needs 1.7.10 sound string */,
-            2);
-        imbuedLeatherMaterial.setRepairItem(ItemCraftingComponent.MetaType.STARDUST.asStack());
+        // 1.7.10: addArmorMaterial only takes 4 parameters (name, durability, reductionAmounts, enchantability)
+        // Texture name and sound are not parameters in 1.7.10
+        imbuedLeatherMaterial = EnumHelper.addArmorMaterial("AS_IMBUEDLEATHER", 26, new int[] { 0, 0, 7, 0 }, 30);
+        // 1.7.10: ArmorMaterial doesn't have setRepairItem - repair is handled through recipes
     }
 
     public static void init() {
@@ -167,7 +163,9 @@ public class RegistryItems {
         for (Block block : RegistryBlocks.defaultItemBlocksToRegister) {
             RegistryItems.registerDefaultItemBlock(block);
         }
-        registerItem(new ItemSlab(BlocksAS.blockMarbleSlab, BlocksAS.blockMarbleSlab, BlocksAS.blockMarbleDoubleSlab));
+        // 1.7.10: ItemSlab requires 4 parameters (Block, BlockSlab, BlockSlab, boolean)
+        registerItem(
+            new ItemSlab(BlocksAS.blockMarbleSlab, BlocksAS.blockMarbleSlab, BlocksAS.blockMarbleDoubleSlab, false));
         for (Block block : RegistryBlocks.customNameItemBlocksToRegister) {
             RegistryItems.registerCustomNameItemBlock(block);
         }
@@ -180,7 +178,8 @@ public class RegistryItems {
     }
 
     private static void registerDispenseBehavior() {
-        BlockDispenser.DISPENSE_BEHAVIOR_REGISTRY.putObject(useableDust, useableDust);
+        // 1.7.10: dispenseBehaviorRegistry is lowercase and uses putObject()
+        BlockDispenser.dispenseBehaviorRegistry.putObject(useableDust, useableDust);
     }
 
     private static <T extends Block> void registerCustomNameItemBlock(T block) {
@@ -215,8 +214,8 @@ public class RegistryItems {
             .getSimpleName()
             .toLowerCase();
         if (item instanceof ItemBlock) {
-            simpleName = ((ItemBlock) item).getBlock()
-                .getClass()
+            // 1.7.10: ItemBlock uses field_150939_a instead of getBlock() method
+            simpleName = ((ItemBlock) item).field_150939_a.getClass()
                 .getSimpleName()
                 .toLowerCase();
         }
@@ -243,16 +242,14 @@ public class RegistryItems {
      * }
      */
 
-    private static <T extends IForgeRegistryEntry<T>> void register(T item, String name) {
-        if (item instanceof Item) {
-            ((Item) item).setUnlocalizedName(name);
-            GameRegistry.registerItem((Item) item, name);
-            registerItemInformations((Item) item, name);
-            if (item instanceof ItemDynamicColor) {
-                pendingDynamicColorItems.add((ItemDynamicColor) item);
-            }
+    // 1.7.10: IForgeRegistryEntry doesn't exist - use direct registration methods
+    private static void register(Item item, String name) {
+        item.setUnlocalizedName(name);
+        GameRegistry.registerItem(item, name);
+        registerItemInformations(item, name);
+        if (item instanceof ItemDynamicColor) {
+            pendingDynamicColorItems.add((ItemDynamicColor) item);
         }
-        // Note: Non-Item registry entries should use direct registration methods
     }
 
     private static <T extends Item> void registerItemInformations(T item, String name) {

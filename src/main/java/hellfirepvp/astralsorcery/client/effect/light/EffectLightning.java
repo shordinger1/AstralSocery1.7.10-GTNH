@@ -238,15 +238,11 @@ public class EffectLightning extends EntityComplexFX {
 
         vec = from.clone()
             .add(perpFrom);
-        // 1.7.10: setColorRGBA_F doesn't exist, use setColorRGBA_I with int conversion
-        int rgb = ((int) (ovR * 255) << 16) | ((int) (ovG * 255) << 8) | (int) (ovB * 255);
         buf.setColorRGBA_I(rgb, 255);
         buf.addVertexWithUV(vec.getX(), vec.getY(), vec.getZ(), 1, 0);
 
         vec = to.clone()
             .add(perpTo);
-        // 1.7.10: setColorRGBA_F doesn't exist, use setColorRGBA_I with int conversion
-        int rgb = ((int) (ovR * 255) << 16) | ((int) (ovG * 255) << 8) | (int) (ovB * 255);
         buf.setColorRGBA_I(rgb, 255);
         buf.addVertexWithUV(vec.getX(), vec.getY(), vec.getZ(), 0, 0);
 
@@ -254,8 +250,6 @@ public class EffectLightning extends EntityComplexFX {
             .add(
                 perpTo.clone()
                     .multiply(-1));
-        // 1.7.10: setColorRGBA_F doesn't exist, use setColorRGBA_I with int conversion
-        int rgb = ((int) (ovR * 255) << 16) | ((int) (ovG * 255) << 8) | (int) (ovB * 255);
         buf.setColorRGBA_I(rgb, 255);
         buf.addVertexWithUV(vec.getX(), vec.getY(), vec.getZ(), 0, 1);
     }

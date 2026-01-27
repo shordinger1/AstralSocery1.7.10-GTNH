@@ -61,9 +61,8 @@ public class WorldBlockPos extends BlockPos {
         return wrap(world, super.add(x, y, z));
     }
 
-    @Override
     public WorldBlockPos add(Vec3i vec) {
-        return wrap(world, super.add(vec));
+        return wrap(world, super.add(new BlockPos(vec.posX, vec.posY, vec.posZ)));
     }
 
     public <T extends TileEntity> T getTileAt(Class<T> tileClass, boolean forceChunkLoad) {

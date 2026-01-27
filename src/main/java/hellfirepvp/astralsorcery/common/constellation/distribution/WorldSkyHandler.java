@@ -9,12 +9,12 @@
 package hellfirepvp.astralsorcery.common.constellation.distribution;
 
 import java.util.*;
+import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
 import net.minecraft.world.World;
 
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
@@ -76,7 +76,7 @@ public class WorldSkyHandler {
             return;
         }
 
-        if (initialValueMappings == null || initialValueMappings.stackSize <= 0) {
+        if (initialValueMappings == null || initialValueMappings.isEmpty()) {
             setupInitialFunctions();
         }
 

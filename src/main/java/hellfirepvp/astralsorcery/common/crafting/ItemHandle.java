@@ -25,7 +25,6 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import hellfirepvp.astralsorcery.common.crafting.helper.FluidIngredient;
 import hellfirepvp.astralsorcery.common.item.base.render.ItemGatedVisibility;
 import hellfirepvp.astralsorcery.common.lib.ItemsAS;
 import hellfirepvp.astralsorcery.common.migration.CompoundIngredient;
@@ -157,10 +156,8 @@ public final class ItemHandle {
         } else if (fluidTypeAndAmount != null) {
             ArrayList<ItemStack> l = new ArrayList<>();
             // In 1.7.10, use FluidContainerRegistry to get filled bucket
-            ItemStack filledBucket = FluidContainerRegistry.fillFluidContainer(
-                fluidTypeAndAmount,
-                new ItemStack(Items.bucket)
-            );
+            ItemStack filledBucket = FluidContainerRegistry
+                .fillFluidContainer(fluidTypeAndAmount, new ItemStack(Items.bucket));
             if (filledBucket != null) {
                 l.add(filledBucket);
             }
@@ -179,10 +176,7 @@ public final class ItemHandle {
         }
         if (fluidTypeAndAmount != null) {
             // In 1.7.10, use FluidContainerRegistry
-            return FluidContainerRegistry.fillFluidContainer(
-                fluidTypeAndAmount,
-                new ItemStack(Items.bucket)
-            );
+            return FluidContainerRegistry.fillFluidContainer(fluidTypeAndAmount, new ItemStack(Items.bucket));
         }
         return applicableItems;
     }
@@ -214,8 +208,7 @@ public final class ItemHandle {
                 // Return the matching stacks instead
                 ItemStack fluidStack = FluidContainerRegistry.fillFluidContainer(
                     new FluidStack(fluidTypeAndAmount.getFluid(), FluidContainerRegistry.BUCKET_VOLUME),
-                    new ItemStack(Items.bucket)
-                );
+                    new ItemStack(Items.bucket));
                 if (fluidStack != null) {
                     return new HandleIngredient(fluidStack);
                 }

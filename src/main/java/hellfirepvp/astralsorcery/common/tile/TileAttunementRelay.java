@@ -22,7 +22,6 @@ import hellfirepvp.astralsorcery.common.constellation.distribution.WorldSkyHandl
 import hellfirepvp.astralsorcery.common.data.world.WorldCacheManager;
 import hellfirepvp.astralsorcery.common.data.world.data.StructureMatchingBuffer;
 import hellfirepvp.astralsorcery.common.item.ItemCraftingComponent;
-import hellfirepvp.astralsorcery.common.lib.MultiBlockArrays;
 import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
 import hellfirepvp.astralsorcery.common.structure.change.ChangeSubscriber;
 import hellfirepvp.astralsorcery.common.structure.match.StructureMatcherPatternArray;
@@ -82,7 +81,7 @@ public class TileAttunementRelay extends TileInventoryBase implements IMultibloc
             updateMultiblockState();
 
             if (!(slotted == null || slotted.stackSize <= 0)) {
-                if (!getWorld().isAirBlock(getPos().up())) {
+                if (!getWorld().isAirBlock(getPos().posX, getPos().posY + 1, getPos().posZ)) {
                     ItemStack in = getInventoryHandler().getStackInSlot(0);
                     ItemStack out = ItemUtils.copyStackWithSize(in, in.stackSize);
                     ItemUtils.dropItem(worldObj, getPos().getX(), getPos().getY(), getPos().getZ(), out);
@@ -235,7 +234,10 @@ public class TileAttunementRelay extends TileInventoryBase implements IMultibloc
     @Nullable
     @Override
     public PatternBlockArray getRequiredStructure() {
-        return MultiBlockArrays.patternCollectorRelay;
+        // 1.7.10: patternCollectorRelay is Object type (GT StructureLib), need to handle differently
+        // For now, return null - GT StructureLib structures are validated differently
+        // The tile needs to be adapted to use GT StructureLib validation
+        return null;
     }
 
     @Override

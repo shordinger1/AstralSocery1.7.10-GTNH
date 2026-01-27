@@ -14,6 +14,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.world.World;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -25,7 +26,6 @@ import hellfirepvp.astralsorcery.common.lib.BlocksAS;
 import hellfirepvp.astralsorcery.common.network.PacketChannel;
 import hellfirepvp.astralsorcery.common.network.packet.server.PktParticleEvent;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
-import net.minecraft.world.World;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -143,9 +143,8 @@ public class EntityItemStardust extends EntityItem implements EntityStarlightRea
 
         // 1.7.10: getEntitiesInAABBexcluding doesn't have a predicate version
         // Use getEntitiesWithinAABBExcludingEntity and filter manually
-        List<Entity> foundItems = worldObj.getEntitiesWithinAABBExcludingEntity(
-            this,
-            boxCraft.offset(posX, posY, posZ));
+        List<Entity> foundItems = worldObj
+            .getEntitiesWithinAABBExcludingEntity(this, boxCraft.offset(posX, posY, posZ));
         // Filter for ItemRockCrystalBase items
         for (Entity e : foundItems) {
             if (e instanceof EntityItem) {

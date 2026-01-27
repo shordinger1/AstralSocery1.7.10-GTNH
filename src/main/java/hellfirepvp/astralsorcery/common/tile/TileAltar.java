@@ -22,7 +22,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeHooks;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -214,7 +213,13 @@ public class TileAltar extends TileReceiverBaseInventory implements IWandInterac
         super.onBreak();
 
         if (!getWorld().isRemote && !(focusItem == null || focusItem.stackSize <= 0)) {
-            ItemUtils.dropItemNaturally(world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, focusItem);
+            // 1.7.10: use getWorld() and getPos() instead of world, pos
+            ItemUtils.dropItemNaturally(
+                getWorld(),
+                getPos().getX() + 0.5,
+                getPos().getY() + 0.5,
+                getPos().getZ() + 0.5,
+                focusItem);
             this.focusItem = null;
         }
     }
@@ -222,9 +227,10 @@ public class TileAltar extends TileReceiverBaseInventory implements IWandInterac
     @Override
     @SideOnly(Side.CLIENT)
     public AxisAlignedBB getRenderBoundingBox() {
+        // 1.7.10: use expand() instead of grow()
         AxisAlignedBB box = super.getRenderBoundingBox().expand(0, 5, 0);
         if (level != null && level.ordinal() >= AltarLevel.TRAIT_CRAFT.ordinal()) {
-            box = box.grow(3, 0, 3);
+            box = box.expand(3, 0, 3);
         }
         return box;
     }
@@ -304,14 +310,17 @@ public class TileAltar extends TileReceiverBaseInventory implements IWandInterac
             out = ItemUtils.copyStackWithSize(out, out.stackSize);
         }
 
-        ForgeHooks.setCraftingPlayer(craftingTask.tryGetCraftingPlayerServer());
+        // 1.7.10: setCraftingPlayer may not be available or needed
+        // ForgeHooks.setCraftingPlayer(craftingTask.tryGetCraftingPlayerServer());
         recipe.handleInputConsumption(this, craftingTask, getInventoryHandler());
-        ForgeHooks.setCraftingPlayer(null);
+        // ForgeHooks.setCraftingPlayer(null);
 
         if (!(out == null || out.stackSize <= 0) && !(out.getItem() instanceof ItemBlockAltar)) {
             if (out.stackSize > 0) {
-                ItemUtils.dropItem(world, pos.getX() + 0.5, pos.getY() + 1.3, pos.getZ() + 0.5, out)
-                    .setNoDespawn();
+                // 1.7.10: use getWorld() and getPos() instead of world, pos
+                // Note: setNoDespawn() not available in 1.7.10, using default despawn behavior
+                ItemUtils
+                    .dropItem(getWorld(), getPos().getX() + 0.5, getPos().getY() + 1.3, getPos().getZ() + 0.5, out);
             }
         }
 
@@ -331,9 +340,10 @@ public class TileAltar extends TileReceiverBaseInventory implements IWandInterac
             craftingTask.getRecipeToCraft()
                 .onCraftServerFinish(this, rand);
 
-            if (!recipe.getOutputForMatching()
-                .isEmpty()) {
-                ItemStack match = recipe.getOutputForMatching();
+            // 1.7.10: ItemStack doesn't have isEmpty(), use stackSize check
+            ItemStack matchFor = recipe.getOutputForMatching();
+            if (!(matchFor == null || matchFor.stackSize <= 0)) {
+                ItemStack match = matchFor;
                 if (match.getItem() instanceof ItemBlockAltar) {
                     TileAltar.AltarLevel to = TileAltar.AltarLevel.values()[WrapMathHelper
                         .clamp(match.getItemDamage(), 0, AltarLevel.values().length - 1)];
@@ -341,9 +351,11 @@ public class TileAltar extends TileReceiverBaseInventory implements IWandInterac
                 }
             }
             ResearchManager.informCraftingAltarCompletion(this, craftingTask);
-            SoundHelper.playSoundAround(Sounds.craftFinish, world, getPos(), 1F, 1.7F);
-            EntityFlare
-                .spawnAmbient(world, new Vector3(this).add(-3 + rand.nextFloat() * 7, 0.6, -3 + rand.nextFloat() * 7));
+            // 1.7.10: use getWorld() and Vector3 instead of BlockPos
+            SoundHelper.playSoundAround(Sounds.craftFinish, getWorld(), new Vector3(this), 1F, 1.7F);
+            EntityFlare.spawnAmbient(
+                getWorld(),
+                new Vector3(this).add(-3 + rand.nextFloat() * 7, 0.6, -3 + rand.nextFloat() * 7));
             craftingTask = null;
         }
         markForUpdate();
@@ -374,13 +386,10 @@ public class TileAltar extends TileReceiverBaseInventory implements IWandInterac
         this.level = to;
         this.multiblockMatches = false;
         this.structureMatch = null;
-        return world.setBlock(
-            this.xCoord,
-            this.yCoord,
-            this.zCoord,
-            BlocksAS.blockAltar.withProperty(BlockAltar.ALTAR_TYPE, level.getCorrespondingAltarType()),
-            0,
-            3);
+        // 1.7.10: Use metadata instead of properties, and getWorld() instead of world
+        // AltarLevel ordinal maps directly to metadata: 0=DISCOVERY, 1=ATTUNEMENT, etc.
+        int metadata = to.ordinal();
+        return getWorld().setBlock(this.xCoord, this.yCoord, this.zCoord, BlocksAS.blockAltar, metadata, 3);
     }
 
     // shouldRefresh not available in 1.7.10 - removed for compatibility
@@ -409,7 +418,8 @@ public class TileAltar extends TileReceiverBaseInventory implements IWandInterac
                 }
 
                 if (posDistribution == -1) {
-                    posDistribution = SkyCollectionHelper.getSkyNoiseDistribution(world, pos);
+                    // 1.7.10: use getWorld() and getPos() instead of world, pos
+                    posDistribution = SkyCollectionHelper.getSkyNoiseDistribution(getWorld(), getPos());
                 }
 
                 collect *= dstr;
@@ -458,12 +468,12 @@ public class TileAltar extends TileReceiverBaseInventory implements IWandInterac
     }
 
     public boolean doesRecipeMatch(AbstractAltarRecipe recipe, boolean ignoreStarlightRequirement) {
-        if (!recipe.getOutputForMatching()
-            .isEmpty()) {
-            ItemStack match = recipe.getOutputForMatching();
-            if (match.getItem() instanceof ItemBlockAltar) {
+        // 1.7.10: ItemStack doesn't have isEmpty(), use stackSize check
+        ItemStack matchFor = recipe.getOutputForMatching();
+        if (!(matchFor == null || matchFor.stackSize <= 0)) {
+            if (matchFor.getItem() instanceof ItemBlockAltar) {
                 TileAltar.AltarLevel to = TileAltar.AltarLevel.values()[WrapMathHelper
-                    .clamp(match.getItemDamage(), 0, AltarLevel.values().length - 1)];
+                    .clamp(matchFor.getItemDamage(), 0, AltarLevel.values().length - 1)];
                 if (getAltarLevel().ordinal() >= to.ordinal()) {
                     return false;
                 }
@@ -561,7 +571,9 @@ public class TileAltar extends TileReceiverBaseInventory implements IWandInterac
 
         this.focusItem = null;
         if (compound.hasKey("focusItem")) {
-            this.focusItem = new ItemStack(compound.getCompoundTag("focusItem"));
+            // 1.7.10: Use loadItemStackFromNBT() instead of ItemStack(NBTTagCompound) constructor
+            NBTTagCompound focusTag = compound.getCompoundTag("focusItem");
+            this.focusItem = ItemStack.loadItemStackFromNBT(focusTag);
         }
     }
 
@@ -574,7 +586,8 @@ public class TileAltar extends TileReceiverBaseInventory implements IWandInterac
         compound.setBoolean("multiblockMatches", multiblockMatches);
 
         if (!(focusItem == null || focusItem.stackSize <= 0)) {
-            NBTHelper.setAsSubTag(compound, "focusItem", (tag1, stack1) -> stack1.writeToNBT(tag1));
+            // 1.7.10: Lambda takes single parameter for tag
+            NBTHelper.setAsSubTag(compound, "focusItem", (tag1) -> focusItem.writeToNBT(tag1));
         }
 
         if (craftingTask != null) {
@@ -610,11 +623,13 @@ public class TileAltar extends TileReceiverBaseInventory implements IWandInterac
 
     public static enum AltarLevel {
 
-        DISCOVERY(9, () -> null),
-        ATTUNEMENT(13, () -> MultiBlockArrays.patternAltarAttunement),
-        CONSTELLATION_CRAFT(21, () -> MultiBlockArrays.patternAltarConstellation),
-        TRAIT_CRAFT(25, () -> MultiBlockArrays.patternAltarTrait),
-        BRILLIANCE(25, () -> null);
+        // 1.7.10: Cast to PatternBlockArray since MultiBlockArrays fields are Object type
+        DISCOVERY(9, (Provider<PatternBlockArray>) () -> null),
+        ATTUNEMENT(13, (Provider<PatternBlockArray>) () -> (PatternBlockArray) MultiBlockArrays.patternAltarAttunement),
+        CONSTELLATION_CRAFT(21,
+            (Provider<PatternBlockArray>) () -> (PatternBlockArray) MultiBlockArrays.patternAltarConstellation),
+        TRAIT_CRAFT(25, (Provider<PatternBlockArray>) () -> (PatternBlockArray) MultiBlockArrays.patternAltarTrait),
+        BRILLIANCE(25, (Provider<PatternBlockArray>) () -> null);
 
         private final int maxStarlightStorage;
         private final int accessibleInventorySize;

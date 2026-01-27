@@ -10,14 +10,15 @@ package hellfirepvp.astralsorcery.common.tile;
 
 import javax.annotation.Nonnull;
 
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.config.Configuration;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -58,19 +59,24 @@ public class TileOreGenerator extends TileEntitySynchronized {
         TileOreGenerator gen = new TileOreGenerator();
         gen.structural = true;
         gen.remainingGuaranteed = ConfigEntryMultiOre.guaranteedOres;
-        gen.setWorld(world);
-        gen.setPos(pos);
-        gen.validate();
-        Chunk ch = world.getChunkFromBlockCoords(pos);
-        ch.getTileEntityMap()
-            .put(pos, gen);
-        world.setTileEntity(pos, gen);
-        gen.updateContainingBlockInfo();
+        // 1.7.10: Manually set tile entity fields
+        gen.xCoord = pos.getX();
+        gen.yCoord = pos.getY();
+        gen.zCoord = pos.getZ();
+        gen.worldObj = world;
+        gen.validate(); // 1.7.10: validate() takes no arguments or (world, x, y, z)
+        // 1.7.10: Direct chunk tile entity map access not available, use setTileEntity
+        world.setTileEntity(pos.getX(), pos.getY(), pos.getZ(), gen);
     }
 
+    // 1.7.10: shouldRefresh() doesn't exist, use canUpdate() instead
     @Override
-    public boolean shouldRefresh(World world, BlockPos pos, @Nonnull Block oldState, @Nonnull Block newState) {
-        if (getWorld().isRemote) return false;
+    public boolean canUpdate() {
+        return false; // TileOreGenerator doesn't need ticks
+    }
+
+    public boolean checkRefresh(World world, BlockPos pos, @Nonnull Block oldState, @Nonnull Block newState) {
+        if (world.isRemote) return false;
         if (generatingOre) return false;
         if (newState.getClass()
             .equals(oldState.getClass())) {
@@ -97,12 +103,14 @@ public class TileOreGenerator extends TileEntitySynchronized {
             }
 
             Block state;
-            if (ConfigEntryMultiOre.oreChance == 0 || rand.nextInt(ConfigEntryMultiOre.oreChance) != 0) {
-                state = Blocks.stone;
-            } else {
+            int metadata = 0;
+            // 1.7.10: Clearer logic for ore generation
+            if (ConfigEntryMultiOre.oreChance > 0 && rand.nextInt(ConfigEntryMultiOre.oreChance) == 0) {
+                // Generate ore
                 if (rand.nextInt(200) == 0) {
-                    state = BlocksAS.customOre
-                        .withProperty(BlockCustomOre.ORE_TYPE, BlockCustomOre.OreType.ROCK_CRYSTAL);
+                    // 1.7.10: Set block with metadata for rock crystal
+                    state = BlocksAS.customOre;
+                    metadata = BlockCustomOre.OreType.ROCK_CRYSTAL.ordinal();
                 } else {
                     ItemStack stack = OreTypes.TREASURE_SHRINE_GEN.getRandomOre(rand);
                     state = ItemUtils.createBlockState(stack);
@@ -110,8 +118,10 @@ public class TileOreGenerator extends TileEntitySynchronized {
                         state = Blocks.stone;
                     }
                 }
+            } else {
+                state = Blocks.stone;
             }
-            if (!world.setBlock(pos.getX(), pos.getY(), pos.getZ(), state, 0, 3)) {
+            if (!world.setBlock(pos.getX(), pos.getY(), pos.getZ(), state, metadata, 3)) {
                 return true;
             }
             if (structural) {
@@ -127,14 +137,20 @@ public class TileOreGenerator extends TileEntitySynchronized {
     }
 
     private boolean isActualPlayerNearby(World world, BlockPos pos) {
-        return !world
-            .getEntities(
-                EntityPlayer.class,
-                (p) -> p != null && p instanceof EntityPlayerMP
-                    && !p.isDead
-                    && p.getDistanceSq(pos) < 81
-                    && !MiscUtils.isPlayerFakeMP((EntityPlayerMP) p))
-            .isEmpty();
+        // 1.7.10: Use AxisAlignedBB and manual filtering instead of lambda
+        double x = pos.getX() + 0.5;
+        double y = pos.getY() + 0.5;
+        double z = pos.getZ() + 0.5;
+        AxisAlignedBB box = AxisAlignedBB.getBoundingBox(x - 9, y - 9, z - 9, x + 9, y + 9, z + 9);
+        java.util.List<EntityPlayer> players = world.getEntitiesWithinAABB(EntityPlayer.class, box);
+        for (EntityPlayer p : players) {
+            if (p instanceof EntityPlayerMP && !p.isEntityAlive()
+                && p.getDistanceSq(x, y, z) < 81
+                && !MiscUtils.isPlayerFakeMP((EntityPlayerMP) p)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

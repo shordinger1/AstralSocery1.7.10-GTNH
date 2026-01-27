@@ -278,8 +278,7 @@ public class EventHandlerEntity {
             }
         }
 
-        lblIn:
-        if (source.getEntity() != null) {
+        lblIn: if (source.getEntity() != null) {
             EntityPlayer p;
             if (source.getEntity() instanceof EntityPlayer) {
                 p = (EntityPlayer) source.getEntity();

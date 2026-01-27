@@ -38,7 +38,8 @@ public abstract class AbstractRecipeAccessor extends AbstractRecipeData {
     // 1.7.10: IRecipe doesn't have getIngredients() method
     // This method cannot be implemented in 1.7.10 due to fundamental recipe system differences
     public static AbstractRecipeAccessor buildAccessorFor(IRecipe nativeRecipe) {
-        throw new UnsupportedOperationException("buildAccessorFor(IRecipe) is not supported in 1.7.10. Use AccessibleRecipeAdapter instead.");
+        throw new UnsupportedOperationException(
+            "buildAccessorFor(IRecipe) is not supported in 1.7.10. Use AccessibleRecipeAdapter instead.");
     }
 
 }

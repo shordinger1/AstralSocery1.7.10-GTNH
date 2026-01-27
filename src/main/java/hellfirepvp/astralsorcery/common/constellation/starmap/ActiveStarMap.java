@@ -63,7 +63,7 @@ public class ActiveStarMap {
             List<Rectangle> intersecting = new LinkedList<>();
             for (Rectangle other : usedSpace) {
                 Rectangle r = used.intersection(other);
-                if (!(r == null || r == null || r.stackSize <= 0)) {
+                if (!r.isEmpty()) {
                     intersecting.add(r);
                 }
             }
@@ -81,7 +81,7 @@ public class ActiveStarMap {
                     if (r2.equals(r)) continue;
 
                     Rectangle ir = r.intersection(r2);
-                    if (!(ir == null || ir == null || ir.stackSize <= 0)) {
+                    if (!ir.isEmpty()) {
                         intersectingSize -= (ir.width * ir.height);
                     }
                 }
@@ -166,7 +166,7 @@ public class ActiveStarMap {
                 effectMap.put(c, applicable);
             }
         }
-        if (effectMap == null || effectMap.stackSize <= 0) return false;
+        if (effectMap.isEmpty()) return false;
 
         boolean appliedSomething = false;
         Map<Integer, Integer> enchantments = EnchantmentHelper.getEnchantments(stack);

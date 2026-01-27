@@ -18,9 +18,9 @@ import hellfirepvp.astralsorcery.common.constellation.perk.AbstractPerk;
  * This class now delegates to PerkTreeConfig
  *
  * Usage:
- *   PerkTree.disablePerk("perk_registry_name");
- *   PerkTree.removePerk("perk_registry_name");
- *   PerkTree.modifyPerk("perk_registry_name", 2.0);
+ * PerkTree.disablePerk("perk_registry_name");
+ * PerkTree.removePerk("perk_registry_name");
+ * PerkTree.modifyPerk("perk_registry_name", 2.0);
  */
 public final class PerkTree {
 

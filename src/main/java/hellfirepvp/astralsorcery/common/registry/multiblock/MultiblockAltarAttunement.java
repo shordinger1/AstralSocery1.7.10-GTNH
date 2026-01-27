@@ -17,7 +17,6 @@ import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 
 import hellfirepvp.astralsorcery.AstralSorcery;
-import hellfirepvp.astralsorcery.common.block.BlockMarble;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
 
 /**
@@ -57,20 +56,19 @@ public class MultiblockAltarAttunement {
 
     private final String[][] shape = new String[][] {
         // Y = -1 (Base layer - y+2 in shape array since we build from bottom)
-        {"DDDDDCCD", "DBBBBBBD", "DBBBBBBD", "DBBBBBBD", "DBBBBBBD", "DBBBBBBD", "DBBBBBBD", "DDDDDCCD"},
-        {"DCCCCCCC", "CDDDDDDC", "CDDDDDDC", "CDDDDDDC", "CDDDDDDC", "CDDDDDDC", "CDDDDDDC", "DCCCCCCC"},
+        { "DDDDDCCD", "DBBBBBBD", "DBBBBBBD", "DBBBBBBD", "DBBBBBBD", "DBBBBBBD", "DBBBBBBD", "DDDDDCCD" },
+        { "DCCCCCCC", "CDDDDDDC", "CDDDDDDC", "CDDDDDDC", "CDDDDDDC", "CDDDDDDC", "CDDDDDDC", "DCCCCCCC" },
 
         // Y = 0
-        {"        ", "        ", "        ", "        ", "   A    ", "        ", "        ", "        "},
+        { "        ", "        ", "        ", "        ", "   A    ", "        ", "        ", "        " },
 
         // Y = 1 (Pillars)
-        {"        ", "        ", "        ", "   F    ", "        ", "   F    ", "        ", "        "},
+        { "        ", "        ", "        ", "   F    ", "        ", "   F    ", "        ", "        " },
 
         // Y = 2 (Pillars)
-        {"        ", "        ", "        ", "   F    ", "        ", "   F    ", "        ", "        "},
+        { "        ", "        ", "        ", "   F    ", "        ", "   F    ", "        ", "        " },
 
         // Y = 3 (Top of pillars)
-        {"        ", "        ", "        ", "   E    ", "        ", "   E    ", "        ", "        "},
-    };
+        { "        ", "        ", "        ", "   E    ", "        ", "   E    ", "        ", "        " }, };
 
 }

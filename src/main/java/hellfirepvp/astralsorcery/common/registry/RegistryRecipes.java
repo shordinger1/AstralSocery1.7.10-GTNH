@@ -220,7 +220,12 @@ public class RegistryRecipes {
         if (output.getItemDamage() == OreDictionary.WILDCARD_VALUE) {
             ArrayList<ItemStack> st = new ArrayList<>();
             // 1.7.10: getSubItems signature is getSubItems(Item, CreativeTabs, List)
-            output.getItem().getSubItems(output.getItem(), output.getItem().getCreativeTab(), st);
+            output.getItem()
+                .getSubItems(
+                    output.getItem(),
+                    output.getItem()
+                        .getCreativeTab(),
+                    st);
             if (!(st == null || st.isEmpty())) {
                 output = Iterables.getFirst(st, null);
             }

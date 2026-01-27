@@ -89,10 +89,12 @@ public class StorageCache {
     }
 
     public boolean attemptTransferInto(StorageKey key, IItemHandler inv, int slot, boolean simulate) {
-        if ((content == null || content.stackSize <= 0)) return false;
+        // 1.7.10: Map uses isEmpty() not stackSize
+        if ((content == null || content.isEmpty())) return false;
 
         List<StoredItemStack> stacks = this.content.get(key);
-        if (stacks == null || stacks == null || stacks.stackSize <= 0) {
+        // 1.7.10: List uses isEmpty() not stackSize, and remove duplicate null check
+        if (stacks == null || stacks.isEmpty()) {
             return false;
         }
 
@@ -108,7 +110,7 @@ public class StorageCache {
                     if (!stack.removeAmount(addedCount)) {
                         return false;
                     }
-                    if ((stack == null || stack.stackSize <= 0)) {
+                    if (stack.getAmount() <= 0) {
                         stacks.remove(stack);
                     }
                 }
@@ -121,10 +123,12 @@ public class StorageCache {
 
     // True if anything has been transferred.
     public boolean attemptTransferInto(StorageKey key, IItemHandler inv, boolean simulate) {
-        if ((content == null || content.stackSize <= 0)) return false;
+        // 1.7.10: Map uses isEmpty() not stackSize
+        if ((content == null || content.isEmpty())) return false;
 
         List<StoredItemStack> stacks = this.content.get(key);
-        if (stacks == null || stacks == null || stacks.stackSize <= 0) {
+        // 1.7.10: List uses isEmpty() not stackSize, and remove duplicate null check
+        if (stacks == null || stacks.isEmpty()) {
             return false;
         }
 
@@ -145,7 +149,7 @@ public class StorageCache {
                     if (!stack.removeAmount(addedCount)) {
                         return false;
                     }
-                    if ((stack == null || stack.stackSize <= 0)) {
+                    if (stack.getAmount() <= 0) {
                         stacks.remove(stack);
                         continue lblSlots;
                     }

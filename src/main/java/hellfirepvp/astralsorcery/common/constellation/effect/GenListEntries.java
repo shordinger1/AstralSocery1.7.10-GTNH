@@ -11,6 +11,10 @@ package hellfirepvp.astralsorcery.common.constellation.effect;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
+
+
+import net.minecraft.entity.Entity;
 
 import javax.annotation.Nullable;
 
@@ -98,13 +102,9 @@ public class GenListEntries {
 
         public void spawn(World world) {
             if (entityName != null
-                && EntityUtils.canEntitySpawnHere(world, getPos(), entityName, true, new Function<Entity, Void>() {
-
-                    @Override
-                    public Void apply(Entity e) {
-                        EventHandlerEntity.spawnSkipId = e.getEntityId();
-                        return null;
-                    }
+                && EntityUtils.canEntitySpawnHere(world, getPos(), entityName, true, e -> {
+                    EventHandlerEntity.spawnSkipId = e.getEntityId();
+                    return null;
                 })) {
                 EventHandlerEntity.spawnSkipId = -1;
                 // In 1.7.10, use EntityList.createEntityByName with String, not ResourceLocation

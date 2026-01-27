@@ -21,7 +21,6 @@ import hellfirepvp.astralsorcery.common.migration.BakedQuad;
 import hellfirepvp.astralsorcery.common.migration.BlockColors;
 import hellfirepvp.astralsorcery.common.migration.BlockFluidRenderer;
 import hellfirepvp.astralsorcery.common.migration.IBakedModel;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
 
 /**
@@ -37,8 +36,8 @@ public class BlockModelRenderHelper {
 
     private static BlockFluidRenderer getFluidRenderer() {
         if (bfr == null) {
-            // 1.7.10: getBlockColors() doesn't exist, create new BlockColors instance
-            bfr = new BlockFluidRenderer(new BlockColorsOverride(new BlockColors()));
+            // 1.7.10: BlockFluidRenderer constructor doesn't take parameters
+            bfr = new BlockFluidRenderer();
         }
         return bfr;
     }
@@ -140,12 +139,12 @@ public class BlockModelRenderHelper {
         }
 
         @Override
-        public int colorMultiplier(IBlockState state, @Nullable IBlockAccess blockAccess, @Nullable BlockPos pos,
+        public int colorMultiplier(Block block, int metadata, @Nullable IBlockAccess blockAccess, @Nullable BlockPos pos,
             int tintIndex) {
             if (override != -1) {
                 return override;
             }
-            return prev.colorMultiplier(state, blockAccess, pos, tintIndex);
+            return prev.colorMultiplier(block, metadata, blockAccess, pos, tintIndex);
         }
     }
 

@@ -62,7 +62,8 @@ public class GrindstoneRecipe {
 
     public boolean isValid() {
         if (output != null) {
-            return !this.input.getApplicableItems().isEmpty() || output.stackSize <= 0;
+            return !this.input.getApplicableItems()
+                .isEmpty() || output.stackSize <= 0;
         }
         return false;
     }

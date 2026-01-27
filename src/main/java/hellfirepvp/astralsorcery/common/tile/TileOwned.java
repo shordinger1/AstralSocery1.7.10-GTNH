@@ -13,6 +13,7 @@ import java.util.UUID;
 import net.minecraft.nbt.NBTTagCompound;
 
 import hellfirepvp.astralsorcery.common.tile.base.TileEntitySynchronized;
+import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
 
 /**
  * This class is part of the Astral Sorcery Mod

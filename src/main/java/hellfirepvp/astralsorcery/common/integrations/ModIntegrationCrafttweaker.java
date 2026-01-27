@@ -16,7 +16,6 @@ import net.minecraftforge.common.MinecraftForge;
 
 import hellfirepvp.astralsorcery.AstralSorcery;
 import hellfirepvp.astralsorcery.common.config.PerkTreeConfig;
-import hellfirepvp.astralsorcery.common.constellation.IConstellation;
 import hellfirepvp.astralsorcery.common.constellation.IWeakConstellation;
 import hellfirepvp.astralsorcery.common.crafting.ItemHandle;
 import hellfirepvp.astralsorcery.common.crafting.altar.AbstractAltarRecipe;
@@ -28,7 +27,6 @@ import hellfirepvp.astralsorcery.common.crafting.registry.ASRecipeMap;
 import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.network.BaseAltarRecipe;
 import hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.network.SerializeableRecipe;
 import hellfirepvp.astralsorcery.common.tile.TileAltar;
-import hellfirepvp.astralsorcery.common.util.ItemUtils;
 
 /**
  * Integration for recipe system - GTNH style
@@ -64,7 +62,8 @@ public class ModIntegrationCrafttweaker {
         // Load built-in recipes
         loadBuiltInRecipes();
 
-        AstralSorcery.log.info("Recipe System initialized with " + ASRecipeMap.ALL_RECIPE_MAPS.size() + " recipe maps.");
+        AstralSorcery.log
+            .info("Recipe System initialized with " + ASRecipeMap.ALL_RECIPE_MAPS.size() + " recipe maps.");
     }
 
     /**
@@ -86,7 +85,7 @@ public class ModIntegrationCrafttweaker {
      * Called after all recipe modifications have been queued
      */
     public void applyRecipes() {
-        if (recipeQueue == null || recipeQueue.stackSize <= 0) {
+        if (recipeQueue == null || recipeQueue.isEmpty()) {
             AstralSorcery.log.info("No queued recipes to apply.");
             return;
         }
@@ -149,6 +148,7 @@ public class ModIntegrationCrafttweaker {
 
         // Create native InfusionRecipe
         AbstractInfusionRecipe nativeRecipe = new BasicInfusionRecipe(output, input) {
+
             @Override
             public int craftingTickTime() {
                 return recipe.getDuration();
@@ -240,9 +240,8 @@ public class ModIntegrationCrafttweaker {
         private final ItemStack storedOutput;
         private final ItemHandle[] storedInputs;
 
-        public AltarRecipeBuilder(String name, ItemHandle[] inputs, ItemStack output,
-                                      int starlightRequired, int craftingTickTime,
-                                      SerializeableRecipe.CraftingType craftingType) {
+        public AltarRecipeBuilder(String name, ItemHandle[] inputs, ItemStack output, int starlightRequired,
+            int craftingTickTime, SerializeableRecipe.CraftingType craftingType) {
             super(name, inputs, output, starlightRequired, craftingTickTime);
             this.craftingType = craftingType;
             // Store values locally to avoid accessing protected fields from parent
@@ -254,8 +253,12 @@ public class ModIntegrationCrafttweaker {
 
         public AbstractAltarRecipe buildRecipe(TileAltar.AltarLevel altarLevel) {
             // Call the protected method from BaseAltarRecipe using stored values
-            AbstractAltarRecipe result = buildRecipeUnsafe(altarLevel, this.storedStarlightRequired,
-                                                        this.storedCraftingTickTime, this.storedOutput, this.storedInputs);
+            AbstractAltarRecipe result = buildRecipeUnsafe(
+                altarLevel,
+                this.storedStarlightRequired,
+                this.storedCraftingTickTime,
+                this.storedOutput,
+                this.storedInputs);
             if (result == null) {
                 AstralSorcery.log.error("buildRecipeUnsafe returned null for altar level: " + altarLevel);
             }

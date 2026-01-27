@@ -36,7 +36,6 @@ import hellfirepvp.astralsorcery.common.item.crystal.CrystalProperties;
 import hellfirepvp.astralsorcery.common.item.crystal.CrystalPropertyItem;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
 import hellfirepvp.astralsorcery.common.lib.Sounds;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
 import hellfirepvp.astralsorcery.common.tile.network.TileCrystalLens;
 import hellfirepvp.astralsorcery.common.util.ItemUtils;
@@ -253,22 +252,19 @@ public class BlockLens extends BlockStarlightNetwork implements BlockVariants, C
         return Arrays.asList(0, 1, 2, 3, 4, 5);
     }
 
+    @Override
     public String getStateName(int meta) {
         return "lens_" + meta;
     }
 
-    // BlockVariants interface implementation - 1.12.2 style methods
     @Override
-    public List<IBlockState> getValidStates() {
-        List<IBlockState> states = new LinkedList<>();
+    public List<Block> getValidStates() {
+        List<Block> ret = new LinkedList<>();
+        // In 1.7.10, all lens directions are the same block with different metadata
+        // Return the block itself once for each direction (6 directions)
         for (Integer meta : getValidMetas()) {
-            states.add(new IBlockState(this, meta));
+            ret.add(this);
         }
-        return states;
-    }
-
-    @Override
-    public String getStateName(IBlockState state) {
-        return getStateName(state.getMetadata());
+        return ret;
     }
 }

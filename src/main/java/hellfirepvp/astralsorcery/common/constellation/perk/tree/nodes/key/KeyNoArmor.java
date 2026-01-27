@@ -60,12 +60,12 @@ public class KeyNoArmor extends KeyPerk {
 
     @SubscribeEvent
     public void onLivingHurt(LivingHurtEvent event) {
-        if (!(event.getEntityLiving() instanceof EntityPlayer)) {
+        if (!(event.entityLiving instanceof EntityPlayer)) {
             return;
         }
 
-        EntityPlayer player = (EntityPlayer) event.getEntityLiving();
-        Side side = event.getEntityLiving().worldObj.isRemote ? Side.CLIENT : Side.SERVER;
+        EntityPlayer player = (EntityPlayer) event.entityLiving;
+        Side side = event.entityLiving.worldObj.isRemote ? Side.CLIENT : Side.SERVER;
         PlayerProgress prog = ResearchManager.getProgress(player, side);
         if (prog.hasPerkEffect(this)) {
             int eq = 0;
@@ -79,7 +79,8 @@ public class KeyNoArmor extends KeyPerk {
             if (eq < 2) {
                 float effMulti = PerkAttributeHelper.getOrCreateMap(player, side)
                     .getModifier(player, prog, AttributeTypeRegistry.ATTR_TYPE_INC_PERK_EFFECT);
-                event.setAmount(event.getAmount() * (dmgReductionMultiplier * (1F / effMulti)));
+                // In 1.7.10, LivingHurtEvent uses 'damage' field, not getAmount()/setAmount()
+                event.ammount = event.ammount * (dmgReductionMultiplier * (1F / effMulti));
             }
         }
     }

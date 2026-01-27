@@ -146,7 +146,15 @@ public class ItemIlluminationWand extends Item implements ItemAlignmentChargeCon
                                     atPlace.stepSound.getPitch() * 0.8F);
                             }
                         } else if (drainTempCharge(playerIn, Config.illuminationWandUseCost, true)) {
-                            if (worldIn.setBlock(placeX.posX, placeX.posY, placeX.posZ, placeY, placeZ, BlocksAS.blockVolatileLight, 0, 3)) {
+                            if (worldIn.setBlock(
+                                placeX.posX,
+                                placeX.posY,
+                                placeX.posZ,
+                                placeY,
+                                placeZ,
+                                BlocksAS.blockVolatileLight,
+                                0,
+                                3)) {
                                 // 1.7.10: Use stepSound field with getStepResourcePath(), getVolume(), getPitch()
                                 Block placedBlock = worldIn.getBlock(placeX, placeY, placeZ);
                                 worldIn.playSoundEffect(

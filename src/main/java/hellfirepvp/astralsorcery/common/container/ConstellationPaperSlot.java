@@ -10,10 +10,10 @@ package hellfirepvp.astralsorcery.common.container;
 
 import javax.annotation.Nullable;
 
-import com.cleanroommc.modularui.utils.item.SlotItemHandler;
 import net.minecraft.item.ItemStack;
 
 import com.cleanroommc.modularui.utils.item.IItemHandler;
+import com.cleanroommc.modularui.utils.item.SlotItemHandler;
 
 import hellfirepvp.astralsorcery.common.item.ItemConstellationPaper;
 

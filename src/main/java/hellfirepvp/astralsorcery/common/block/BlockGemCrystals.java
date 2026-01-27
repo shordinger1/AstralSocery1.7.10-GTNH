@@ -30,7 +30,6 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import hellfirepvp.astralsorcery.common.item.gem.ItemPerkGem;
 import hellfirepvp.astralsorcery.common.migration.BlockStateContainer;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.migration.IStringSerializable;
 import hellfirepvp.astralsorcery.common.migration.PropertyEnum;
 import hellfirepvp.astralsorcery.common.network.PacketChannel;
@@ -71,14 +70,8 @@ public class BlockGemCrystals extends BlockContainer implements BlockCustomName,
         this.blockState = new BlockStateContainer(this, STAGE);
     }
 
-    public IBlockState getDefaultState() {
-        return this.blockState.getBaseState()
-            .withProperty(STAGE, GrowthStageType.STAGE_0);
-    }
-
-    protected void setDefaultState(IBlockState state) {
-        // In 1.7.10, default state is tracked separately
-    }
+    // In 1.7.10, default state is represented by default metadata (0)
+    // GrowthStageType.STAGE_0 has meta 0, so no special handling needed
 
     @Override
     public void getSubBlocks(Item item, CreativeTabs tab, List list) {
@@ -160,16 +153,8 @@ public class BlockGemCrystals extends BlockContainer implements BlockCustomName,
             2);
     }
 
-    public int getMetaFromState(IBlockState state) {
-        return state.getValue(STAGE)
-            .ordinal();
-    }
-
-    public IBlockState getStateFromMeta(int meta) {
-        return getDefaultState().withProperty(
-            STAGE,
-            GrowthStageType.values()[WrapMathHelper.clamp(meta, 0, GrowthStageType.values().length - 1)]);
-    }
+    // In 1.7.10, getMetaFromState and getStateFromMeta don't exist
+    // Metadata is handled directly with GrowthStageType.ordinal()
 
     @Override
     public int damageDropped(int metadata) {
@@ -265,19 +250,25 @@ public class BlockGemCrystals extends BlockContainer implements BlockCustomName,
 
     @Override
     public String getIdentifierForMeta(int meta) {
-        GrowthStageType type = getStateFromMeta(meta).getValue(STAGE);
+        GrowthStageType type = GrowthStageType.values()[meta >= GrowthStageType.values().length ? 0 : meta];
         return type.getName();
     }
 
     @Override
-    public List<IBlockState> getValidStates() {
-        return singleEnumPropertyStates(getDefaultState(), STAGE, GrowthStageType.values());
+    public List<Block> getValidStates() {
+        List<Block> ret = new ArrayList<>();
+        // In 1.7.10, all variants are the same block with different metadata
+        // Return the block itself once for each variant type
+        for (GrowthStageType type : GrowthStageType.values()) {
+            ret.add(this);
+        }
+        return ret;
     }
 
     @Override
-    public String getStateName(IBlockState state) {
-        return state.getValue(STAGE)
-            .getName();
+    public String getStateName(int metadata) {
+        GrowthStageType type = GrowthStageType.values()[metadata >= GrowthStageType.values().length ? 0 : metadata];
+        return type.getName();
     }
 
     public static enum GrowthStageType implements IStringSerializable {

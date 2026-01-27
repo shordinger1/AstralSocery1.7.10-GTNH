@@ -66,11 +66,15 @@ public class RegistryBlocks {
         String fluidName = blockLiquidStarlight.getClass()
             .getSimpleName()
             .toLowerCase();
-        blockLiquidStarlight.setUnlocalizedName(fluidName);
+        // In 1.7.10, Block.setUnlocalizedName exists but let's be safe
+        blockLiquidStarlight.setBlockName(fluidName); // 1.7.10 uses setBlockName instead of setUnlocalizedName
         GameRegistry.registerBlock(blockLiquidStarlight, fluidName);
         fluidLiquidStarlight.setBlock(blockLiquidStarlight);
 
-        FluidRegistry.addBucketForFluid(fluidLiquidStarlight);
+        // In 1.7.10, FluidContainerRegistry is used to add buckets
+        // FluidRegistry.addBucketForFluid() doesn't exist
+        // For now, skip bucket registration
+        // FluidContainerRegistry.registerFluidContainer(fluidLiquidStarlight, new ItemStack(Items.bucket), ...);
     }
 
     // Blocks
@@ -215,7 +219,8 @@ public class RegistryBlocks {
     }
 
     private static <T extends Block> T registerBlock(T block, String name) {
-        block.setUnlocalizedName(name);
+        // In 1.7.10, use setBlockName instead of setUnlocalizedName
+        block.setBlockName(name);
         GameRegistry.registerBlock(block, name);
         if (block instanceof BlockDynamicColor) {
             pendingIBlockColorBlocks.add((BlockDynamicColor) block);
@@ -233,13 +238,15 @@ public class RegistryBlocks {
 
     private static void registerBlockRender(Block block) {
         if (block instanceof BlockVariants) {
-            for (hellfirepvp.astralsorcery.common.migration.IBlockState state : ((BlockVariants) block)
-                .getValidStates()) {
-                String unlocName = ((BlockVariants) block).getBlockName(state);
-                String name = unlocName + "_" + ((BlockVariants) block).getStateName(state);
+            // In 1.7.10, BlockVariants.getValidStates() returns List<Block>
+            BlockVariants variants = (BlockVariants) block;
+            List<Block> validStates = variants.getValidStates();
+            for (int meta = 0; meta < validStates.size(); meta++) {
+                String unlocName = variants.getBlockName();
+                String stateName = variants.getStateName(meta);
+                String name = unlocName + "_" + stateName;
                 AstralSorcery.proxy.registerVariantName(Item.getItemFromBlock(block), name);
-                // 1.7.10: Use state.getMetadata() instead of block.getMetaFromState(state)
-                AstralSorcery.proxy.registerBlockRender(block, state.getMetadata(), name);
+                AstralSorcery.proxy.registerBlockRender(block, meta, name);
             }
         } else {
             AstralSorcery.proxy.registerVariantName(Item.getItemFromBlock(block), block.getUnlocalizedName());

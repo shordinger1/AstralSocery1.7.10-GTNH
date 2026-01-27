@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
+import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.*;
 import net.minecraftforge.fluids.IFluidHandler;
 
@@ -129,7 +130,7 @@ public class PrecisionSingleFluidCapabilityTank implements IFluidTank, IFluidHan
     }
 
     @Nullable
-    @Override
+    // 1.7.10: getContents() doesn't exist in IFluidTank, removed @Override
     public FluidStack getContents() {
         return getFluid();
     }
@@ -139,23 +140,23 @@ public class PrecisionSingleFluidCapabilityTank implements IFluidTank, IFluidHan
         return this.maxCapacity;
     }
 
-    @Override
+    // 1.7.10: IFluidHandler requires ForgeDirection parameter
     public boolean canFill() {
         return this.allowInput && this.amount < this.maxCapacity;
     }
 
-    @Override
+    // 1.7.10: IFluidHandler requires ForgeDirection parameter
     public boolean canDrain() {
         return this.allowOutput && this.amount > 0 && this.fluid != null;
     }
 
-    @Override
+    // 1.7.10: IFluidHandler requires ForgeDirection parameter
     public boolean canFillFluidType(FluidStack fluidStack) {
         return canFill() && (this.fluid == null || fluidStack.getFluid()
             .equals(this.fluid));
     }
 
-    @Override
+    // 1.7.10: IFluidHandler requires ForgeDirection parameter
     public boolean canDrainFluidType(FluidStack fluidStack) {
         return canDrain() && (this.fluid != null && fluidStack.getFluid()
             .equals(this.fluid));
@@ -179,13 +180,14 @@ public class PrecisionSingleFluidCapabilityTank implements IFluidTank, IFluidHan
             setFluid(resource.getFluid());
         }
         if (doFill) {
-            addable -= addAmount(addable);
+            // 1.7.10: Cast to int explicitly to avoid loss warning
+            addable -= (int) addAmount(addable);
         }
         return addable;
     }
 
     @Nullable
-    @Override
+    // 1.7.10: drain(FluidStack, boolean) doesn't exist in IFluidTank, removed @Override
     public FluidStack drain(FluidStack resource, boolean doDrain) {
         if (!canDrainFluidType(resource)) return null;
         return drain(resource.amount, doDrain);
@@ -200,6 +202,37 @@ public class PrecisionSingleFluidCapabilityTank implements IFluidTank, IFluidHan
             return drain(maxDrainable);
         }
         return new FluidStack(this.fluid, maxDrainable);
+    }
+
+    // 1.7.10: IFluidHandler methods with ForgeDirection parameter
+    @Override
+    public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
+        return fill(resource, doFill);
+    }
+
+    @Override
+    public FluidStack drain(ForgeDirection from, FluidStack resource, boolean doDrain) {
+        return drain(resource, doDrain);
+    }
+
+    @Override
+    public FluidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
+        return drain(maxDrain, doDrain);
+    }
+
+    @Override
+    public boolean canFill(ForgeDirection from, Fluid fluid) {
+        return canFill() && (this.fluid == null || this.fluid.equals(fluid));
+    }
+
+    @Override
+    public boolean canDrain(ForgeDirection from, Fluid fluid) {
+        return canDrain() && this.fluid != null && this.fluid.equals(fluid);
+    }
+
+    @Override
+    public FluidTankInfo[] getTankInfo(ForgeDirection from) {
+        return new FluidTankInfo[] { getInfo() };
     }
 
     public NBTTagCompound writeNBT() {

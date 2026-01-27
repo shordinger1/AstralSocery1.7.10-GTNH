@@ -18,6 +18,7 @@ public class EntitySpectralToolAIHelpers {
 
     // BlockStateCheck for finding breakable blocks with pickaxe
     public static final BlockStateCheck.WorldSpecific PICKAXE_CHECK = new BlockStateCheck.WorldSpecific() {
+
         @Override
         public boolean isStateValid(World world, BlockPos pos, Block block, int metadata) {
             // 1.7.10: Check conditions manually
@@ -30,13 +31,13 @@ public class EntitySpectralToolAIHelpers {
                 return false;
             }
             // Check if tool can break it
-            return MiscUtils.canToolBreakBlockWithoutPlayer(
-                world, pos, block, new ItemStack(Items.diamond_pickaxe));
+            return MiscUtils.canToolBreakBlockWithoutPlayer(world, pos, block, new ItemStack(Items.diamond_pickaxe));
         }
     };
 
     // BlockStateCheck for finding breakable logs/leaves with axe
     public static final BlockStateCheck.WorldSpecific AXE_CHECK = new BlockStateCheck.WorldSpecific() {
+
         @Override
         public boolean isStateValid(World world, BlockPos pos, Block block, int metadata) {
             if (world.getTileEntity(pos.getX(), pos.getY(), pos.getZ()) != null) {
@@ -47,10 +48,9 @@ public class EntitySpectralToolAIHelpers {
                 return false;
             }
             // 1.7.10: Check if wood or leaves
-            if (block.isWood(world, pos.getX(), pos.getY(), pos.getZ()) ||
-                block.isLeaves(world, pos.getX(), pos.getY(), pos.getZ())) {
-                return MiscUtils.canToolBreakBlockWithoutPlayer(
-                    world, pos, block, new ItemStack(Items.diamond_axe));
+            if (block.isWood(world, pos.getX(), pos.getY(), pos.getZ())
+                || block.isLeaves(world, pos.getX(), pos.getY(), pos.getZ())) {
+                return MiscUtils.canToolBreakBlockWithoutPlayer(world, pos, block, new ItemStack(Items.diamond_axe));
             }
             return false;
         }
@@ -58,6 +58,7 @@ public class EntitySpectralToolAIHelpers {
 
     // BlockStateCheck for finding breakable blocks above starting position
     public static final BlockStateCheck.WorldSpecific PICKAXE_CHECK_ABOVE = new BlockStateCheck.WorldSpecific() {
+
         @Override
         public boolean isStateValid(World world, BlockPos pos, Block block, int metadata) {
             if (world.getTileEntity(pos.getX(), pos.getY(), pos.getZ()) != null) {
@@ -67,8 +68,7 @@ public class EntitySpectralToolAIHelpers {
             if (hardness == -1 || hardness > 10) {
                 return false;
             }
-            return MiscUtils.canToolBreakBlockWithoutPlayer(
-                world, pos, block, new ItemStack(Items.diamond_pickaxe));
+            return MiscUtils.canToolBreakBlockWithoutPlayer(world, pos, block, new ItemStack(Items.diamond_pickaxe));
         }
     };
 

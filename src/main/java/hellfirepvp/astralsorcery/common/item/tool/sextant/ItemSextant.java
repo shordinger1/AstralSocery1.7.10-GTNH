@@ -77,8 +77,7 @@ public class ItemSextant extends Item implements ISpecialInteractItem {
         SextantFinder.TargetObject to = getTarget(stack);
         if (to != null) {
             tooltip.add(
-                EnumChatFormatting.GOLD
-                    + I18n.format("item.itemsextant.target." + to.getRegistryName() + ".name"));
+                EnumChatFormatting.GOLD + I18n.format("item.itemsextant.target." + to.getRegistryName() + ".name"));
         }
     }
 
@@ -172,8 +171,7 @@ public class ItemSextant extends Item implements ISpecialInteractItem {
                         && MiscUtils.isChunkLoaded(world, pos)) {
                         Block current = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
                         struct.placeInWorld(world, pos);
-                        if (world.getBlock(pos.getX(), pos.getY(), pos.getZ())
-                            != current) {
+                        if (world.getBlock(pos.getX(), pos.getY(), pos.getZ()) != current) {
                             world.setBlock(pos.getX(), pos.getY(), pos.getZ(), current, 0, 3);
                         }
                     }

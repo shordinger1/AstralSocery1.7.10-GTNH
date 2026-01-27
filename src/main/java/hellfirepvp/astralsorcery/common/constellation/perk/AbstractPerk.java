@@ -9,9 +9,6 @@
 package hellfirepvp.astralsorcery.common.constellation.perk;
 
 import java.awt.*;
-
-import cpw.mods.fml.common.Optional;
-import net.minecraft.util.EnumChatFormatting;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -24,6 +21,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.MinecraftForge;
@@ -32,6 +30,7 @@ import com.google.common.collect.Lists;
 
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
+import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.AstralSorcery;

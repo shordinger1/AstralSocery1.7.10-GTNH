@@ -40,10 +40,10 @@ public class PlayerAmuletHandler implements ITickHandler {
     // This event handler is disabled for 1.7.10 compatibility
     // @SubscribeEvent
     // public void attachAmuletItemCapability(AttachCapabilitiesEvent<ItemStack> itemCapEvent) {
-    //     if (!EnchantmentUpgradeHelper.isItemBlacklisted(itemCapEvent.getObject())) {
-    //         itemCapEvent
-    //             .addCapability(AmuletHolderCapability.CAP_AMULETHOLDER_NAME, new AmuletHolderCapability.Provider());
-    //     }
+    // if (!EnchantmentUpgradeHelper.isItemBlacklisted(itemCapEvent.getObject())) {
+    // itemCapEvent
+    // .addCapability(AmuletHolderCapability.CAP_AMULETHOLDER_NAME, new AmuletHolderCapability.Provider());
+    // }
     // }
 
     @SubscribeEvent

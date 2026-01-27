@@ -41,8 +41,7 @@ public class EnchantmentNightVision extends EnchantmentPlayerWornTick {
 
     public void onEntityDamaged(EntityLivingBase user, Entity target, int level) {
         if (target instanceof EntityLivingBase) {
-            ((EntityLivingBase) target)
-                .addPotionEffect(new PotionEffect(Potion.nightVision.id, 300, level - 1));
+            ((EntityLivingBase) target).addPotionEffect(new PotionEffect(Potion.nightVision.id, 300, level - 1));
         }
     }
 

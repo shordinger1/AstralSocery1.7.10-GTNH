@@ -8,14 +8,13 @@
 
 package hellfirepvp.astralsorcery.common.world.attributes;
 
-import java.util.Collection;
 import java.util.Random;
 
-import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import hellfirepvp.astralsorcery.common.block.BlockCustomFlower;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
@@ -42,8 +41,8 @@ public class GenAttributeGlowstoneFlower extends WorldGenAttributeCommon {
         if (cfgEntry.shouldIgnoreBiomeSpecifications()) return true;
 
         BiomeGenBase b = world.getBiomeGenForCoords(pos.getX(), pos.getZ());
-        Collection<BiomeDictionary.Type> types = BiomeDictionary.getTypes(b);
-        if (types == null || types.stackSize <= 0) return false;
+        BiomeDictionary.Type[] types = BiomeDictionary.getTypesForBiome(b);
+        if (types == null || types.length == 0) return false;
         boolean applicable = false;
         for (BiomeDictionary.Type t : types) {
             if (cfgEntry.getTypes()
@@ -79,8 +78,8 @@ public class GenAttributeGlowstoneFlower extends WorldGenAttributeCommon {
             pos.getX(),
             pos.getY(),
             pos.getZ(),
-            BlocksAS.customFlower.withProperty(BlockCustomFlower.FLOWER_TYPE, BlockCustomFlower.FlowerType.GLOW_FLOWER),
-            0,
+            BlocksAS.customFlower,
+            BlockCustomFlower.FlowerType.GLOW_FLOWER.ordinal(),
             3)) {
             return;
         }
@@ -102,8 +101,7 @@ public class GenAttributeGlowstoneFlower extends WorldGenAttributeCommon {
     private BlockPos randomOffset(World world, BlockPos origin, Random random, int offsetRand) {
         int rX = origin.getX() - offsetRand + random.nextInt(offsetRand * 2 + 1);
         int rZ = origin.getZ() - offsetRand + random.nextInt(offsetRand * 2 + 1);
-        int rY = world.getPrecipitationHeight(new BlockPos(rX, 0, rZ))
-            .getY();
+        int rY = world.getPrecipitationHeight(rX, rZ);
         return new BlockPos(rX, rY, rZ);
     }
 
@@ -112,17 +110,15 @@ public class GenAttributeGlowstoneFlower extends WorldGenAttributeCommon {
         return isApplicableBiome(world, pos) && isApplicableWorld(world)
             && pos.getY() >= cfgEntry.getMinY()
             && pos.getY() <= cfgEntry.getMaxY()
-            && world.getBlock(pos.down())
-                .isSideSolid(world, pos.down(), EnumFacing.UP)
-            && (ignoreSnowCondition || world.canSnowAt(pos, false));
+            && world.isSideSolid(pos.getX(), pos.getY() - 1, pos.getZ(), ForgeDirection.UP, false)
+            && (ignoreSnowCondition || world.provider.canSnowAt(pos.getX(), pos.getY(), pos.getZ(), false));
     }
 
     @Override
     public BlockPos getGenerationPosition(int chX, int chZ, World world, Random rand) {
         int rX = (chX * 16) + rand.nextInt(16) + 8;
         int rZ = (chZ * 16) + rand.nextInt(16) + 8;
-        int rY = world.getPrecipitationHeight(new BlockPos(rX, 0, rZ))
-            .getY();
+        int rY = world.getPrecipitationHeight(rX, rZ);
         return new BlockPos(rX, rY, rZ);
     }
 

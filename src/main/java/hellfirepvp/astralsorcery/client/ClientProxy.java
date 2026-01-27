@@ -414,7 +414,7 @@ public class ClientProxy extends CommonProxy {
         ArrayList<ItemStack> list = new ArrayList<>();
         // 1.7.10: getSubItems takes 3 parameters: Item, CreativeTabs, List
         item.getSubItems(item, item.getCreativeTab(), list);
-        if (!list == null || list.stackSize <= 0) {
+        if (list != null && !list.isEmpty()) {
             for (ItemStack i : list) {
                 registerItemRender(item, i.getItemDamage(), name);
             }

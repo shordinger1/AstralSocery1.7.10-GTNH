@@ -21,7 +21,6 @@ import net.minecraft.world.IBlockAccess;
 
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
 import hellfirepvp.astralsorcery.common.migration.BlockStateContainer;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.migration.IStringSerializable;
 import hellfirepvp.astralsorcery.common.migration.PropertyEnum;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
@@ -49,14 +48,14 @@ public class BlockInfusedWood extends Block implements BlockCustomName, BlockVar
         this.blockState = new BlockStateContainer(this, WOOD_TYPE);
     }
 
-    public IBlockState getDefaultState() {
-        return this.blockState.getBaseState()
-            .withProperty(WOOD_TYPE, WoodType.RAW);
-    }
+//     public IBlockState getDefaultState() {
+//         return this.blockState.getBaseState()
+//             .withProperty(WOOD_TYPE, WoodType.RAW);
+//     }
 
-    protected void setDefaultState(IBlockState state) {
-        // In 1.7.10, default state is tracked separately
-    }
+//     protected void setDefaultState(IBlockState state) {
+//         // In 1.7.10, default state is tracked separately
+//     }
 
     @Override
     public void getSubBlocks(Item item, CreativeTabs tab, List<ItemStack> list) {
@@ -134,33 +133,35 @@ public class BlockInfusedWood extends Block implements BlockCustomName, BlockVar
         return mt.getName();
     }
 
-    public int getMetaFromState(IBlockState state) {
-        return state.getValue(WOOD_TYPE)
-            .getMeta();
-    }
+//     public int getMetaFromState(IBlockState state) {
+//         return state.getValue(WOOD_TYPE)
+//             .getMeta();
+//     }
 
-    public IBlockState getStateFromMeta(int meta) {
-        return getDefaultState()
-            .withProperty(WOOD_TYPE, WoodType.values()[meta >= WoodType.values().length ? 0 : meta]);
-    }
+//     public IBlockState getStateFromMeta(int meta) {
+//         return getDefaultState()
+//             .withProperty(WOOD_TYPE, WoodType.values()[meta >= WoodType.values().length ? 0 : meta]);
+//     }
 
     protected BlockStateContainer createBlockState() {
         return new BlockStateContainer(this, WOOD_TYPE);
     }
 
     @Override
-    public List<IBlockState> getValidStates() {
-        List<IBlockState> ret = new LinkedList<>();
+    public List<Block> getValidStates() {
+        List<Block> ret = new LinkedList<>();
+        // In 1.7.10, all variants are the same block with different metadata
+        // Return the block itself once for each variant type
         for (WoodType type : WoodType.values()) {
-            ret.add(getDefaultState().withProperty(WOOD_TYPE, type));
+            ret.add(this);
         }
         return ret;
     }
 
     @Override
-    public String getStateName(IBlockState state) {
-        return state.getValue(WOOD_TYPE)
-            .getName();
+    public String getStateName(int metadata) {
+        WoodType type = WoodType.values()[metadata >= WoodType.values().length ? 0 : metadata];
+        return type.getName();
     }
 
     public enum WoodType implements IStringSerializable {

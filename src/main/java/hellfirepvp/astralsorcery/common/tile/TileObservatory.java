@@ -23,7 +23,6 @@ import hellfirepvp.astralsorcery.common.tile.base.TileEntityTick;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
 import hellfirepvp.astralsorcery.common.util.data.Vector3;
-import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -106,8 +105,12 @@ public class TileObservatory extends TileEntityTick {
     private Entity resolveEntity(UUID entityUUID) {
         if (entityUUID == null) return null;
         BlockPos pos = getPos();
-        for (Entity e : worldObj
-            .getEntitiesWithinAABB(Entity.class, AxisAlignedBB.getBoundingBox(pos.add(-3, -1, -3), pos.add(3, 2, 3)))) {
+        // 1.7.10: AxisAlignedBB.getBoundingBox takes individual coordinates, not BlockPos
+        BlockPos min = pos.add(-3, -1, -3);
+        BlockPos max = pos.add(3, 2, 3);
+        for (Entity e : worldObj.getEntitiesWithinAABB(
+            Entity.class,
+            AxisAlignedBB.getBoundingBox(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ()))) {
             if (e.getUniqueID()
                 .equals(entityUUID)) {
                 this.entityIdServerRef = e.getEntityId();
@@ -153,8 +156,9 @@ public class TileObservatory extends TileEntityTick {
     public void readCustomNBT(NBTTagCompound compound) {
         super.readCustomNBT(compound);
 
-        if (NBTHelper.hasUniqueId(compound, "entity")) {
-            this.entityHelperRef = NBTHelper.getUniqueId(compound, "entity");
+        // 1.7.10: UUID helper methods don't exist, read manually from most/least significant bits
+        if (compound.hasKey("entityMost") && compound.hasKey("entityLeast")) {
+            this.entityHelperRef = new UUID(compound.getLong("entityMost"), compound.getLong("entityLeast"));
         } else {
             this.entityHelperRef = null;
         }
@@ -168,8 +172,10 @@ public class TileObservatory extends TileEntityTick {
     public void writeCustomNBT(NBTTagCompound compound) {
         super.writeCustomNBT(compound);
 
+        // 1.7.10: UUID helper methods don't exist, write manually as most/least significant bits
         if (this.entityHelperRef != null) {
-            NBTHelper.setUniqueId(compound, "entity", this.entityHelperRef);
+            compound.setLong("entityMost", this.entityHelperRef.getMostSignificantBits());
+            compound.setLong("entityLeast", this.entityHelperRef.getLeastSignificantBits());
         }
         compound.setFloat("oYaw", this.observatoryYaw);
         compound.setFloat("oPitch", this.observatoryPitch);

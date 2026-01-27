@@ -64,7 +64,7 @@ public class LightOreTransmutations {
 
     private static void cacheLocalFallback() {
         // 1.7.10: Collection doesn't have stackSize, use isEmpty()
-        if ((localFallback == null || localFallback == null || localFallback.stackSize <= 0)) {
+        if (localFallback.isEmpty()) {
             localFallback.addAll(registeredTransmutations);
         }
     }
@@ -88,7 +88,7 @@ public class LightOreTransmutations {
                 }
             }
         }
-        ItemStack outStack = outRemove; // Fix: undefined variable
+        ItemStack outStack = outRemove;
         for (Transmutation tr : registeredTransmutations) {
             if (!(outStack == null || outStack.stackSize <= 0) && ItemComparator
                 .compare(tr.outStack, outRemove, ItemComparator.Clause.ITEM, ItemComparator.Clause.META_STRICT)) {

@@ -60,7 +60,7 @@ public class OreDictAlias {
     public static String BLOCK_GLASS_PANE_NOCOLOR = "paneGlassColorless";
 
     public static String getDyeOreDict(EnumDyeColor color) {
-        return DYE_COLORS_BY_META[color.getMetadata()];
+        return DYE_COLORS_BY_META[color.getColorValue()];
     }
 
 }

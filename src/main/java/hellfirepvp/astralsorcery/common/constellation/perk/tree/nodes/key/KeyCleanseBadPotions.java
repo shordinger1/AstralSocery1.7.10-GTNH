@@ -54,7 +54,7 @@ public class KeyCleanseBadPotions extends KeyPerk {
                     badEffects.add(effect);
                 }
             }
-            if (badEffects == null || badEffects.stackSize <= 0) {
+            if (badEffects.isEmpty()) {
                 return;
             }
             PotionEffect effect = badEffects.get(rand.nextInt(badEffects.size()));

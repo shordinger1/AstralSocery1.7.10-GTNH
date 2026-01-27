@@ -10,7 +10,6 @@ package hellfirepvp.astralsorcery.client.gui;
 
 import java.awt.*;
 import java.util.*;
-import net.minecraft.util.EnumChatFormatting;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
@@ -18,6 +17,8 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 
 import org.lwjgl.opengl.GL11;
@@ -125,8 +126,9 @@ public class GuiTelescope extends GuiTileBase<TileTelescope> implements GuiSkySc
             List<KnowledgeFragment> fragList = new LinkedList<>();
             for (ItemStack item : fragmentStacks) {
                 KnowledgeFragment frag = ItemKnowledgeFragment.resolveFragment(item);
-                Optional<Long> seedOpt = ItemKnowledgeFragment.getSeed(item);
-                if (seedOpt.isPresent() && frag != null && !fragList.contains(frag)) {
+                long seed = ItemKnowledgeFragment.getSeed(item);
+                com.google.common.base.Optional<Long> seedOpt = com.google.common.base.Optional.of(seed);
+                if (frag != null && !fragList.contains(frag)) {
                     fragList.add(frag);
 
                     IConstellation cst = frag.getDiscoverConstellation(seedOpt.get());
@@ -497,7 +499,7 @@ public class GuiTelescope extends GuiTileBase<TileTelescope> implements GuiSkySc
         if (rectArrowCW != null && rectArrowCW.contains(p)) {
             PktRotateTelescope pkt = new PktRotateTelescope(
                 true,
-                guiOwner.worldObj.provider.dimensionId,
+                guiOwner.getWorldObj().provider.dimensionId,
                 guiOwner.getPos());
             PacketChannel.CHANNEL.sendToServer(pkt);
             return;
@@ -505,7 +507,7 @@ public class GuiTelescope extends GuiTileBase<TileTelescope> implements GuiSkySc
         if (rectArrowCCW != null && rectArrowCCW.contains(p)) {
             PktRotateTelescope pkt = new PktRotateTelescope(
                 false,
-                guiOwner.worldObj.provider.dimensionId,
+                guiOwner.getWorldObj().provider.dimensionId,
                 guiOwner.getPos());
             PacketChannel.CHANNEL.sendToServer(pkt);
         }
@@ -606,7 +608,7 @@ public class GuiTelescope extends GuiTileBase<TileTelescope> implements GuiSkySc
         RotationConstellationInformation infos = currentInformation.informationMap.get(rotation);
         if (infos == null) return;
         List<ConstellationInformation> renderInfos = infos.informations;
-        if (renderInfos == null || renderInfos.stackSize <= 0) return;
+        if (renderInfos == null || renderInfos.isEmpty()) return;
 
         lblInfos: for (ConstellationInformation info : renderInfos) {
             IConstellation c = info.constellation;

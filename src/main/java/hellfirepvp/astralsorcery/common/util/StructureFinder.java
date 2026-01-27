@@ -13,8 +13,10 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.world.ChunkPosition;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraft.world.biome.WorldChunkManager;
 import net.minecraftforge.common.BiomeDictionary;
 
 import com.google.common.collect.Lists;
@@ -51,28 +53,26 @@ public class StructureFinder {
 
     @Nullable
     public static BlockPos tryFindClosestVanillaStructure(WorldServer world, BlockPos playerPos, String searchKey) {
-        IChunkGenerator gen = world.getChunkProvider().chunkGenerator;
-        if (gen == null) return null;
-        try {
-            return gen.getNearestStructurePos(world, searchKey, playerPos, true);
-        } catch (Exception ignored) {
-            return null;
-        }
+        // 1.7.10: Structure finding API is very different and not easily accessible
+        // MapGenStructure doesn't have a simple getNearestStructurePos method like in 1.12+
+        // This functionality is disabled for 1.7.10
+        return null;
     }
 
     @Nullable
     public static BlockPos tryFindClosestBiomeType(WorldServer world, BlockPos playerPos,
         BiomeDictionary.Type biomeType) {
-        List<BiomeGenBase> fitting = Lists.newArrayList(BiomeDictionary.getBiomes(biomeType));
-        if ((fitting == null || fitting.stackSize <= 0)) {
+        BiomeGenBase[] fitting = BiomeDictionary.getBiomesForType(biomeType);
+        if ((fitting == null || fitting.length == 0)) {
             return null;
         }
-        BiomeProvider gen = world.getBiomeProvider();
+        List<BiomeGenBase> fittingList = Lists.newArrayList(fitting);
+        WorldChunkManager gen = world.getWorldChunkManager();
         for (int reach = 64; reach < 2112; reach += 128) {
-            BlockPos closest = gen
-                .findBiomePosition(playerPos.getX(), playerPos.getZ(), reach, fitting, new Random(world.getSeed()));
+            ChunkPosition closest = gen
+                .findBiomePosition(playerPos.getX(), playerPos.getZ(), reach, fittingList, new Random(world.getSeed()));
             if (closest != null) {
-                return closest;
+                return new BlockPos(closest.chunkPosX, 0, closest.chunkPosZ);
             }
         }
         return null;

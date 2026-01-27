@@ -39,7 +39,7 @@ public class GameStageConfig {
     /**
      * Adds a constellation discovery stage requirement
      *
-     * @param stageName                The game stage name
+     * @param stageName                    The game stage name
      * @param unlocalizedConstellationName The constellation name
      */
     public static void addConstellationDiscoveryStage(String stageName, String unlocalizedConstellationName) {
@@ -63,13 +63,13 @@ public class GameStageConfig {
     /**
      * Checks if a constellation can be discovered with the given game stages
      *
-     * @param gameStages      The player's game stages
+     * @param gameStages        The player's game stages
      * @param constellationName The constellation name
      * @return true if the constellation can be discovered
      */
     public static boolean canDiscover(Collection<String> gameStages, String constellationName) {
         Collection<String> stages = constellationStages.getOrDefault(constellationName, Lists.newArrayList());
-        if (gameStages == null || stages == null || stages.stackSize <= 0) {
+        if (gameStages == null || stages == null || stages.isEmpty()) {
             return true;
         }
         for (String gameStage : gameStages) {

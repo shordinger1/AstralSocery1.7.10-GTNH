@@ -98,7 +98,7 @@ public class CapeEffectMineralis extends CapeArmorEffect {
                 return;
             }
             List<BlockPos> blocks = MiscUtils.searchAreaFor(pl.worldObj, new BlockPos(pl), b, meta, highlightRange);
-            if (blocks == null || blocks.stackSize <= 0) return;
+            if (blocks == null || blocks.isEmpty()) return;
 
             int index = blocks.size() > 10 ? rand.nextInt(blocks.size()) : rand.nextInt(10);
             if (index >= blocks.size()) {

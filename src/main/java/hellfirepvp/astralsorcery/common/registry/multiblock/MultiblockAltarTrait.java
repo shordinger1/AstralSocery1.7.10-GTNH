@@ -61,26 +61,35 @@ public class MultiblockAltarTrait {
 
     private final String[][] shape = new String[][] {
         // Y = -1 (Base layer - same as Altar Constellation)
-        {"CCCCCCCC", "CCRRRCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCRRRCCC", "CCCCCCCC"},
-        {"CCCCCCCC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CCCCCCCC"},
-        {"CCCCCCCC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CCCCCCCC"},
+        { "CCCCCCCC", "CCRRRCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC",
+            "CCCCCCCC", "CCRRRCCC", "CCCCCCCC" },
+        { "CCCCCCCC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC",
+            "CBBBBBBC", "CBBBBBBC", "CCCCCCCC" },
+        { "CCCCCCCC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC", "CBBBBBBC",
+            "CBBBBBBC", "CBBBBBBC", "CCCCCCCC" },
 
         // Y = 0
-        {"        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "},
-        {"        ", "        ", "        ", "U       ", "        ", "        ", "        ", "        ", "        ", "U       ", "        ", "        "},
+        { "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ", "        ",
+            "        ", "        ", "        " },
+        { "        ", "        ", "        ", "U       ", "        ", "        ", "        ", "        ", "        ",
+            "U       ", "        ", "        " },
 
         // Y = 1
-        {"        ", "        ", "        ", "P       ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        "},
+        { "        ", "        ", "        ", "P       ", "        ", "        ", "        ", "        ", "        ",
+            "P       ", "        ", "        " },
 
         // Y = 2
-        {"        ", "        ", "        ", "P       ", "        ", "        ", "        ", "        ", "        ", "P       ", "        ", "        "},
+        { "        ", "        ", "        ", "P       ", "        ", "        ", "        ", "        ", "        ",
+            "P       ", "        ", "        " },
 
         // Y = 3 (Bricks added at corners)
-        {"        ", "        ", "        ", "HCCC    ", "        ", "        ", "        ", "        ", "        ", "CCCH    ", "        ", "        "},
-        {"        ", "        ", "        ", "C       ", "        ", "        ", "        ", "        ", "        ", "C      ", "        ", "        "},
+        { "        ", "        ", "        ", "HCCC    ", "        ", "        ", "        ", "        ", "        ",
+            "CCCH    ", "        ", "        " },
+        { "        ", "        ", "        ", "C       ", "        ", "        ", "        ", "        ", "        ",
+            "C      ", "        ", "        " },
 
         // Y = 4 (New layer - ring of bricks)
-        {"        ", "        ", "        ", "CCCCCCC ", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", " CCCCCCC", "        ", "        "},
-    };
+        { "        ", "        ", "        ", "CCCCCCC ", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC", "CCCCCCCC",
+            " CCCCCCC", "        ", "        " }, };
 
 }

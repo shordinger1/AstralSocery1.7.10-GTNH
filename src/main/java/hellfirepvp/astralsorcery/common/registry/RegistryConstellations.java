@@ -97,32 +97,32 @@ public class RegistryConstellations {
             Arrays.asList(
                 new EnchantmentMapEffect(Enchantment.sharpness, 3, 7),
                 new EnchantmentMapEffect(Enchantment.power, 3, 7)),
-            List.of(new PotionMapEffect(Potion.damageBoost, 0, 3)));
+            Arrays.asList(new PotionMapEffect(Potion.damageBoost, 0, 3)));
         registerMapEffect(
             armara,
-            List.of(new EnchantmentMapEffect(Enchantment.protection, 3, 5)),
-            List.of(new PotionMapEffect(Potion.resistance)));
+            Arrays.asList(new EnchantmentMapEffect(Enchantment.protection, 3, 5)),
+            Arrays.asList(new PotionMapEffect(Potion.resistance)));
         registerMapEffect(
             vicio,
-            List.of(new EnchantmentMapEffect(Enchantment.featherFalling, 3, 5)),
-            List.of(new PotionMapEffect(Potion.moveSpeed, 1, 3)));
+            Arrays.asList(new EnchantmentMapEffect(Enchantment.featherFalling, 3, 5)),
+            Arrays.asList(new PotionMapEffect(Potion.moveSpeed, 1, 3)));
         registerMapEffect(
             aevitas,
-            List.of(new EnchantmentMapEffect(Enchantment.unbreaking, 1, 3)),
-            List.of(new PotionMapEffect(Potion.regeneration, 0, 3)));
+            Arrays.asList(new EnchantmentMapEffect(Enchantment.unbreaking, 1, 3)),
+            Arrays.asList(new PotionMapEffect(Potion.regeneration, 0, 3)));
         registerMapEffect(
             evorsio,
-            List.of(new EnchantmentMapEffect(Enchantment.efficiency, 3, 5)),
-            List.of(new PotionMapEffect(Potion.digSpeed, 1, 3)));
+            Arrays.asList(new EnchantmentMapEffect(Enchantment.efficiency, 3, 5)),
+            Arrays.asList(new PotionMapEffect(Potion.digSpeed, 1, 3)));
 
         registerMapEffect(
             lucerna,
-            List.of(new EnchantmentMapEffect(EnchantmentsAS.enchantmentNightVision, 1, 1)),
-            List.of(new PotionMapEffect(Potion.nightVision)));
+            Arrays.asList(new EnchantmentMapEffect(EnchantmentsAS.enchantmentNightVision, 1, 1)),
+            Arrays.asList(new PotionMapEffect(Potion.nightVision)));
         registerMapEffect(
             mineralis,
-            List.of(new EnchantmentMapEffect(Enchantment.fortune, 1, 3)),
-            List.of(new PotionMapEffect(Potion.digSpeed, 0, 3)));
+            Arrays.asList(new EnchantmentMapEffect(Enchantment.fortune, 1, 3)),
+            Arrays.asList(new PotionMapEffect(Potion.digSpeed, 0, 3)));
         registerMapEffect(
             horologium,
             Arrays.asList(
@@ -131,19 +131,19 @@ public class RegistryConstellations {
             Arrays.asList(new PotionMapEffect(Potion.digSpeed, 5, 8), new PotionMapEffect(Potion.moveSpeed, 1, 4)));
         registerMapEffect(
             octans,
-            List.of(new EnchantmentMapEffect(Enchantment.respiration, 2, 4)),
-            List.of(new PotionMapEffect(Potion.waterBreathing, 2, 4)));
+            Arrays.asList(new EnchantmentMapEffect(Enchantment.respiration, 2, 4)),
+            Arrays.asList(new PotionMapEffect(Potion.waterBreathing, 2, 4)));
         registerMapEffect(
             bootes,
-            List.of(new EnchantmentMapEffect(Enchantment.silkTouch, 1, 1)),
-            List.of(new PotionMapEffect(Potion.field_76443_y, 2, 5)));
+            Arrays.asList(new EnchantmentMapEffect(Enchantment.silkTouch, 1, 1)),
+            Arrays.asList(new PotionMapEffect(Potion.field_76443_y, 2, 5)));
         registerMapEffect(
             fornax,
             Arrays.asList(
                 new EnchantmentMapEffect(Enchantment.fireAspect, 1, 3),
                 new EnchantmentMapEffect(Enchantment.flame, 1, 2),
                 new EnchantmentMapEffect(EnchantmentsAS.enchantmentScorchingHeat, 1, 1)),
-            List.of(new PotionMapEffect(Potion.fireResistance, 0, 0)));
+            Arrays.asList(new PotionMapEffect(Potion.fireResistance, 0, 0)));
         registerMapEffect(
             pelotrio,
             Arrays.asList(

@@ -97,14 +97,14 @@ public class StoredItemStack {
     public NBTTagCompound serialize() {
         NBTTagCompound tag = new NBTTagCompound();
         // In 1.7.10, use writeToNBT instead of serializeNBT
-        tag.setTag("item", stack.writeToNBT());
+        tag.setTag("item", stack.writeToNBT(tag));
         tag.setInteger("amount", amount);
         return tag;
     }
 
     @Nullable
     public static StoredItemStack deserialize(NBTTagCompound cmp) {
-        ItemStack stack = new ItemStack(cmp.getCompoundTag("item"));
+        ItemStack stack = ItemStack.loadItemStackFromNBT(cmp.getCompoundTag("item"));
         if ((stack == null || stack.stackSize <= 0)) {
             return null;
         }

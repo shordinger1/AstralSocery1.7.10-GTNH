@@ -95,11 +95,13 @@ public class ModIntegrationNEI {
                 "astralsorcery.grindstone");
 
             // Starlight Infuser catalyst
-            codechicken.nei.api.API.addRecipeCatalyst(new ItemStack(BlocksAS.starlightInfuser), "astralsorcery.infuser");
+            codechicken.nei.api.API
+                .addRecipeCatalyst(new ItemStack(BlocksAS.starlightInfuser), "astralsorcery.infuser");
 
             // Transmutation catalysts (lens items)
             codechicken.nei.api.API.addRecipeCatalyst(new ItemStack(BlocksAS.lens), "astralsorcery.lightTransmutation");
-            codechicken.nei.api.API.addRecipeCatalyst(new ItemStack(BlocksAS.lensPrism), "astralsorcery.lightTransmutation");
+            codechicken.nei.api.API
+                .addRecipeCatalyst(new ItemStack(BlocksAS.lensPrism), "astralsorcery.lightTransmutation");
 
             // Altar catalysts for each tier
             codechicken.nei.api.API.addRecipeCatalyst(

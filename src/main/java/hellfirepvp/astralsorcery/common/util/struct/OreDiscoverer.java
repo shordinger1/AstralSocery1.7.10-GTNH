@@ -37,27 +37,31 @@ public class OreDiscoverer {
         BlockPos originPos = position.toBlockPos();
         BlockArray out = new BlockArray();
         List<Block> successfulOres = new ArrayList<>(12);
-        BlockPos.MutableBlockPos.PooledMutableBlockPos pooledPos = BlockPos.PooledMutableBlockPos.retain();
         try {
             for (int xx = -xzLimit; xx <= xzLimit; xx++) {
                 for (int zz = -xzLimit; zz <= xzLimit; zz++) {
-                    pooledPos.setPos(originPos.getX() + xx, 0, originPos.getZ() + zz);
-                    Chunk c = world.getChunkFromBlockCoords(pooledPos);
-                    int highest = (c.getTopFilledSegment() + 1) * 16;
+                    int chunkX = (originPos.getX() + xx) >> 4;
+                    int chunkZ = (originPos.getZ() + zz) >> 4;
+                    Chunk c = world.getChunkFromChunkCoords(chunkX, chunkZ);
+                    // 1.7.10: getTopFilledSegment() doesn't exist, use getActualHeight() or fixed value
+                    int highest = 256; // Maximum world height in 1.7.10
                     for (int y = 0; y < highest; y++) {
-                        pooledPos.setY(y);
-                        Block at = c.getBlock(pooledPos.posX, pooledPos.posY, pooledPos.posZ);
+                        // 1.7.10: Use absolute coordinates
+                        int absX = originPos.getX() + xx;
+                        int absZ = originPos.getZ() + zz;
+                        // 1.7.10: Chunk.getBlock takes x, y, z coordinates
+                        Block at = c.getBlock(absX, y, absZ);
                         if (successfulOres.contains(at)) {
-                            out.addBlock(new BlockPos(pooledPos), at);
+                            out.addBlock(new BlockPos(absX, y, absZ), at);
                         } else if (isOre(at)) {
-                            out.addBlock(new BlockPos(pooledPos), at);
+                            out.addBlock(new BlockPos(absX, y, absZ), at);
                             successfulOres.add(at);
                         }
                     }
                 }
             }
         } finally {
-            pooledPos.release();
+            // Empty finally block for resource cleanup (if needed in future)
         }
         return out;
     }

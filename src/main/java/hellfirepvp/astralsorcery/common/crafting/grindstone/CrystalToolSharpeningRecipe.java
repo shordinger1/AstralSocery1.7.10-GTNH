@@ -10,9 +10,9 @@ package hellfirepvp.astralsorcery.common.crafting.grindstone;
 
 import javax.annotation.Nonnull;
 
-import hellfirepvp.astralsorcery.common.crafting.ItemHandle;
 import net.minecraft.item.ItemStack;
 
+import hellfirepvp.astralsorcery.common.crafting.ItemHandle;
 import hellfirepvp.astralsorcery.common.item.crystal.ToolCrystalProperties;
 import hellfirepvp.astralsorcery.common.item.tool.ItemCrystalSword;
 import hellfirepvp.astralsorcery.common.item.tool.ItemCrystalToolBase;

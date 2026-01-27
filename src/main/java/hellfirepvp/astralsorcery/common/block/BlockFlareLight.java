@@ -29,7 +29,6 @@ import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.client.effect.EffectHelper;
 import hellfirepvp.astralsorcery.client.effect.fx.EntityFXFacingParticle;
 import hellfirepvp.astralsorcery.common.migration.BlockStateContainer;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.migration.PropertyEnum;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
@@ -55,14 +54,14 @@ public class BlockFlareLight extends Block {
         this.blockState = new BlockStateContainer(this, COLOR);
     }
 
-    public IBlockState getDefaultState() {
-        return this.blockState.getBaseState()
-            .withProperty(COLOR, EnumDyeColor.YELLOW);
-    }
+//     public IBlockState getDefaultState() {
+//         return this.blockState.getBaseState()
+//             .withProperty(COLOR, EnumDyeColor.YELLOW);
+//     }
 
-    protected void setDefaultState(IBlockState state) {
-        // In 1.7.10, default state is tracked separately
-    }
+//     protected void setDefaultState(IBlockState state) {
+//         // In 1.7.10, default state is tracked separately
+//     }
 
     public void getSubBlocks(Item item, CreativeTabs tab, List list) {}
 
@@ -101,14 +100,14 @@ public class BlockFlareLight extends Block {
         return null; // 1.7.10: null doesn't exist, return null
     }
 
-    public int getMetaFromState(IBlockState state) {
-        return state.getValue(COLOR)
-            .ordinal();
-    }
+//     public int getMetaFromState(IBlockState state) {
+//         return state.getValue(COLOR)
+//             .ordinal();
+//     }
 
-    public IBlockState getStateFromMeta(int meta) {
-        return getDefaultState().withProperty(COLOR, EnumDyeColor.values()[meta % EnumDyeColor.values().length]);
-    }
+//     public IBlockState getStateFromMeta(int meta) {
+//         return getDefaultState().withProperty(COLOR, EnumDyeColor.values()[meta % EnumDyeColor.values().length]);
+//     }
 
     protected BlockStateContainer createBlockState() {
         return new BlockStateContainer(this, COLOR);

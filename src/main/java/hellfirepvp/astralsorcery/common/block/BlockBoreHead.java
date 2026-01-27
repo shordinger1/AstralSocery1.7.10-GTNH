@@ -8,6 +8,7 @@
 
 package hellfirepvp.astralsorcery.common.block;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import net.minecraft.block.Block;
@@ -19,7 +20,6 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import hellfirepvp.astralsorcery.common.migration.BlockStateContainer;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.migration.PropertyEnum;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
 import hellfirepvp.astralsorcery.common.tile.TileBore;
@@ -48,14 +48,14 @@ public class BlockBoreHead extends Block implements BlockCustomName, BlockVarian
         this.blockState = new BlockStateContainer(this, BORE_TYPE);
     }
 
-    public IBlockState getDefaultState() {
-        return this.blockState.getBaseState()
-            .withProperty(BORE_TYPE, TileBore.BoreType.LIQUID);
-    }
+//     public IBlockState getDefaultState() {
+//         return this.blockState.getBaseState()
+//             .withProperty(BORE_TYPE, TileBore.BoreType.LIQUID);
+//     }
 
-    protected void setDefaultState(IBlockState state) {
-        // In 1.7.10, default state is tracked separately
-    }
+//     protected void setDefaultState(IBlockState state) {
+//         // In 1.7.10, default state is tracked separately
+//     }
 
     @Override
     public void getSubBlocks(Item item, CreativeTabs tab, List list) {
@@ -87,13 +87,20 @@ public class BlockBoreHead extends Block implements BlockCustomName, BlockVarian
     }
 
     @Override
-    public List<IBlockState> getValidStates() {
-        return singleEnumPropertyStates(getDefaultState(), BORE_TYPE, TileBore.BoreType.values());
+    public List<Block> getValidStates() {
+        List<Block> ret = new LinkedList<>();
+        // In 1.7.10, all variants are the same block with different metadata
+        // Return the block itself once for each variant type
+        for (TileBore.BoreType type : TileBore.BoreType.values()) {
+            ret.add(this);
+        }
+        return ret;
     }
 
     @Override
-    public String getStateName(IBlockState state) {
-        TileBore.BoreType bt = state.getValue(BORE_TYPE);
+    public String getStateName(int metadata) {
+        TileBore.BoreType bt = TileBore.BoreType.values()[WrapMathHelper
+            .clamp(metadata, 0, TileBore.BoreType.values().length - 1)];
         return bt.getName();
     }
 }

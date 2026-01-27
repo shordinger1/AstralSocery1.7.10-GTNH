@@ -32,6 +32,7 @@ import hellfirepvp.astralsorcery.common.structure.StructureMatcher;
 import hellfirepvp.astralsorcery.common.structure.StructureMatcherRegistry;
 import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
 import hellfirepvp.astralsorcery.common.structure.change.ChangeSubscriber;
+import hellfirepvp.astralsorcery.common.structure.match.StructureMatcherGTStructureLib;
 import hellfirepvp.astralsorcery.common.structure.match.StructureMatcherPatternArray;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.util.ChunkPos;
@@ -62,6 +63,16 @@ public class StructureMatchingBuffer extends CachedWorldData {
         StructureMatcherPatternArray match = new StructureMatcherPatternArray(pattern.getRegistryName());
         match.initialize(world, center);
         return observeArea(center, match);
+    }
+
+    /**
+     * 1.7.10: Initialize and observe a GregTech StructureLib multiblock
+     */
+    @Nonnull
+    public ChangeSubscriber<StructureMatcherGTStructureLib> observeAndInitializeGT(IBlockAccess world, BlockPos center,
+        StructureMatcherGTStructureLib matcher) {
+        matcher.initialize(world, center);
+        return observeArea(center, matcher);
     }
 
     @Nonnull

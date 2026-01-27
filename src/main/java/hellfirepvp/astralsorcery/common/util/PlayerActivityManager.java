@@ -76,22 +76,22 @@ public class PlayerActivityManager implements ITickHandler {
         // ~HellFirePvP
         GameSettings gs = Minecraft.getMinecraft().gameSettings;
 
-        if (up && gs.keyBindForward.isKeyDown()) {
+        if (up && gs.keyBindForward.getIsKeyPressed()) {
             return;
         }
-        up = gs.keyBindForward.isKeyDown();
-        if (down && gs.keyBindBack.isKeyDown()) {
+        up = gs.keyBindForward.getIsKeyPressed();
+        if (down && gs.keyBindBack.getIsKeyPressed()) {
             return;
         }
-        down = gs.keyBindBack.isKeyDown();
-        if (left && gs.keyBindLeft.isKeyDown()) {
+        down = gs.keyBindBack.getIsKeyPressed();
+        if (left && gs.keyBindLeft.getIsKeyPressed()) {
             return;
         }
-        left = gs.keyBindLeft.isKeyDown();
-        if (right && gs.keyBindRight.isKeyDown()) {
+        left = gs.keyBindLeft.getIsKeyPressed();
+        if (right && gs.keyBindRight.getIsKeyPressed()) {
             return;
         }
-        right = gs.keyBindRight.isKeyDown();
+        right = gs.keyBindRight.getIsKeyPressed();
 
         if (up || down || left || right) {
             clientInteractMs = System.currentTimeMillis();

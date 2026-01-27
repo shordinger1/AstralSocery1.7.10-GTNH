@@ -9,6 +9,7 @@
 package hellfirepvp.astralsorcery.common.block;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import net.minecraft.block.Block;
@@ -32,7 +33,6 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
 import hellfirepvp.astralsorcery.common.migration.BlockStateContainer;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.migration.IStringSerializable;
 import hellfirepvp.astralsorcery.common.migration.PropertyEnum;
 import hellfirepvp.astralsorcery.common.tile.TileStructuralConnector;
@@ -58,14 +58,14 @@ public class BlockStructural extends BlockContainer implements BlockCustomName, 
         this.blockState = new BlockStateContainer(this, BLOCK_TYPE);
     }
 
-    public IBlockState getDefaultState() {
-        return this.blockState.getBaseState()
-            .withProperty(BLOCK_TYPE, BlockType.TELESCOPE_STRUCT);
-    }
+//     public IBlockState getDefaultState() {
+//         return this.blockState.getBaseState()
+//             .withProperty(BLOCK_TYPE, BlockType.TELESCOPE_STRUCT);
+//     }
 
-    protected void setDefaultState(IBlockState state) {
-        // In 1.7.10, default state is tracked separately
-    }
+//     protected void setDefaultState(IBlockState state) {
+//         // In 1.7.10, default state is tracked separately
+//     }
 
     @Override
     public String getHarvestTool(int metadata) {
@@ -221,15 +221,15 @@ public class BlockStructural extends BlockContainer implements BlockCustomName, 
         }
     }
 
-    public int getMetaFromState(IBlockState state) {
-        BlockType type = state.getValue(BLOCK_TYPE);
-        return type.ordinal();
-    }
+//     public int getMetaFromState(IBlockState state) {
+//         BlockType type = state.getValue(BLOCK_TYPE);
+//         return type.ordinal();
+//     }
 
-    public IBlockState getStateFromMeta(int meta) {
-        return meta < BlockType.values().length ? getDefaultState().withProperty(BLOCK_TYPE, BlockType.values()[meta])
-            : getDefaultState();
-    }
+//     public IBlockState getStateFromMeta(int meta) {
+//         return meta < BlockType.values().length ? getDefaultState().withProperty(BLOCK_TYPE, BlockType.values()[meta])
+//             : getDefaultState();
+//     }
 
     @Override
     public int damageDropped(int metadata) {
@@ -276,23 +276,25 @@ public class BlockStructural extends BlockContainer implements BlockCustomName, 
 
     @Override
     public String getIdentifierForMeta(int meta) {
-        BlockType mt = getStateFromMeta(meta).getValue(BLOCK_TYPE);
+        BlockType mt = BlockType.values()[meta >= BlockType.values().length ? 0 : meta];
         return mt.getName();
     }
 
     @Override
-    public List<IBlockState> getValidStates() {
-        List<IBlockState> li = new ArrayList<>(BlockType.values().length);
-        for (BlockType bt : BlockType.values()) {
-            li.add(getDefaultState().withProperty(BLOCK_TYPE, bt));
+    public List<Block> getValidStates() {
+        List<Block> ret = new LinkedList<>();
+        // In 1.7.10, all variants are the same block with different metadata
+        // Return the block itself once for each variant type
+        for (BlockType type : BlockType.values()) {
+            ret.add(this);
         }
-        return li;
+        return ret;
     }
 
     @Override
-    public String getStateName(IBlockState state) {
-        return state.getValue(BLOCK_TYPE)
-            .getName();
+    public String getStateName(int metadata) {
+        BlockType type = BlockType.values()[metadata >= BlockType.values().length ? 0 : metadata];
+        return type.getName();
     }
 
     @Override

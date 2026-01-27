@@ -44,7 +44,6 @@ import hellfirepvp.astralsorcery.common.event.DynamicEnchantmentEvent;
 import hellfirepvp.astralsorcery.common.item.wearable.ItemEnchantmentAmulet;
 import hellfirepvp.astralsorcery.common.util.BaublesHelper;
 import hellfirepvp.astralsorcery.common.util.ItemComparator;
-import hellfirepvp.astralsorcery.common.util.ItemUtils;
 import hellfirepvp.astralsorcery.common.util.data.Tuple;
 import hellfirepvp.astralsorcery.core.ASMCallHook;
 
@@ -83,7 +82,8 @@ public class EnchantmentUpgradeHelper {
         @Nullable List<DynamicEnchantment> context) {
         if (isItemBlacklisted(item)) return current;
 
-        if (!(item == null || item.stackSize <= 0) || !AmuletEnchantmentRegistry.canBeInfluenced(enchantment)) {
+        // Check if item is valid or enchantment can be influenced
+        if (item == null || item.stackSize <= 0 || !AmuletEnchantmentRegistry.canBeInfluenced(enchantment)) {
             return current;
         }
 
@@ -289,7 +289,9 @@ public class EnchantmentUpgradeHelper {
             for (Object playerObj : server.getConfigurationManager().playerEntityList) {
                 if (playerObj instanceof EntityPlayerMP) {
                     EntityPlayerMP p = (EntityPlayerMP) playerObj;
-                    if (p.getGameProfile().getId().equals(plUUID)) {
+                    if (p.getGameProfile()
+                        .getId()
+                        .equals(plUUID)) {
                         player = p;
                         break;
                     }
@@ -342,11 +344,8 @@ public class EnchantmentUpgradeHelper {
         if (player == null) return null;
 
         // Check if the player wears an amulet and return that one then..
-        if (BaublesHelper.doesPlayerWearBauble(
-            player,
-            BaubleType.AMULET,
-            (stack) -> !(stack == null || stack.stackSize <= 0) && stack.getItem() instanceof ItemEnchantmentAmulet)) {
-            ItemStack stack = BaublesHelper.getFirstWornBaublesForType(player, BaubleType.AMULET);
+        ItemStack stack = BaublesHelper.getFirstWornBaublesForType(player, BaubleType.AMULET);
+        if (!(stack == null || stack.stackSize <= 0) && stack.getItem() instanceof ItemEnchantmentAmulet) {
             return new Tuple<>(stack, player);
         }
         return null;

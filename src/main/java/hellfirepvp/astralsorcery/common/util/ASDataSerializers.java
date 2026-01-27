@@ -9,13 +9,10 @@
 package hellfirepvp.astralsorcery.common.util;
 // TODO: Forge fluid system - manual review needed
 
-import java.io.IOException;
-
+import net.minecraft.entity.DataWatcher;
 import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.common.util.ByteBufUtils;
 import net.minecraftforge.fluids.FluidStack;
 
-import hellfirepvp.astralsorcery.common.migration.DataParameter;
 import hellfirepvp.astralsorcery.common.migration.DataSerializer;
 import hellfirepvp.astralsorcery.common.util.data.Vector3;
 
@@ -41,13 +38,13 @@ public class ASDataSerializers {
         }
 
         @Override
-        public DataParameter<Long> createKey(int id) {
-            return new DataParameter<>(id, this);
+        public DataWatcher.WatchableObject createWatchableObject(int id, Object value) {
+            // 1.7.10: Use Long.valueOf() instead of deprecated new Long()
+            return new DataWatcher.WatchableObject(6, id, value != null ? value : Long.valueOf(0));
         }
 
-        @Override
         public Long copyValue(Long value) {
-            return new Long(value);
+            return value; // Long is immutable, no copy needed
         }
     };
 
@@ -61,16 +58,17 @@ public class ASDataSerializers {
         }
 
         @Override
-        public Vector3 read(PacketBuffer buf) throws IOException {
+        public Vector3 read(PacketBuffer buf) {
+            // 1.7.10: read() doesn't throw IOException in DataSerializer interface
             return new Vector3(buf.readDouble(), buf.readDouble(), buf.readDouble());
         }
 
         @Override
-        public DataParameter<Vector3> createKey(int id) {
-            return new DataParameter<>(id, this);
+        public DataWatcher.WatchableObject createWatchableObject(int id, Object value) {
+            // 1.7.10: type 6 is not used in vanilla, but we'll use it for custom data
+            return new DataWatcher.WatchableObject(6, id, value != null ? value : new Vector3());
         }
 
-        @Override
         public Vector3 copyValue(Vector3 value) {
             return value.clone();
         }
@@ -87,16 +85,16 @@ public class ASDataSerializers {
         }
 
         @Override
-        public FluidStack read(PacketBuffer buf) throws IOException {
+        public FluidStack read(PacketBuffer buf) {
             return buf.readBoolean() ? ByteBufUtils.readFluidStack(buf) : null;
         }
 
         @Override
-        public DataParameter<FluidStack> createKey(int id) {
-            return new DataParameter<>(id, this);
+        public DataWatcher.WatchableObject createWatchableObject(int id, Object value) {
+            // 1.7.10: type 6 is for complex objects like FluidStack
+            return new DataWatcher.WatchableObject(6, id, value);
         }
 
-        @Override
         public FluidStack copyValue(FluidStack value) {
             return value == null ? null : value.copy();
         }

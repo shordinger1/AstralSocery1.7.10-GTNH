@@ -225,11 +225,25 @@ public class TraitUpgradeRecipe extends ConstellationRecipe
                         // 1.7.10: Use getWorldObj() instead of direct field access
                         // 1.7.10: Use stack == null || stack.stackSize <= 0 instead of isEmpty()
                         ItemStack outputStack = altar.getActiveCraftingTask()
-                                .getRecipeToCraft()
-                                .getOutputForMatching();
-                        return !altar.isInvalid()
-                            && altar.getWorldObj().getTileEntity(altar.getPos().getX(), altar.getPos().getY(), altar.getPos().getZ()) != null
-                            && altar.getWorldObj().getTileEntity(altar.getPos().getX(), altar.getPos().getY(), altar.getPos().getZ())
+                            .getRecipeToCraft()
+                            .getOutputForMatching();
+                        return !altar.isInvalid() && altar.getWorldObj()
+                            .getTileEntity(
+                                altar.getPos()
+                                    .getX(),
+                                altar.getPos()
+                                    .getY(),
+                                altar.getPos()
+                                    .getZ())
+                            != null
+                            && altar.getWorldObj()
+                                .getTileEntity(
+                                    altar.getPos()
+                                        .getX(),
+                                    altar.getPos()
+                                        .getY(),
+                                    altar.getPos()
+                                        .getZ())
                                 .equals(altar)
                             && altar.getActiveCraftingTask() != null
                             && altar.getActiveCraftingTask()

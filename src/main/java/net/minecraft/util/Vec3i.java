@@ -10,7 +10,7 @@ package net.minecraft.util;
  * A 3D integer vector class for compatibility with 1.12.2 Vec3i.
  * Extends ChunkCoordinates which is the 1.7.10 equivalent.
  */
-public class Vec3i extends ChunkCoordinates implements Comparable<Vec3i> {
+public class Vec3i extends ChunkCoordinates {
 
     public Vec3i(int x, int y, int z) {
         super(x, y, z);
@@ -23,7 +23,6 @@ public class Vec3i extends ChunkCoordinates implements Comparable<Vec3i> {
     /**
      * Get X coordinate
      */
-    @Override
     public int getX() {
         return this.posX;
     }
@@ -31,7 +30,6 @@ public class Vec3i extends ChunkCoordinates implements Comparable<Vec3i> {
     /**
      * Get Y coordinate
      */
-    @Override
     public int getY() {
         return this.posY;
     }
@@ -39,19 +37,22 @@ public class Vec3i extends ChunkCoordinates implements Comparable<Vec3i> {
     /**
      * Get Z coordinate
      */
-    @Override
     public int getZ() {
         return this.posZ;
     }
 
     @Override
-    public int compareTo(Vec3i other) {
-        if (this.getY() == other.getY()) {
-            if (this.getZ() == other.getZ()) {
-                return this.getX() - other.getX();
-            }
-            return this.getZ() - other.getZ();
+    public int compareTo(Object other) {
+        if (!(other instanceof Vec3i)) {
+            return -1;
         }
-        return this.getY() - other.getY();
+        Vec3i o = (Vec3i) other;
+        if (this.getY() == o.getY()) {
+            if (this.getZ() == o.getZ()) {
+                return this.getX() - o.getX();
+            }
+            return this.getZ() - o.getZ();
+        }
+        return this.getY() - o.getY();
     }
 }

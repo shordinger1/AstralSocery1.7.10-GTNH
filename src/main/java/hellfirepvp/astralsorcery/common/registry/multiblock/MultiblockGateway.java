@@ -54,12 +54,11 @@ public class MultiblockGateway {
 
     private final String[][] shape = new String[][] {
         // Y = -1 (Base)
-        {"CCCCCC", "CBBBBC", "CBBBBC", "CBBBBC", "CBBBBC", "CBBBBC", "CBBBBC", "CCCCCC"},
+        { "CCCCCC", "CBBBBC", "CBBBBC", "CBBBBC", "CBBBBC", "CBBBBC", "CBBBBC", "CCCCCC" },
 
         // Y = 0 (Gateway at center, runed corners, engraved corners)
-        {"      ", "      ", "U     ", "      ", "  A   ", "      ", "     U", "      "},
-        {"      ", "      ", "      ", "      ", "      ", "      ", "      ", "      "},
-        {"      ", "      ", "G     ", "      ", "      ", "      ", "     G", "      "},
-    };
+        { "      ", "      ", "U     ", "      ", "  A   ", "      ", "     U", "      " },
+        { "      ", "      ", "      ", "      ", "      ", "      ", "      ", "      " },
+        { "      ", "      ", "G     ", "      ", "      ", "      ", "     G", "      " }, };
 
 }

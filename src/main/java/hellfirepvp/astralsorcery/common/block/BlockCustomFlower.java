@@ -26,7 +26,6 @@ import net.minecraftforge.common.IShearable;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import hellfirepvp.astralsorcery.common.migration.BlockStateContainer;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.migration.IStringSerializable;
 import hellfirepvp.astralsorcery.common.migration.PropertyEnum;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
@@ -57,14 +56,14 @@ public class BlockCustomFlower extends Block implements BlockCustomName, BlockVa
         this.blockState = new BlockStateContainer(this, FLOWER_TYPE);
     }
 
-    public IBlockState getDefaultState() {
-        return this.blockState.getBaseState()
-            .withProperty(FLOWER_TYPE, FlowerType.GLOW_FLOWER);
-    }
+//     public IBlockState getDefaultState() {
+//         return this.blockState.getBaseState()
+//             .withProperty(FLOWER_TYPE, FlowerType.GLOW_FLOWER);
+//     }
 
-    protected void setDefaultState(IBlockState state) {
-        // In 1.7.10, default state is tracked separately
-    }
+//     protected void setDefaultState(IBlockState state) {
+//         // In 1.7.10, default state is tracked separately
+//     }
 
     @Override
     public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune) {
@@ -147,40 +146,39 @@ public class BlockCustomFlower extends Block implements BlockCustomName, BlockVa
         return new BlockStateContainer(this, FLOWER_TYPE);
     }
 
-    public IBlockState getStateFromMeta(int meta) {
-        return getDefaultState().withProperty(FLOWER_TYPE, FlowerType.values()[meta]);
-    }
+//     public IBlockState getStateFromMeta(int meta) {
+//         return getDefaultState().withProperty(FLOWER_TYPE, FlowerType.values()[meta]);
+//     }
 
     @Override
     public int damageDropped(int metadata) {
         return metadata;
     }
 
-    public int getMetaFromState(IBlockState state) {
-        return state.getValue(FLOWER_TYPE)
-            .ordinal();
-    }
+//     public int getMetaFromState(IBlockState state) {
+//         return state.getValue(FLOWER_TYPE)
+//             .ordinal();
+//     }
 
     @Override
     public String getIdentifierForMeta(int meta) {
-        return getStateFromMeta(meta).getValue(FLOWER_TYPE)
-            .getName();
+        return getStateName(meta);
     }
 
-    @Override
-    public List<IBlockState> getValidStates() {
-        List<IBlockState> states = new LinkedList<>();
-        for (FlowerType type : FlowerType.values()) {
-            states.add(getDefaultState().withProperty(FLOWER_TYPE, type));
-        }
-        return states;
-    }
+//    @Override
+//     public List<IBlockState> getValidStates() {
+//         List<IBlockState> states = new LinkedList<>();
+//         for (FlowerType type : FlowerType.values()) {
+//             states.add(getDefaultState().withProperty(FLOWER_TYPE, type));
+//         }
+//         return states;
+//     }
 
-    @Override
-    public String getStateName(IBlockState state) {
-        return state.getValue(FLOWER_TYPE)
-            .getName();
-    }
+//    @Override
+//     public String getStateName(IBlockState state) {
+//         return state.getValue(FLOWER_TYPE)
+//             .getName();
+//     }
 
     @Override
     public boolean isShearable(@Nonnull ItemStack item, IBlockAccess world, int x, int y, int z) {
@@ -193,6 +191,23 @@ public class BlockCustomFlower extends Block implements BlockCustomName, BlockVa
         ArrayList<ItemStack> drops = new ArrayList<>();
         drops.add(new ItemStack(this, 1, world.getBlockMetadata(x, y, z)));
         return drops;
+    }
+
+    @Override
+    public List<Block> getValidStates() {
+        List<Block> ret = new LinkedList<>();
+        // In 1.7.10, all variants are the same block with different metadata
+        // Return the block itself once for each variant type
+        for (FlowerType type : FlowerType.values()) {
+            ret.add(this);
+        }
+        return ret;
+    }
+
+    @Override
+    public String getStateName(int metadata) {
+        FlowerType type = FlowerType.values()[metadata >= FlowerType.values().length ? 0 : metadata];
+        return type.getName();
     }
 
     public enum FlowerType implements IStringSerializable {

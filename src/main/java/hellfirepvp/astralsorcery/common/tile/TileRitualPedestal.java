@@ -114,8 +114,9 @@ public class TileRitualPedestal extends TileReceiverBase
 
                     boolean updated = dirty;
 
-                    if (!(clientCatalystCache == null || clientCatalystCache.stackSize <= 0) && recNode.getCrystal()
-                        .isEmpty()) {
+                    // 1.7.10: ItemStack doesn't have isEmpty(), use stackSize check
+                    if (!(clientCatalystCache == null || clientCatalystCache.stackSize <= 0)
+                        && recNode.getCrystal() == null) {
                         recNode.setChannelingCrystal(clientCatalystCache, worldObj);
                         updated = true;
                     }
@@ -231,7 +232,8 @@ public class TileRitualPedestal extends TileReceiverBase
                                 if (c != null && c.getConstellationColor() != null) {
                                     col = c.getConstellationColor();
                                 }
-                                if (!offsetMirrorPositions == null || offsetMirrorPositions.stackSize <= 0) {
+                                // 1.7.10: List uses isEmpty() instead of stackSize
+                                if (offsetMirrorPositions == null || offsetMirrorPositions.isEmpty()) {
                                     BlockPos to = offsetMirrorPositions.get(rand.nextInt(offsetMirrorPositions.size()));
                                     AstralSorcery.proxy.fireLightning(
                                         getWorld(),
@@ -318,7 +320,8 @@ public class TileRitualPedestal extends TileReceiverBase
     @Nullable
     @Override
     public PatternBlockArray getRequiredStructure() {
-        return MultiBlockArrays.patternRitualPedestal;
+        // 1.7.10: Cast to PatternBlockArray since MultiBlockArrays fields are Object type
+        return (PatternBlockArray) MultiBlockArrays.patternRitualPedestal;
     }
 
     @Nonnull
@@ -605,7 +608,15 @@ public class TileRitualPedestal extends TileReceiverBase
     @Nullable
     public EntityPlayer getOwningPlayerInWorld(World world) {
         UUID uuid = getOwnerUUID();
-        return uuid == null ? null : world.getPlayerEntityByUUID(uuid);
+        // 1.7.10: getPlayerEntityByUUID doesn't exist, need to find player manually
+        if (uuid == null) return null;
+        for (EntityPlayer player : (List<EntityPlayer>) world.playerEntities) {
+            if (player.getUniqueID()
+                .equals(uuid)) {
+                return player;
+            }
+        }
+        return null;
     }
 
     public static class TransmissionReceiverRitualPedestal extends SimpleTransmissionReceiver {
@@ -654,7 +665,8 @@ public class TileRitualPedestal extends TileReceiverBase
         public void update(World world) {
             ticksTicking++;
 
-            if (!crystal == null || crystal.stackSize <= 0 && this.crystal.getItem() instanceof ItemTunedCrystalBase) {
+            // 1.7.10: Can't use '!' on ItemStack, use == null || stackSize <= 0
+            if ((crystal == null || crystal.stackSize <= 0) && this.crystal.getItem() instanceof ItemTunedCrystalBase) {
                 CrystalProperties properties = CrystalProperties.getCrystalProperties(this.crystal);
                 IWeakConstellation tuned = ItemTunedCrystalBase.getMainConstellation(this.crystal);
                 IMinorConstellation trait = ItemTunedCrystalBase.getTrait(this.crystal);
@@ -818,7 +830,8 @@ public class TileRitualPedestal extends TileReceiverBase
         }
 
         private void fractureCrystal(World world) {
-            if (!crystal == null || crystal.stackSize <= 0) {
+            // 1.7.10: Fix operator precedence - can't use '!' on ItemStack
+            if (!(crystal == null || crystal.stackSize <= 0)) {
                 CrystalProperties prop = CrystalProperties.getCrystalProperties(this.crystal);
                 if (prop != null) {
                     prop = new CrystalProperties(
@@ -828,12 +841,8 @@ public class TileRitualPedestal extends TileReceiverBase
                         prop.getFracturation() + 1,
                         prop.getSizeOverride());
                     if (prop.getFracturation() >= 100) {
-                        SoundHelper.playSoundAround(
-                            null /* TODO: SoundEvents - needs 1.7.10 sound string */,
-                            world,
-                            getLocationPos(),
-                            7.5F,
-                            1.4F);
+                        // 1.7.10: Skip sound for now - needs proper SoundEvent string
+                        // SoundHelper.playSoundAround(null, world, getLocationPos(), 7.5F, 1.4F);
                         Vector3 at = new Vector3(getLocationPos()).add(0.5, 1.5, 0.5);
                         PktParticleEvent ev = new PktParticleEvent(
                             PktParticleEvent.ParticleEventType.CELESTIAL_CRYSTAL_BURST,
@@ -937,7 +946,11 @@ public class TileRitualPedestal extends TileReceiverBase
                     if (Math.toDegrees(toDir.angle(newDir)) <= 30) {
                         continue lblWhile;
                     }
-                    if (offset.distanceSq(p) <= 3) {
+                    // 1.7.10: BlockPos doesn't have distanceSq(), calculate manually
+                    double dx = offset.getX() - p.getX();
+                    double dy = offset.getY() - p.getY();
+                    double dz = offset.getZ() - p.getZ();
+                    if (dx * dx + dy * dy + dz * dz <= 3) {
                         continue lblWhile;
                     }
                     if (!ray.isClear(world)) {
@@ -1020,7 +1033,8 @@ public class TileRitualPedestal extends TileReceiverBase
             }
 
             if (compound.hasKey("crystal")) {
-                this.crystal = new ItemStack(compound.getCompoundTag("crystal"));
+                // 1.7.10: ItemStack(NBTTagCompound) constructor doesn't exist, use static method
+                this.crystal = ItemStack.loadItemStackFromNBT(compound.getCompoundTag("crystal"));
             } else {
                 this.crystal = null;
             }
@@ -1062,9 +1076,8 @@ public class TileRitualPedestal extends TileReceiverBase
             if (channeling != null) {
                 channeling.writeToNBT(compound, IConstellation.getDefaultSaveKey() + "Normal");
             }
-            if (!(crystal == null || crystal.stackSize <= 0)) {
-                NBTHelper.setAsSubTag(compound, "crystal", (tag1, stack1) -> stack1.writeToNBT(tag1));
-            }
+            // 1.7.10: Use NBTHelper.setStack() instead of incorrect lambda
+            NBTHelper.setStack(compound, "crystal", this.crystal);
             if (trait != null) {
                 trait.writeToNBT(compound, IConstellation.getDefaultSaveKey() + "Trait");
             }

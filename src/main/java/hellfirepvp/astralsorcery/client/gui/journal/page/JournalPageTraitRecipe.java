@@ -119,7 +119,7 @@ public class JournalPageTraitRecipe implements IJournalPage {
         }
 
         private void renderRotatingSlot(float offsetX, float offsetY, float zLevel, List<ItemStack> stacks) {
-            if (stacks == null || stacks == null || stacks.stackSize <= 0) return;
+            if (stacks == null || stacks.isEmpty()) return;
 
             long select = (ClientScheduler.getClientTick() / 20);
             select %= stacks.size();

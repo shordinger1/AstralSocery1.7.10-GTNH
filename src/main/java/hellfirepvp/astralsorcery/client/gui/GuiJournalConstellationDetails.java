@@ -426,10 +426,10 @@ public class GuiJournalConstellationDetails extends GuiScreenJournal {
     }
 
     private void drawPhaseInformation() {
-        if (this.phases == null || phases.stackSize <= 0) {
+        if (this.phases == null || phases.isEmpty()) {
             testPhases();
             testActivePhases();
-            if (this.phases == null || phases.stackSize <= 0) {
+            if (this.phases == null || phases.isEmpty()) {
                 return;
             }
         }

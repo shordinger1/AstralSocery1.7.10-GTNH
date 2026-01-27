@@ -10,7 +10,6 @@ package hellfirepvp.astralsorcery.common.entities;
 // TODO: Forge fluid system - manual review needed
 
 import java.awt.*;
-import java.util.List;
 import java.util.Random;
 
 import net.minecraft.block.Block;
@@ -19,12 +18,9 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
-import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fluids.Fluid;
 
 import cpw.mods.fml.relauncher.Side;
@@ -35,8 +31,6 @@ import hellfirepvp.astralsorcery.client.effect.fx.EntityFXFacingParticle;
 import hellfirepvp.astralsorcery.common.constellation.distribution.ConstellationSkyHandler;
 import hellfirepvp.astralsorcery.common.lib.ItemsAS;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
-import hellfirepvp.astralsorcery.common.util.ItemUtils;
-import hellfirepvp.astralsorcery.common.util.LootTableUtil;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
 import hellfirepvp.astralsorcery.common.util.data.Vector3;
 import hellfirepvp.astralsorcery.common.util.effect.ShootingStarExplosion;
@@ -126,7 +120,9 @@ public class EntityShootingStar extends EntityThrowable implements EntityTechnic
     // 1.7.10: isInLava doesn't exist, implement manually
     private boolean handleLavaCollision() {
         BlockPos pos = new BlockPos(this);
-        return worldObj.getBlock(pos.getX(), pos.getY(), pos.getZ()).getMaterial().isLiquid();
+        return worldObj.getBlock(pos.getX(), pos.getY(), pos.getZ())
+            .getMaterial()
+            .isLiquid();
     }
 
     @Override
@@ -150,7 +146,9 @@ public class EntityShootingStar extends EntityThrowable implements EntityTechnic
                 // 1.7.10: MovingObjectPosition constructor takes (int, int, int, int, Vec3)
                 // The int after coordinates is the side hit (0=down, 1=up, 2=north, 3=south, 4=west, 5=east)
                 MovingObjectPosition rtr = new MovingObjectPosition(
-                    (int) posX, (int) posY, (int) posZ,
+                    (int) posX,
+                    (int) posY,
+                    (int) posZ,
                     1, // side hit: 1 = UP
                     Vec3.createVectorHelper(posX, posY, posZ));
                 this.onImpact(rtr);
@@ -268,7 +266,8 @@ public class EntityShootingStar extends EntityThrowable implements EntityTechnic
             if (MiscUtils.isFluidBlock(state)) {
                 Fluid f = MiscUtils.tryGetFuild(state);
                 if (f != null) {
-                    if (f.getTemperature(worldObj, hit.getX(), hit.getY(), hit.getZ()) <= 300) { // About room temp; incl. water
+                    if (f.getTemperature(worldObj, hit.getX(), hit.getY(), hit.getZ()) <= 300) { // About room temp;
+                                                                                                 // incl. water
                         eligableForExplosion = false;
                     }
                 }

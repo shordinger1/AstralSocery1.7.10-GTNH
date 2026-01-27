@@ -76,7 +76,7 @@ public class RecipeHelper {
                 }
             }
 
-            return required == null || required.stackSize <= 0;
+            return required == null || required.isEmpty();
         }
 
         @Override

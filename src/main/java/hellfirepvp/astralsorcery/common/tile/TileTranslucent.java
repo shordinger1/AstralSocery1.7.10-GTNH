@@ -39,7 +39,7 @@ public class TileTranslucent extends TileEntitySynchronized {
         super.readCustomNBT(compound);
 
         if (compound.hasKey("Block") && compound.hasKey("Data")) {
-            int data = compound.getInteger("Data");
+            // 1.7.10: Data field exists but metadata is handled differently
             Block b = Block.getBlockFromName(compound.getString("Block"));
             if (b != null) {
                 fakedState = b;
@@ -52,10 +52,9 @@ public class TileTranslucent extends TileEntitySynchronized {
         super.writeCustomNBT(compound);
 
         if (fakedState != null) {
-            // 1.7.10: Use GameData.getBlockRegistry() instead of Block.REGISTRY
-            String name = net.minecraftforge.fml.common.registry.GameData.getBlockRegistry()
-                .getNameForObject(fakedState);
-            compound.setString("Block", name != null ? name : "");
+            // 1.7.10: Use block registry to get block identifier
+            Object name = Block.blockRegistry.getNameForObject(fakedState);
+            compound.setString("Block", name != null ? name.toString() : "");
             compound.setInteger("Data", 0); // 1.7.10: Simplified, metadata is handled differently
         }
     }

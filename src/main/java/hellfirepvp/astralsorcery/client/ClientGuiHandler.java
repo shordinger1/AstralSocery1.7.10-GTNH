@@ -90,12 +90,13 @@ public class ClientGuiHandler {
             case SEXTANT:
                 ItemStack heldSextant = MiscUtils.getMainOrOffHand(player, ItemsAS.sextant);
                 if (heldSextant != null) {
-                    return new GuiSextantSelector(heldSextant.value, heldSextant.key);
+                    // 1.7.10: Constructor only takes ItemStack
+                    return new GuiSextantSelector(heldSextant);
                 }
             case KNOWLEDGE_CONSTELLATION:
                 ItemStack handFragment = MiscUtils.getMainOrOffHand(player, ItemsAS.knowledgeFragment);
                 Tuple<IConstellation, List<MoonPhase>> cstInfo = ItemKnowledgeFragment
-                    .getConstellationInformation(handFragment.value);
+                    .getConstellationInformation(handFragment);
                 if (cstInfo != null) {
                     return new GuiKnowledgeFragment(cstInfo.key, cstInfo.value);
                 }

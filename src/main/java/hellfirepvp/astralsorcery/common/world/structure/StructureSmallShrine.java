@@ -99,7 +99,7 @@ public class StructureSmallShrine extends WorldGenAttributeStructure {
         if (cfgEntry.shouldIgnoreBiomeSpecifications()) return true;
 
         // In 1.7.10, getBiome takes x, z and returns BiomeGenBase
-        BiomeGenBase b = world.getBiomeGenForBlockBody(pos.getX(), pos.getZ());
+        BiomeGenBase b = world.getBiomeGenForCoordsBody(pos.getX(), pos.getZ());
         BiomeDictionary.Type[] types = BiomeDictionary.getTypesForBiome(b);
         if (types == null || types.length == 0) return false;
         boolean applicable = false;

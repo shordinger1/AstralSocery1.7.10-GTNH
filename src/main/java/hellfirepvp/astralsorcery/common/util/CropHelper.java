@@ -48,17 +48,17 @@ public class CropHelper {
             if (b instanceof BlockDoublePlant) return null;
             return new GrowableWrapper(pos);
         }
-        if (state.equals(Blocks.REEDS)) {
+        if (state.equals(Blocks.reeds)) {
             if (isReedBase(world, pos)) {
                 return new GrowableReedWrapper(pos);
             }
         }
-        if (state.equals(Blocks.CACTUS)) {
+        if (state.equals(Blocks.cactus)) {
             if (isCactusBase(world, pos)) {
                 return new GrowableCactusWrapper(pos);
             }
         }
-        if (state.equals(Blocks.NETHER_WART)) {
+        if (state.equals(Blocks.nether_wart)) {
             return new GrowableNetherwartWrapper(pos);
         }
         return null;
@@ -70,13 +70,13 @@ public class CropHelper {
         if (growable == null) return null; // Every plant has to be growable.
         BlockPos growablePos = growable.getPos();
         Block state = world.getBlock(growablePos.getX(), growablePos.getY(), growablePos.getZ());
-        if (state.equals(Blocks.REEDS) && growable instanceof GrowableReedWrapper) {
+        if (state.equals(Blocks.reeds) && growable instanceof GrowableReedWrapper) {
             return (GrowableReedWrapper) growable;
         }
-        if (state.equals(Blocks.CACTUS) && growable instanceof GrowableCactusWrapper) {
+        if (state.equals(Blocks.cactus) && growable instanceof GrowableCactusWrapper) {
             return (GrowableCactusWrapper) growable;
         }
-        if (state.equals(Blocks.NETHER_WART) && growable instanceof GrowableNetherwartWrapper) {
+        if (state.equals(Blocks.nether_wart) && growable instanceof GrowableNetherwartWrapper) {
             return (GrowableNetherwartWrapper) growable;
         }
         if (state instanceof IPlantable) {
@@ -88,13 +88,13 @@ public class CropHelper {
     private static boolean isReedBase(World world, BlockPos pos) {
         BlockPos down = pos.add(0, -1, 0);
         return !world.getBlock(down.getX(), down.getY(), down.getZ())
-            .equals(Blocks.REEDS);
+            .equals(Blocks.reeds);
     }
 
     private static boolean isCactusBase(World world, BlockPos pos) {
         BlockPos down = pos.add(0, -1, 0);
         return !world.getBlock(down.getX(), down.getY(), down.getZ())
-            .equals(Blocks.CACTUS);
+            .equals(Blocks.cactus);
     }
 
     public static interface GrowablePlant extends CEffectPositionListGen.CEffectGenListEntry {
@@ -127,6 +127,7 @@ public class CropHelper {
         public boolean canHarvest(World world) {
             Block at = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
             if (!(at instanceof IGrowable)) return false;
+            // 1.7.10: Use migration IGrowable.canGrow() method
             return !((IGrowable) at).canGrow(world, pos, at, false);
         }
 
@@ -174,8 +175,8 @@ public class CropHelper {
         @Override
         public boolean isValid(World world, boolean forceChunkLoad) {
             if (!forceChunkLoad && !MiscUtils.isChunkLoaded(world, new ChunkPos(getPos()))) return true; // We stall
-                                                                                                         // until it's
-                                                                                                         // loaded.
+            // until it's
+            // loaded.
             HarvestablePlant plant = wrapHarvestablePlant(world, getPos());
             return plant != null && plant instanceof HarvestableWrapper;
         }
@@ -191,6 +192,7 @@ public class CropHelper {
             Block at = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
             if (at instanceof IGrowable) {
                 if (((IGrowable) at).canGrow(world, pos, at, false)) {
+                    // 1.7.10: Use migration IGrowable.grow() method
                     ((IGrowable) at).grow(world, rand, pos, at);
                     return true;
                 }
@@ -211,15 +213,17 @@ public class CropHelper {
         @Override
         public boolean isValid(World world, boolean forceChunkLoad) {
             if (!forceChunkLoad && !MiscUtils.isChunkLoaded(world, new ChunkPos(pos))) return true; // We stall until
-                                                                                                    // it's loaded.
+            // it's loaded.
             Block block = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
-            return block.equals(Blocks.NETHER_WART);
+            // 1.7.10: Use lowercase block name
+            return block.equals(Blocks.nether_wart);
         }
 
         @Override
         public boolean canGrow(World world) {
             Block at = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
             int meta = world.getBlockMetadata(pos.getX(), pos.getY(), pos.getZ());
+            // 1.7.10: Use lowercase block name
             return at.equals(Blocks.nether_wart) && meta < 3;
         }
 
@@ -239,6 +243,7 @@ public class CropHelper {
         public boolean canHarvest(World world) {
             Block current = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
             int meta = world.getBlockMetadata(pos.getX(), pos.getY(), pos.getZ());
+            // 1.7.10: Use lowercase block name
             return current.equals(Blocks.nether_wart) && meta >= 3;
         }
 
@@ -254,6 +259,7 @@ public class CropHelper {
                 world.getBlockMetadata(pos.getX(), pos.getY(), pos.getZ()),
                 harvestFortune);
             int meta = world.getBlockMetadata(pos.getX(), pos.getY(), pos.getZ());
+            // 1.7.10: Use lowercase block name
             world.setBlock(pos.getX(), pos.getY(), pos.getZ(), Blocks.nether_wart, meta != -1 ? meta : 0, 3);
             return drops;
         }
@@ -283,15 +289,17 @@ public class CropHelper {
         public boolean canHarvest(World world) {
             BlockPos up = pos.add(0, 1, 0);
             Block block = world.getBlock(up.getX(), up.getY(), up.getZ());
-            return block.equals(Blocks.CACTUS);
+            // 1.7.10: Use lowercase block name
+            return block.equals(Blocks.cactus);
         }
 
         @Override
         public boolean isValid(World world, boolean forceChunkLoad) {
             if (!forceChunkLoad && !MiscUtils.isChunkLoaded(world, new ChunkPos(pos))) return true; // We stall until
-                                                                                                    // it's loaded.
+            // it's loaded.
             Block block = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
-            return block.equals(Blocks.CACTUS);
+            // 1.7.10: Use lowercase block name
+            return block.equals(Blocks.cactus);
         }
 
         @Override
@@ -300,7 +308,8 @@ public class CropHelper {
             for (int i = 2; i > 0; i--) {
                 BlockPos bp = pos.add(0, i, 0);
                 Block at = world.getBlock(bp.getX(), bp.getY(), bp.getZ());
-                if (at.equals(Blocks.CACTUS)) {
+                // 1.7.10: Use lowercase block name
+                if (at.equals(Blocks.cactus)) {
                     MiscUtils.breakBlockWithoutPlayer((WorldServer) world, bp);
                 }
             }
@@ -312,7 +321,8 @@ public class CropHelper {
             BlockPos cache = pos;
             for (int i = 1; i < 3; i++) {
                 cache = cache.up();
-                if (world.isAirBlock(cache)) {
+                // 1.7.10: isAirBlock takes x, y, z coordinates
+                if (world.isAirBlock(cache.getX(), cache.getY(), cache.getZ())) {
                     return true;
                 }
             }
@@ -324,8 +334,10 @@ public class CropHelper {
             BlockPos cache = pos;
             for (int i = 1; i < 3; i++) {
                 cache = cache.up();
+                // 1.7.10: isAirBlock takes x, y, z coordinates
                 if (world.isAirBlock(cache.getX(), cache.getY(), cache.getZ())) {
                     if (rand.nextBoolean()) {
+                        // 1.7.10: Use lowercase block name
                         return world.setBlock(cache.getX(), cache.getY(), cache.getZ(), Blocks.cactus, 0, 3);
                     } else {
                         return false;
@@ -359,7 +371,8 @@ public class CropHelper {
         public boolean canHarvest(World world) {
             BlockPos up = pos.add(0, 1, 0);
             Block block = world.getBlock(up.getX(), up.getY(), up.getZ());
-            return block.equals(Blocks.REEDS);
+            // 1.7.10: Use lowercase block name
+            return block.equals(Blocks.reeds);
         }
 
         @Override
@@ -368,7 +381,8 @@ public class CropHelper {
             for (int i = 2; i > 0; i--) {
                 BlockPos bp = pos.add(0, i, 0);
                 Block at = world.getBlock(bp.getX(), bp.getY(), bp.getZ());
-                if (at.equals(Blocks.REEDS)) {
+                // 1.7.10: Use lowercase block name
+                if (at.equals(Blocks.reeds)) {
                     // 1.7.10: getDrops takes x, y, z, metadata, fortune
                     drops.addAll(
                         at.getDrops(
@@ -387,9 +401,10 @@ public class CropHelper {
         @Override
         public boolean isValid(World world, boolean forceChunkLoad) {
             if (!forceChunkLoad && !MiscUtils.isChunkLoaded(world, new ChunkPos(pos))) return true; // We stall until
-                                                                                                    // it's loaded.
+            // it's loaded.
             Block block = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
-            return block.equals(Blocks.REEDS);
+            // 1.7.10: Use lowercase block name
+            return block.equals(Blocks.reeds);
         }
 
         @Override
@@ -397,7 +412,8 @@ public class CropHelper {
             BlockPos cache = pos;
             for (int i = 1; i < 3; i++) {
                 cache = cache.up();
-                if (world.isAirBlock(cache)) {
+                // 1.7.10: isAirBlock takes x, y, z coordinates
+                if (world.isAirBlock(cache.getX(), cache.getY(), cache.getZ())) {
                     return true;
                 }
             }
@@ -409,8 +425,10 @@ public class CropHelper {
             BlockPos cache = pos;
             for (int i = 1; i < 3; i++) {
                 cache = cache.up();
+                // 1.7.10: isAirBlock takes x, y, z coordinates
                 if (world.isAirBlock(cache.getX(), cache.getY(), cache.getZ())) {
                     if (rand.nextBoolean()) {
+                        // 1.7.10: Use lowercase block name
                         return world.setBlock(cache.getX(), cache.getY(), cache.getZ(), Blocks.reeds, 0, 3);
                     } else {
                         return false;
@@ -455,7 +473,7 @@ public class CropHelper {
         @Override
         public boolean isValid(World world, boolean forceChunkLoad) {
             if (!forceChunkLoad && !MiscUtils.isChunkLoaded(world, new ChunkPos(pos))) return true; // We stall until
-                                                                                                    // it's loaded.
+            // it's loaded.
             GrowablePlant res = wrapPlant(world, pos);
             return res != null && res instanceof GrowableWrapper;
         }
@@ -468,10 +486,18 @@ public class CropHelper {
         }
 
         private boolean stemHasCrop(World world) {
-            for (EnumFacing enumfacing : EnumFacing.Plane.HORIZONTAL) {
-                BlockPos offset = pos.offset(enumfacing);
+            // 1.7.10: EnumFacing.Plane.HORIZONTAL doesn't exist, iterate manually
+            EnumFacing[] horizontals = new EnumFacing[] { EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.EAST,
+                EnumFacing.WEST };
+            for (EnumFacing enumfacing : horizontals) {
+                // 1.7.10: BlockPos.offset() doesn't work with EnumFacing, calculate manually
+                BlockPos offset = new BlockPos(
+                    pos.getX() + enumfacing.getFrontOffsetX(),
+                    pos.getY() + enumfacing.getFrontOffsetY(),
+                    pos.getZ() + enumfacing.getFrontOffsetZ());
                 Block block = world.getBlock(offset.getX(), offset.getY(), offset.getZ());
-                if (block.equals(Blocks.MELON_BLOCK) || block.equals(Blocks.PUMPKIN)) {
+                // 1.7.10: Use lowercase block names for melon and pumpkin
+                if (block.equals(Blocks.melon_block) || block.equals(Blocks.pumpkin)) {
                     return true;
                 }
             }
@@ -485,15 +511,17 @@ public class CropHelper {
                 if (((IGrowable) at).canGrow(world, pos, at, false)) {
                     if (!((IGrowable) at).canUseBonemeal(world, rand, pos, at)) {
                         if (world.rand.nextInt(20) != 0) return true; // Returning true to say it could've been
-                                                                      // potentially grown - So this doesn't invalidate
-                                                                      // caches.
+                        // potentially grown - So this doesn't invalidate
+                        // caches.
                     }
+                    // 1.7.10: Use migration IGrowable.grow() method
                     ((IGrowable) at).grow(world, rand, pos, at);
                     return true;
                 }
                 if (at instanceof BlockStem) {
                     for (int i = 0; i < 10; i++) {
-                        at.updateTick(world, pos, at, rand);
+                        // 1.7.10: Block.updateTick() takes (World, x, y, z, Random)
+                        at.updateTick(world, pos.getX(), pos.getY(), pos.getZ(), rand);
                     }
                     return true;
                 }

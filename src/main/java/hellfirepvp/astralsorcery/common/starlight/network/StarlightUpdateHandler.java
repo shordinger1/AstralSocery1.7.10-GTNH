@@ -38,7 +38,7 @@ public class StarlightUpdateHandler implements ITickHandler {
     @Override
     public void tick(TickEvent.Type type, Object... context) {
         World world = (World) context[0];
-        if (getWorld().isRemote) return;
+        if (world.isRemote) return;
 
         List<IPrismTransmissionNode> nodes = getNodes(world);
         synchronized (accessLock) {

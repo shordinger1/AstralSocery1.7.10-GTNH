@@ -10,13 +10,11 @@ package hellfirepvp.astralsorcery.common.integrations.mods.geolosys;
 
 import java.util.ArrayList;
 
-import cpw.mods.fml.relauncher.Side;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.particle.EffectRenderer;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
@@ -26,8 +24,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-import com.google.common.collect.Lists;
-
+import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.common.item.ItemCraftingComponent;
 import hellfirepvp.astralsorcery.common.network.PacketChannel;
@@ -54,9 +51,7 @@ public class BlockGeolosysSampleCluster extends BlockContainer {
         setStepSound(Block.soundTypePiston);
     }
 
-
-    public void getSubBlocks(CreativeTabs itemIn, ArrayList<ItemStack> items) {
-    }
+    public void getSubBlocks(CreativeTabs itemIn, ArrayList<ItemStack> items) {}
 
     @Override
     public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {

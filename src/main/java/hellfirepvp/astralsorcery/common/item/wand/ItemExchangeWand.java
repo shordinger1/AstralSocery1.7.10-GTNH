@@ -19,7 +19,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
@@ -94,7 +93,7 @@ public class ItemExchangeWand extends ItemBlockStorage
     @SideOnly(Side.CLIENT)
     public void onRenderInHandHUD(ItemStack lastCacheInstance, float fadeAlpha, float pTicks) {
         Collection<ItemStack> stored = getMappedStoredStates(lastCacheInstance).values();
-        if ((stored == null || stored == null || stored.stackSize <= 0)) return;
+        if ((stored == null || stored == null || stored.isEmpty())) return;
 
         Map<ItemStack, Integer> amountMap = new LinkedHashMap<>();
         for (ItemStack stack : stored) {
@@ -200,7 +199,7 @@ public class ItemExchangeWand extends ItemBlockStorage
     @SideOnly(Side.CLIENT)
     public void onRenderWhileInHand(ItemStack stack, float pTicks) {
         Map<Block, ItemStack> storedStates = getMappedStoredStates(stack);
-        if (storedStates == null || storedStates.stackSize <= 0) return;
+        if (storedStates == null || storedStates.isEmpty()) return;
         World world = Minecraft.getMinecraft().theWorld;
         Random r = getPreviewRandomFromWorld(world);
 
@@ -212,8 +211,7 @@ public class ItemExchangeWand extends ItemBlockStorage
             return;
 
         // 1.7.10: AirBlockRenderWorld only takes BiomeGenBase parameter
-        IBlockAccess airWorld = new AirBlockRenderWorld(
-            net.minecraft.world.biome.BiomeGenBase.plains);
+        IBlockAccess airWorld = new AirBlockRenderWorld(net.minecraft.world.biome.BiomeGenBase.plains);
         // 1.7.10: RayTraceResult doesn't have getBlockPos(), construct manually
         BlockPos origin = new BlockPos(rtr.blockX, rtr.blockY, rtr.blockZ);
         Block atOrigin = world.getBlock(origin.getX(), origin.getY(), origin.getZ());
@@ -222,7 +220,7 @@ public class ItemExchangeWand extends ItemBlockStorage
             .size() <= 1) {
             storedStates.remove(match);
         }
-        if (storedStates == null || storedStates.stackSize <= 0) {
+        if (storedStates == null || storedStates.isEmpty()) {
             return;
         }
         // 1.7.10: getBlockHardness takes (World, x, y, z) instead of (World, BlockPos)
@@ -267,7 +265,7 @@ public class ItemExchangeWand extends ItemBlockStorage
         }
         BlockArray found = BlockDiscoverer
             .discoverBlocksWithSameStateAround(world, origin, true, searchDepth, total, false);
-        if (found == null || found.stackSize <= 0) return;
+        if (found == null || found.isEmpty()) return;
 
         List<Block> applicableStates = Lists.newArrayList(storedStates.keySet());
 
@@ -296,7 +294,7 @@ public class ItemExchangeWand extends ItemBlockStorage
     public boolean onItemUse(ItemStack stack, EntityPlayer playerIn, World world, int x, int y, int z, int side,
         float hitX, float hitY, float hitZ) {
         if (world.isRemote) return true;
-        if ((stack == null || stack.stackSize <= 0)) return true;
+        if ((stack == null || stack.stackSize<=0)) return true;
 
         BlockPos origin = new BlockPos(x, y, z);
 
@@ -312,7 +310,7 @@ public class ItemExchangeWand extends ItemBlockStorage
             .size() <= 1) {
             storedStates.remove(match);
         }
-        if (storedStates == null || storedStates.stackSize <= 0) return true;
+        if (storedStates == null || storedStates.isEmpty()) return true;
 
         float hardness = atOrigin.getBlockHardness(world, x, y, z);
         if (Config.exchangeWandMaxHardness != -1) {
@@ -351,11 +349,13 @@ public class ItemExchangeWand extends ItemBlockStorage
         }
         BlockArray found = BlockDiscoverer
             .discoverBlocksWithSameStateAround(world, origin, true, searchDepth, total, false);
-        if (found == null || found.stackSize <= 0) return true;
+        if (found == null || found.isEmpty()) return true;
 
         // 1.7.10: Replace lambda with anonymous class to avoid variable collision
-        List<Tuple<Block, ItemStack>> shuffleable = MiscUtils.flatten(storedStates,
+        List<Tuple<Block, ItemStack>> shuffleable = MiscUtils.flatten(
+            storedStates,
             new hellfirepvp.astralsorcery.common.migration.BiFunction<Block, ItemStack, Tuple<Block, ItemStack>>() {
+
                 @Override
                 public Tuple<Block, ItemStack> apply(Block block, ItemStack stackItem) {
                     return new Tuple<>(block, stackItem);

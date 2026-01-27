@@ -22,7 +22,6 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.client.effect.EffectHelper;
 import hellfirepvp.astralsorcery.client.effect.fx.EntityFXFacingParticle;
-import hellfirepvp.astralsorcery.common.util.EntityUtils;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
 import hellfirepvp.astralsorcery.common.util.data.Vector3;
 import hellfirepvp.astralsorcery.common.util.effect.CelestialStrike;
@@ -54,12 +53,7 @@ public class EntityStarburst extends EntityThrowable {
     public EntityStarburst(World worldIn, EntityLivingBase throwerIn) {
         super(worldIn, throwerIn);
         // 1.7.10: EntityThrowable doesn't have shoot(), set velocity directly
-        this.setThrowableHeading(
-            throwerIn.rotationPitch,
-            throwerIn.rotationYaw,
-            0.0F,
-            0.7F,
-            1.0F);
+        this.setThrowableHeading(throwerIn.rotationPitch, throwerIn.rotationYaw, 0.0F, 0.7F, 1.0F);
     }
 
     @Override

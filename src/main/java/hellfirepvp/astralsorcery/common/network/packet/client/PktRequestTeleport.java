@@ -10,6 +10,7 @@ package hellfirepvp.astralsorcery.common.network.packet.client;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.DimensionManager;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
@@ -22,7 +23,6 @@ import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.util.ByteBufUtils;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
 import hellfirepvp.astralsorcery.common.util.data.Vector3;
-import net.minecraftforge.common.DimensionManager;
 import io.netty.buffer.ByteBuf;
 
 /**
@@ -72,8 +72,7 @@ public class PktRequestTeleport implements IMessage, IMessageHandler<PktRequestT
             WorldServer to = DimensionManager.getWorld(message.dimId);
             if (to != null) {
                 GatewayCache data = WorldCacheManager.getOrLoadData(to, WorldCacheManager.SaveKey.GATEWAY_DATA);
-                if (MiscUtils
-                    .contains(data.getGatewayPositions(), gatewayNode -> gatewayNode.equals(message.pos))) {
+                if (MiscUtils.contains(data.getGatewayPositions(), gatewayNode -> gatewayNode.equals(message.pos))) {
                     AstralSorcery.proxy
                         .scheduleDelayed(() -> MiscUtils.transferEntityTo(request, message.dimId, message.pos));
                 }

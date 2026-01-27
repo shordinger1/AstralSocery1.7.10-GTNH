@@ -66,6 +66,7 @@ public class PktSetSextantTarget implements IMessage, IMessageHandler<PktSetSext
         }
         EntityPlayer player = ctx.getServerHandler().playerEntity;
         Thread tr = new Thread(new Runnable() {
+
             @Override
             public void run() {
                 // May be null; In that case, tell that to the client as well so it won't ask the server any longer.

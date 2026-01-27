@@ -9,7 +9,6 @@
 package hellfirepvp.astralsorcery.common.item.tool;
 
 import java.awt.Color;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
@@ -29,7 +28,6 @@ import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.FluidRegistry;

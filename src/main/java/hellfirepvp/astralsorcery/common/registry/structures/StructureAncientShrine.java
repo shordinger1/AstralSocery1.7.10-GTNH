@@ -41,11 +41,11 @@ public class StructureAncientShrine extends StructureBlockArray {
         Block m = BlocksAS.blockMarble;
 
         // BlockMarble metadata: RAW=0, CHISELED=1, BRICKS=2, ARCH=3, PILLAR=5, RUNED=4, ENGRAVED=6
-        BlockStateCheck mRaw = new BlockStateCheck.Meta(m, 0);   // RAW
+        BlockStateCheck mRaw = new BlockStateCheck.Meta(m, 0); // RAW
         BlockStateCheck mBrick = new BlockStateCheck.Meta(m, 2); // BRICKS
         BlockStateCheck mChisel = new BlockStateCheck.Meta(m, 1); // CHISELED
         BlockStateCheck mPillar = new BlockStateCheck.Meta(m, 5); // PILLAR
-        BlockStateCheck mArch = new BlockStateCheck.Meta(m, 3);  // ARCH
+        BlockStateCheck mArch = new BlockStateCheck.Meta(m, 3); // ARCH
         BlockStateCheck mRuned = new BlockStateCheck.Meta(m, 4); // RUNED
         BlockStateCheck mEngraved = new BlockStateCheck.Meta(m, 6); // ENGRAVED
 

@@ -33,7 +33,6 @@ import hellfirepvp.astralsorcery.common.auxiliary.SwordSharpenHelper;
 import hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipe;
 import hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipeRegistry;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
 import hellfirepvp.astralsorcery.common.tile.IVariantTileProvider;
 import hellfirepvp.astralsorcery.common.tile.TileGrindstone;
@@ -322,17 +321,19 @@ public class BlockMachine extends BlockContainer implements BlockCustomName, Blo
     }
 
     @Override
-    public List<IBlockState> getValidStates() {
-        List<IBlockState> ret = new LinkedList<>();
+    public List<Block> getValidStates() {
+        List<Block> ret = new LinkedList<>();
+        // In 1.7.10, all variants are the same block with different metadata
+        // Return the block itself once for each variant type
         for (MachineType type : MachineType.values()) {
-            ret.add(new IBlockState(this, type.ordinal()));
+            ret.add(this);
         }
         return ret;
     }
 
     @Override
-    public String getStateName(IBlockState state) {
-        MachineType type = MachineType.byMetadata(state.getMetadata());
+    public String getStateName(int metadata) {
+        MachineType type = MachineType.byMetadata(metadata);
         return type.getName();
     }
 

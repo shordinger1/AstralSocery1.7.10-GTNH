@@ -54,7 +54,6 @@ public class ItemPerkGem extends Item implements IItemVariants {
         setCreativeTab(RegistryItems.creativeTabAstralSorcery);
     }
 
-
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip) {
         PlayerProgress prog = ResearchManager.clientProgress;
@@ -67,7 +66,6 @@ public class ItemPerkGem extends Item implements IItemVariants {
             tooltip.add(EnumChatFormatting.GRAY + I18n.format("progress.missing.knowledge"));
         }
     }
-
 
     public void getSubItems(CreativeTabs tab, ArrayList<ItemStack> items) {
         // 1.7.10 compatibility: Item.isInCreativeTab() doesn't exist, use tab == this.getCreativeTab() instead

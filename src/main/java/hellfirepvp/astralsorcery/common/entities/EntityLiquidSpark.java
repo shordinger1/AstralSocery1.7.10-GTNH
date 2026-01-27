@@ -19,7 +19,6 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityFlying;
 import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
@@ -155,9 +154,12 @@ public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAm
 
             // 1.7.10: EntitySelectors doesn't exist, use IEntitySelector
             // Also getEntitiesWithinAABBExcludingEntity instead of getEntitiesInAABBexcluding
-            List<Entity> nearby = worldObj.getEntitiesWithinAABBExcludingEntity(
-                this,
-                this.boundingBox.expand(1, 1, 1)); // 1.7.10: Use expand() instead of grow()
+            List<Entity> nearby = worldObj.getEntitiesWithinAABBExcludingEntity(this, this.boundingBox.expand(1, 1, 1)); // 1.7.10:
+                                                                                                                         // Use
+                                                                                                                         // expand()
+                                                                                                                         // instead
+                                                                                                                         // of
+                                                                                                                         // grow()
             // Filter for alive entities (1.7.10 doesn't have isSpectator check)
             int count = 0;
             for (Entity e : nearby) {
@@ -200,7 +202,8 @@ public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAm
                     // 1.7.10: moveHelper is private, set movement manually
                     Vector3 targetPos = new Vector3(e.posX, e.posY, e.posZ);
                     Vector3 currentPos = new Vector3(posX, posY, posZ);
-                    Vector3 direction = targetPos.add(-currentPos.posX, -currentPos.posY, -currentPos.posZ).normalize();
+                    Vector3 direction = targetPos.add(-currentPos.getX(), -currentPos.getY(), -currentPos.getZ())
+                        .normalize();
                     this.motionX = direction.getX() * 0.15;
                     this.motionY = direction.getY() * 0.15;
                     this.motionZ = direction.getZ() * 0.15;
@@ -244,7 +247,8 @@ public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAm
                     // 1.7.10: moveHelper is private, set movement manually
                     Vector3 targetPos = target;
                     Vector3 currentPos = new Vector3(posX, posY, posZ);
-                    Vector3 direction = targetPos.add(-currentPos.posX, -currentPos.posY, -currentPos.posZ).normalize();
+                    Vector3 direction = targetPos.add(-currentPos.getX(), -currentPos.getY(), -currentPos.getZ())
+                        .normalize();
                     this.motionX = direction.getX() * 0.15;
                     this.motionY = direction.getY() * 0.15;
                     this.motionZ = direction.getZ() * 0.15;
@@ -311,10 +315,7 @@ public class EntityLiquidSpark extends EntityFlying implements EntityTechnicalAm
         if (this.tileTarget != null) {
             // 1.7.10: TileEntity doesn't have getPos(), use xCoord, yCoord, zCoord
             BlockPos pos = new BlockPos(tileTarget.xCoord, tileTarget.yCoord, tileTarget.zCoord);
-            NBTHelper.setAsSubTag(
-                compound,
-                "tileTarget",
-                tag -> NBTHelper.writeBlockPosToNBT(pos, tag));
+            NBTHelper.setAsSubTag(compound, "tileTarget", tag -> NBTHelper.writeBlockPosToNBT(pos, tag));
         }
     }
 

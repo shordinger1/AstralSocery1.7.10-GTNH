@@ -5,8 +5,10 @@
 
 package hellfirepvp.astralsorcery.common.migration;
 
-import hellfirepvp.astralsorcery.common.util.BlockPos;
+import net.minecraft.block.Block;
 import net.minecraft.world.IBlockAccess;
+
+import hellfirepvp.astralsorcery.common.util.BlockPos;
 
 /**
  * Migration interface for 1.12.2 IBlockColor
@@ -17,11 +19,12 @@ public interface IBlockColor {
     /**
      * Return the color multiplier for the block
      *
-     * @param state     The block state
+     * @param block     The block
+     * @param metadata  The block metadata
      * @param world     The block access
      * @param pos       The block position
      * @param tintIndex The tint index
      * @return The color multiplier
      */
-    int colorMultiplier(IBlockState state, IBlockAccess world, BlockPos pos, int tintIndex);
+    int colorMultiplier(Block block, int metadata, IBlockAccess world, BlockPos pos, int tintIndex);
 }

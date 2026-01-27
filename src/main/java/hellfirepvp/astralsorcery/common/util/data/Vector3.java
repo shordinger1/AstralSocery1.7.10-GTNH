@@ -17,6 +17,7 @@ import net.minecraft.util.Vec3;
 
 import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.util.ChunkPos;
+import hellfirepvp.astralsorcery.common.util.WrapMathHelper;
 import io.netty.buffer.ByteBuf;
 
 /**
@@ -436,7 +437,7 @@ public class Vector3 {
     }
 
     public Vec3 toVec3d() {
-        return new Vec3(x, y, z);
+        return Vec3.createVectorHelper(x, y, z);
     }
 
     public BlockPos toBlockPos() {
@@ -556,9 +557,9 @@ public class Vector3 {
     public int hashCode() {
         int hash = 7;
 
-        hash = 79 * hash + (int) (Double.doubleToLongBits(this.x) ^ Double.doubleToLongBits(this.x) >>> 32);
-        hash = 79 * hash + (int) (Double.doubleToLongBits(this.y) ^ Double.doubleToLongBits(this.y) >>> 32);
-        hash = 79 * hash + (int) (Double.doubleToLongBits(this.z) ^ Double.doubleToLongBits(this.z) >>> 32);
+        hash = 79 * hash + Long.hashCode(Double.doubleToLongBits(this.x));
+        hash = 79 * hash + Long.hashCode(Double.doubleToLongBits(this.y));
+        hash = 79 * hash + Long.hashCode(Double.doubleToLongBits(this.z));
         return hash;
     }
 

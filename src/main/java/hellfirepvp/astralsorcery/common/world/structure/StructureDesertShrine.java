@@ -8,7 +8,6 @@
 
 package hellfirepvp.astralsorcery.common.world.structure;
 
-import java.util.Collection;
 import java.util.Random;
 
 import net.minecraft.block.Block;
@@ -97,8 +96,8 @@ public class StructureDesertShrine extends WorldGenAttributeStructure {
         if (cfgEntry.shouldIgnoreBiomeSpecifications()) return true;
 
         BiomeGenBase b = world.getBiomeGenForCoords(pos.getX(), pos.getZ());
-        Collection<BiomeDictionary.Type> types = BiomeDictionary.getTypes(b);
-        if (types == null || types.stackSize <= 0) return false;
+        BiomeDictionary.Type[] types = BiomeDictionary.getTypesForBiome(b);
+        if (types == null || types.length == 0) return false;
         boolean applicable = false;
         for (BiomeDictionary.Type t : types) {
             if (cfgEntry.getTypes()

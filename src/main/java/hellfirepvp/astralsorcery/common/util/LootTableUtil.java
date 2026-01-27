@@ -45,6 +45,9 @@ public class LootTableUtil {
         LootTableList.register(LOOT_TABLE_SHOOTING_STAR);
     }
 
+    // DISABLED: LootTableLoadEvent not available in 1.7.10
+    // Loot tables were introduced in later Minecraft versions
+    /*
     @SubscribeEvent
     public void onLootLoad(LootTableLoadEvent event) {
         ResourceLocation name = event.getName();
@@ -61,5 +64,6 @@ public class LootTableUtil {
                         "astralsorcery:constellation_paper"));
         }
     }
+    */
 
 }

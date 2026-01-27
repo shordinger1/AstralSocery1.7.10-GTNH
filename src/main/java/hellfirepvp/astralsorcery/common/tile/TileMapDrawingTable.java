@@ -36,6 +36,7 @@ import hellfirepvp.astralsorcery.common.item.ItemInfusedGlass;
 import hellfirepvp.astralsorcery.common.network.PacketChannel;
 import hellfirepvp.astralsorcery.common.network.packet.server.PktParticleEvent;
 import hellfirepvp.astralsorcery.common.tile.base.TileSkybound;
+import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.util.ItemUtils;
 import hellfirepvp.astralsorcery.common.util.data.Vector3;
 import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
@@ -317,11 +318,12 @@ public class TileMapDrawingTable extends TileSkybound {
 
     @Override
     public void writeCustomNBT(NBTTagCompound compound) {
-        super.writeNetNBT(compound);
+        super.writeCustomNBT(compound);
         compound.setInteger("runTick", this.runTick);
 
-        NBTHelper.setAsSubTag(compound, "slotIn", (tag1, stack1) -> stack1.writeToNBT(tag1));
-        NBTHelper.setAsSubTag(compound, "slotGlassLens", (tag1, stack1) -> stack1.writeToNBT(tag1));
+        // 1.7.10: Use NBTHelper.setStack() instead of writeToNBT()
+        NBTHelper.setStack(compound, "slotIn", slotIn);
+        NBTHelper.setStack(compound, "slotGlassLens", slotGlassLens);
     }
 
     @Override

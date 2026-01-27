@@ -9,7 +9,6 @@
 package hellfirepvp.astralsorcery.common.block.network;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +32,6 @@ import hellfirepvp.astralsorcery.common.block.BlockAttunementRelay;
 import hellfirepvp.astralsorcery.common.block.BlockCustomName;
 import hellfirepvp.astralsorcery.common.block.BlockVariants;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.migration.IStringSerializable;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
 import hellfirepvp.astralsorcery.common.structure.BlockStructureObserver;
@@ -237,19 +235,32 @@ public class BlockAltar extends BlockStarlightNetwork
     }
 
     @Override
-    public List<IBlockState> getValidStates() {
-        List<IBlockState> ret = new LinkedList<>();
+    public List<Block> getValidStates() {
+        List<Block> ret = new java.util.LinkedList<>();
+        // In 1.7.10, all variants are the same block with different metadata
+        // Return the block itself once for each variant type
         for (AltarType type : AltarType.values()) {
-            ret.add(new IBlockState(this, type.ordinal()));
+            ret.add(this);
         }
         return ret;
     }
 
     @Override
-    public String getStateName(IBlockState state) {
-        AltarType type = AltarType.byMetadata(state.getMetadata());
+    public String getStateName(int metadata) {
+        AltarType type = AltarType.byMetadata(metadata);
         return type.getName();
     }
+
+//    @Override
+//     public List<IBlockState> getValidStates() {
+//         List<IBlockState> ret = new LinkedList<>();
+//         for (AltarType type : AltarType.values()) {
+//             ret.add(new IBlockState(this, type.ordinal()));
+//         }
+//         return ret;
+//     }
+
+
 
     public enum AltarType implements IStringSerializable, IVariantTileProvider {
 

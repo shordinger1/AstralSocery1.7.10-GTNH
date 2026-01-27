@@ -12,7 +12,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.WeightedRandom;
 
 import hellfirepvp.astralsorcery.AstralSorcery;
@@ -55,7 +54,7 @@ public class WeightedAmuletEnchantment extends WeightedRandom.Item implements Co
         String weight = spl[spl.length - 1];
         StringBuilder path = new StringBuilder();
         for (int i = 1; i < spl.length - 1; i++) {
-            if (!path == null || path.stackSize <= 0) {
+            if ( path.isEmpty() ) {
                 path.append(":"); // Cause that vanishes when splitting...
             }
             path.append(spl[i]);

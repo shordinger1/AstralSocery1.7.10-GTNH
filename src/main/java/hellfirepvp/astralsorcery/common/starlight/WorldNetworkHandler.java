@@ -292,13 +292,13 @@ public class WorldNetworkHandler {
 
     private void queryData(ChunkPos pos, int yLevel, List<LightNetworkBuffer.ChunkSectionNetworkData> out) {
         LightNetworkBuffer.ChunkSectionNetworkData data = buffer.getSectionData(pos, yLevel);
-        if (data != null && !(data == null || data == null || data.stackSize <= 0)) out.add(data);
+        if (data != null && !(data == null || data.isEmpty())) out.add(data);
     }
 
     @Nullable
     private LightNetworkBuffer.ChunkSectionNetworkData getNetworkData(BlockPos at) {
         LightNetworkBuffer.ChunkSectionNetworkData data = buffer.getSectionData(at);
-        if (data != null && !(data == null || data == null || data.stackSize <= 0)) return data;
+        if (data != null && !(data == null || data.isEmpty())) return data;
         return null;
     }
 }

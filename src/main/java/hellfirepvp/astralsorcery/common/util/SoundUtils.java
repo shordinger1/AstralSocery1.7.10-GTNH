@@ -8,9 +8,10 @@
 
 package hellfirepvp.astralsorcery.common.util;
 
-import hellfirepvp.astralsorcery.common.migration.SoundEvent;
 import net.minecraft.client.audio.SoundCategory;
 import net.minecraft.util.ResourceLocation;
+
+import hellfirepvp.astralsorcery.common.migration.SoundEvent;
 
 /**
  * This class is part of the Astral Sorcery Mod

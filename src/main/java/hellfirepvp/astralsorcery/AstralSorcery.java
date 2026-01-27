@@ -163,7 +163,7 @@ public class AstralSorcery {
         WorldCacheManager.wipeCache();
         // 1.7.10: Replace forEach lambda with for loop
         for (Object t : AttributeTypeRegistry.getTypes()) {
-            ((hellfirepvp.astralsorcery.common.constellation.perk.attribute.AttributeType) t).clear(Side.SERVER);
+            ((hellfirepvp.astralsorcery.common.constellation.perk.attribute.PerkAttributeType) t).clear(Side.SERVER);
         }
         PerkTree.PERK_TREE.clearCache(Side.SERVER);
     }

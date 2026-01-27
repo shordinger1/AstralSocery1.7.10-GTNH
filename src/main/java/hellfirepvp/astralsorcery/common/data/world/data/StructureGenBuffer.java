@@ -64,10 +64,8 @@ public class StructureGenBuffer extends CachedWorldData {
                 for (BlockPos position : generatedStructures.get(type)) {
                     // In 1.7.10, BlockPos doesn't have getDistance(), calculate manually
                     double dst = Math.sqrt(
-                        Math.pow(position.getX() - x, 2) +
-                        Math.pow(position.getY() - y, 2) +
-                        Math.pow(position.getZ() - z, 2)
-                    );
+                        Math.pow(position.getX() - x, 2) + Math.pow(position.getY() - y, 2)
+                            + Math.pow(position.getZ() - z, 2));
                     if (dst <= halfDst) {
                         return dst; // Fast fail on close structures
                     }
@@ -78,10 +76,7 @@ public class StructureGenBuffer extends CachedWorldData {
         for (BlockPos position : generatedStructures.get(type)) {
             // In 1.7.10, BlockPos doesn't have getDistance(), calculate manually
             double dst = Math.sqrt(
-                Math.pow(position.getX() - x, 2) +
-                Math.pow(position.getY() - y, 2) +
-                Math.pow(position.getZ() - z, 2)
-            );
+                Math.pow(position.getX() - x, 2) + Math.pow(position.getY() - y, 2) + Math.pow(position.getZ() - z, 2));
             if (dst < closest) {
                 closest = dst;
             }
@@ -99,10 +94,7 @@ public class StructureGenBuffer extends CachedWorldData {
         for (BlockPos position : generatedStructures.get(type)) {
             // In 1.7.10, BlockPos doesn't have getDistance(), calculate manually
             double dst = Math.sqrt(
-                Math.pow(position.getX() - x, 2) +
-                Math.pow(position.getY() - y, 2) +
-                Math.pow(position.getZ() - z, 2)
-            );
+                Math.pow(position.getX() - x, 2) + Math.pow(position.getY() - y, 2) + Math.pow(position.getZ() - z, 2));
             if (dst < closest) {
                 closest = dst;
                 closestPos = position;

@@ -26,7 +26,7 @@ import hellfirepvp.astralsorcery.common.integrations.ModIntegrationCrafttweaker;
  * Replaces CraftTweaker-based AltarRecipe class
  *
  * Usage:
- *   AltarRecipe.addDiscovery("recipe_name", new ItemStack(Items.gold_ingot), 100, 200, inputs);
+ * AltarRecipe.addDiscovery("recipe_name", new ItemStack(Items.gold_ingot), 100, 200, inputs);
  */
 public final class AltarRecipe {
 
@@ -154,16 +154,22 @@ public final class AltarRecipe {
     /**
      * Adds a Trait Altar recipe (Tier 4)
      *
-     * @param recipeRegistryName       Unique registry name for this recipe
-     * @param output                  The output item
-     * @param starlightRequired       Required starlight amount
-     * @param craftingTickTime        Crafting duration in ticks
-     * @param inputs                  Input items (must be 25 items)
-     * @param constellationFocusName  Required constellation focus (can be null)
+     * @param recipeRegistryName     Unique registry name for this recipe
+     * @param output                 The output item
+     * @param starlightRequired      Required starlight amount
+     * @param craftingTickTime       Crafting duration in ticks
+     * @param inputs                 Input items (must be 25 items)
+     * @param constellationFocusName Required constellation focus (can be null)
      */
     public static void addTrait(String recipeRegistryName, @Nullable ItemStack output, int starlightRequired,
         int craftingTickTime, ItemStack[] inputs, @Nullable String constellationFocusName) {
-        addTrait(recipeRegistryName, output, starlightRequired, craftingTickTime, inputs, constellationFocusName,
+        addTrait(
+            recipeRegistryName,
+            output,
+            starlightRequired,
+            craftingTickTime,
+            inputs,
+            constellationFocusName,
             SLOT_COUNT_T4);
     }
 

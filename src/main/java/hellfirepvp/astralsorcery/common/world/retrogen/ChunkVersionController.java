@@ -48,14 +48,13 @@ public class ChunkVersionController {
 
     @SubscribeEvent
     public void onChDataLoad(ChunkDataEvent.Load ev) {
-        ChunkPos cp = ev.getChunk()
-            .getPos();
+        ChunkPos cp = new ChunkPos(ev.getChunk().xPosition, ev.getChunk().zPosition);
         NBTTagCompound tag = ev.getData();
         if (tag.hasKey(AS_VERSION_KEY)) {
             versionBuffer.put(cp, tag.getInteger(AS_VERSION_KEY));
         } else {
             ChunkVersionBuffer buf = WorldCacheManager
-                .getOrLoadData(ev.getWorld(), WorldCacheManager.SaveKey.CHUNK_VERSIONING);
+                .getOrLoadData(ev.world, WorldCacheManager.SaveKey.CHUNK_VERSIONING);
             Integer savedVersion = buf.getGenerationVersion(cp);
             if (savedVersion != null) {
                 versionBuffer.put(cp, savedVersion);
@@ -67,8 +66,7 @@ public class ChunkVersionController {
 
     @SubscribeEvent
     public void onChDataSave(ChunkDataEvent.Save ev) {
-        ChunkPos cp = ev.getChunk()
-            .getPos();
+        ChunkPos cp = new ChunkPos(ev.getChunk().xPosition, ev.getChunk().zPosition);
         Integer buf = versionBuffer.get(cp);
         if (buf != null) {
             ev.getData()

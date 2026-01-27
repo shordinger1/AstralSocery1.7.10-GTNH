@@ -52,9 +52,10 @@ public class TileStorageCore extends TileEntityTick implements IStorageNetworkTi
 
     }
 
+    // 1.7.10: onLoad() doesn't exist, moved to onFirstTick()
     @Override
-    public void onLoad() {
-        super.onLoad();
+    protected void onFirstTick() {
+        // Don't call super.onFirstTick() - it's abstract in TileEntityTick
 
         StorageNetworkHandler.getHandler(getWorld())
             .addCore(this);
@@ -67,9 +68,6 @@ public class TileStorageCore extends TileEntityTick implements IStorageNetworkTi
         StorageNetworkHandler.getHandler(getWorld())
             .removeCore(this);
     }
-
-    @Override
-    protected void onFirstTick() {}
 
     @Override
     public TileStorageCore getAssociatedCore() {
@@ -136,7 +134,8 @@ public class TileStorageCore extends TileEntityTick implements IStorageNetworkTi
     public void writeSaveNBT(NBTTagCompound compound) {
         super.writeSaveNBT(compound);
 
-        NBTHelper.setAsSubTag(compound, "storage", (tag1, stack1) -> stack1.writeToNBT(tag1));
+        // 1.7.10: Write storageCache to NBT using correct lambda
+        NBTHelper.setAsSubTag(compound, "storage", tag -> storageCache.writeToNBT(tag));
     }
 
 }

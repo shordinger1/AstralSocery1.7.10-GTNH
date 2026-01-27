@@ -143,7 +143,7 @@ public class AttributeModifierPerk extends AttributeConverterPerk {
     public boolean addLocalizedTooltip(Collection<String> tooltip) {
         Collection<PerkAttributeModifier> modifiers = this
             .getModifiers(Minecraft.getMinecraft().thePlayer, Side.CLIENT);
-        boolean addEmptyLine = !modifiers == null || modifiers.stackSize <= 0;
+        boolean addEmptyLine = !(modifiers == null || modifiers.isEmpty());
 
         if (canSeeClient()) {
             for (PerkAttributeModifier modifier : modifiers) {

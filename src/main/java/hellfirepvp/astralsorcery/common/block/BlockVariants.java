@@ -8,12 +8,9 @@
 
 package hellfirepvp.astralsorcery.common.block;
 
-import java.util.LinkedList;
 import java.util.List;
 
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
-import hellfirepvp.astralsorcery.common.migration.IProperty;
-import hellfirepvp.astralsorcery.common.migration.IStringSerializable;
+import net.minecraft.block.Block;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -24,29 +21,30 @@ import hellfirepvp.astralsorcery.common.migration.IStringSerializable;
  */
 public interface BlockVariants {
 
-    default <T extends Comparable<T>> List<IBlockState> singleEnumPropertyStates(IBlockState defaultState,
-        IProperty<T> prop, T[] enumValues) {
-        List<IBlockState> ret = new LinkedList<>();
-        for (T val : enumValues) {
-            ret.add(defaultState.withProperty(prop, val));
-        }
-        return ret;
-    }
+    /**
+     * Get all valid states for this block
+     * In 1.7.10, returns a list of Block instances (one per variant)
+     *
+     * @return List of Block instances representing valid states
+     */
+    public List<Block> getValidStates();
 
-    default <T extends Comparable<T> & IStringSerializable> String extractEnumPropertyString(IBlockState state,
-        IProperty<T> property) {
-        return state.getValue(property)
-            .getName();
-    }
+    /**
+     * Get the state name for a given metadata value
+     *
+     * @param metadata The block metadata
+     * @return The state name
+     */
+    public String getStateName(int metadata);
 
-    public List<IBlockState> getValidStates();
-
-    public String getStateName(IBlockState state);
-
-    default public String getBlockName(IBlockState state) {
-        return state.getBlock()
-            .getClass()
-            .getSimpleName();
+    /**
+     * Get the block name (class simple name)
+     *
+     * @return The block's class simple name
+     */
+    default public String getBlockName() {
+        Block block = (Block) this;
+        return block.getLocalizedName();
     }
 
 }

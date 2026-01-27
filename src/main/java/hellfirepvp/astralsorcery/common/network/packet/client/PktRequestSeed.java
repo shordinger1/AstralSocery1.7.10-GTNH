@@ -10,7 +10,6 @@ package hellfirepvp.astralsorcery.common.network.packet.client;
 
 import java.util.Random;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraftforge.common.DimensionManager;
@@ -90,7 +89,8 @@ public class PktRequestSeed implements IMessage, IMessageHandler<PktRequestSeed,
     @SideOnly(Side.CLIENT)
     private void updateSeedClient(int dimId, int session, long seed) {
         // 1.7.10: Call directly, addScheduledTask with lambda doesn't exist
-        ConstellationSkyHandler.getInstance().updateSeedCache(dimId, session, seed);
+        ConstellationSkyHandler.getInstance()
+            .updateSeedCache(dimId, session, seed);
     }
 
 }

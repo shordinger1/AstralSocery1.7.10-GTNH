@@ -27,7 +27,7 @@ import hellfirepvp.astralsorcery.common.util.ItemUtils;
  * Replaces CraftTweaker-based LightTransmutations class
  *
  * Usage:
- *   LightTransmutations.add(new ItemStack(Blocks.cobblestone), new ItemStack(Blocks.sand), 1.0);
+ * LightTransmutations.add(new ItemStack(Blocks.cobblestone), new ItemStack(Blocks.sand), 1.0);
  */
 public final class LightTransmutations {
 
@@ -47,10 +47,10 @@ public final class LightTransmutations {
     /**
      * Adds a light transmutation recipe with constellation requirement
      *
-     * @param input               The input item (must be a block)
-     * @param output              The output item (must be a block)
-     * @param cost                Starlight cost
-     * @param constellationName   Required constellation (can be null)
+     * @param input             The input item (must be a block)
+     * @param output            The output item (must be a block)
+     * @param cost              Starlight cost
+     * @param constellationName Required constellation (can be null)
      */
     public static void add(@Nullable ItemStack input, @Nullable ItemStack output, double cost,
         @Nullable String constellationName) {
@@ -71,7 +71,7 @@ public final class LightTransmutations {
         }
 
         IWeakConstellation req = null;
-        if (constellationName != null && !constellationName == null || constellationName.stackSize <= 0) {
+        if (constellationName != null && !(constellationName == null) || constellationName.isEmpty() ) {
             IConstellation cst = ConstellationRegistry.getConstellationByName(constellationName);
             if (cst != null && cst instanceof IWeakConstellation) {
                 req = (IWeakConstellation) cst;

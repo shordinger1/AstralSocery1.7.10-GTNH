@@ -13,15 +13,17 @@ import java.util.ArrayList;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
+import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.util.ForgeDirection;
 
+import cpw.mods.fml.common.registry.GameRegistry;
 import hellfirepvp.astralsorcery.AstralSorcery;
 import hellfirepvp.astralsorcery.common.block.BlockCustomSandOre;
 import hellfirepvp.astralsorcery.common.data.config.Config;
+import hellfirepvp.astralsorcery.common.data.config.entry.ConfigEntry;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
@@ -64,7 +66,7 @@ public class GenAttributeAquamarine extends WorldGenAttribute {
                 continue;
             }
             String strMeta = spl[2];
-            Integer meta;
+            int meta;
             try {
                 meta = Integer.parseInt(strMeta);
             } catch (NumberFormatException exc) {
@@ -72,21 +74,15 @@ public class GenAttributeAquamarine extends WorldGenAttribute {
                     .error("Skipping invalid replacement state: " + stateStr + " - Its 'meta' is not a number!");
                 continue;
             }
-            Block b = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(spl[0], spl[1]));
+            Block b = GameRegistry.findBlock(spl[0], spl[1]);
             if (b == null || b == Blocks.air) {
                 AstralSorcery.log
                     .error("Skipping invalid replacement state: " + stateStr + " - The block does not exist!");
                 continue;
             }
-            if (meta == -1) {
-                if (b instanceof BlockVariants) {
-                    replaceableStates.addAll(((BlockVariants) b).getValidStates());
-                } else {
-                    replaceableStates.add(b);
-                }
-            } else {
-                replaceableStates.add(b);
-            }
+            // In 1.7.10, blocks don't have multiple variants in the same way
+            // Just add the block regardless of meta
+            replaceableStates.add(b);
         }
     }
 
@@ -108,12 +104,11 @@ public class GenAttributeAquamarine extends WorldGenAttribute {
 
             boolean foundWater = false;
             for (int yy = 0; yy < 2; yy++) {
-                BlockPos check = pos.offset(EnumFacing.UP, yy);
+                BlockPos check = pos.offset(ForgeDirection.UP, yy);
                 Block bs = world.getBlock(check.getX(), check.getY(), check.getZ());
-                Block block = bs;
-                if ((block instanceof BlockLiquid && bs.getMaterial() == Material.water) || block.equals(Blocks.ICE)
-                    || block.equals(Blocks.PACKED_ICE)
-                    || block.equals(Blocks.FROSTED_ICE)) {
+                if ((bs instanceof BlockLiquid && bs.getMaterial() == Material.water) || bs.equals(Blocks.ice)
+                    || bs.equals(Blocks.packed_ice)) {
+                    // Note: frosted_ice doesn't exist in 1.7.10 (added in 1.9)
                     foundWater = true;
                     break;
                 }
@@ -124,8 +119,8 @@ public class GenAttributeAquamarine extends WorldGenAttribute {
                 pos.getX(),
                 pos.getY(),
                 pos.getZ(),
-                BlocksAS.customSandOre.withProperty(BlockCustomSandOre.ORE_TYPE, BlockCustomSandOre.OreType.AQUAMARINE),
-                0,
+                BlocksAS.customSandOre,
+                BlockCustomSandOre.OreType.AQUAMARINE.ordinal(),
                 3);
         }
     }

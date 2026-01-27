@@ -29,7 +29,6 @@ import cpw.mods.fml.common.event.FMLInterModComms;
 public enum Mods {
 
     TICONSTRUCT("tconstruct"),
-    CRAFTTWEAKER("crafttweaker"),
     NEI("NotEnoughItems"),
     THAUMCRAFT("thaumcraft"),
     BLOODMAGIC("bloodmagic"),

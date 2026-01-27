@@ -192,7 +192,13 @@ public class Injector {
 
     public static <E> Method findMethod(Class<? super E> clazz, String methodName, String methodObfName,
         Class<?>... methodTypes) {
-        return ReflectionHelper.findMethod(clazz, methodName, methodObfName, methodTypes);
+        // 1.7.10: ReflectionHelper.findMethod() requires instance parameter and String[] array
+        try {
+            return ReflectionHelper.findMethod(clazz, null, new String[] { methodName, methodObfName }, methodTypes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static Field findField(Class clazz, String... names) {

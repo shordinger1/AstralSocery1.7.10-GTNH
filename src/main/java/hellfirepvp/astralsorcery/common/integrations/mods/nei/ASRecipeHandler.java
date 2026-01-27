@@ -63,13 +63,11 @@ public abstract class ASRecipeHandler extends TemplateRecipeHandler {
         return 1;
     }
 
-    public abstract String getRecipeName();
-
+    // Abstract methods moved to concrete implementations below
+    // public abstract String getRecipeName();
     public abstract String getGuiTexture();
-
-    public abstract Class<? extends GuiContainer> getGuiClass();
-
-    public abstract String getOverlayIdentifier();
+    // public abstract Class<? extends GuiContainer> getGuiClass();
+    // public abstract String getOverlayIdentifier();
 
     @Override
     public String getGuiClass() {

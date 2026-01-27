@@ -34,7 +34,9 @@ public class TileVanishing extends TileEntityTick {
         super.updateEntity();
 
         if (!getWorld().isRemote && ticksExisted % 10 == 0) {
-            List<EntityPlayer> players = world.getEntitiesWithinAABB(EntityPlayer.class, topBox.offset(pos));
+            // 1.7.10: Offset AABB with xCoord, yCoord, zCoord
+            AxisAlignedBB box = topBox.getOffsetBoundingBox(xCoord, yCoord, zCoord);
+            List<EntityPlayer> players = worldObj.getEntitiesWithinAABB(EntityPlayer.class, box);
             for (EntityPlayer player : players) {
                 ItemStack held = player.getCurrentEquippedItem();
                 if (!(held == null || held.stackSize <= 0) && held.getItem() instanceof ItemWand
@@ -43,7 +45,8 @@ public class TileVanishing extends TileEntityTick {
                 }
                 // 1.7.10: No off-hand, skip offhand check
             }
-            getWorld().setBlockToAir(getPos());
+            // 1.7.10: setBlockToAir takes x, y, z coordinates
+            getWorld().setBlockToAir(xCoord, yCoord, zCoord);
         }
     }
 

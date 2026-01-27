@@ -18,7 +18,6 @@ import hellfirepvp.astralsorcery.common.lib.BlocksAS;
 import hellfirepvp.astralsorcery.common.structure.array.StructureBlockArray;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.util.BlockStateCheck;
-import hellfirepvp.astralsorcery.common.util.LootTableUtil;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -49,7 +48,7 @@ public class StructureSmallShrine extends StructureBlockArray {
 
         addBlock(0, 1, 0, m, mPillar);
         addBlock(0, 2, 0, m, mPillar);
-//        addBlock(0, 3, 0, Blocks.SEA_LANTERN);
+        // addBlock(0, 3, 0, Blocks.SEA_LANTERN);
         addBlock(0, 4, 0, Blocks.water);
 
         addBlock(2, 2, 2, m, mPillar);

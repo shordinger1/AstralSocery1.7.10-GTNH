@@ -61,8 +61,8 @@ public class PktDiscoverConstellation implements IMessage, IMessageHandler<PktDi
             if (prog.isValid() && received.canDiscover(ctx.getServerHandler().playerEntity, prog)) {
                 ResearchManager.discoverConstellation(received, ctx.getServerHandler().playerEntity);
                 // 1.7.10: Simplified chat message without complex styling
-                ctx.getServerHandler().playerEntity.addChatMessage(
-                    new ChatComponentTranslation("progress.discover.constellation.chat"));
+                ctx.getServerHandler().playerEntity
+                    .addChatMessage(new ChatComponentTranslation("progress.discover.constellation.chat"));
             }
         }
         return null;

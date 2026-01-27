@@ -166,7 +166,7 @@ public class ClientCameraFlightHelper {
             }
             setCameraFocus(Vector3.atEntityCenter(replacement));
             this.expired = this.ticksExisted > totalTickDuration;
-            if (flightPoints == null || flightPoints.stackSize <= 0) {
+            if (flightPoints == null || flightPoints.isEmpty()) {
                 this.expired = true;
             } else {
                 Vector3 position = queryByTicks(ticksExisted);

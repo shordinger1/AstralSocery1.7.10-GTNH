@@ -24,7 +24,7 @@ import hellfirepvp.astralsorcery.common.integrations.ModIntegrationCrafttweaker;
  * Replaces CraftTweaker-based WellRecipe class
  *
  * Usage:
- *   WellRecipe.add(new ItemStack(Items.water_bucket), FluidRegistry.WATER, 1.0F, 1.0F, 0xFFFFFF);
+ * WellRecipe.add(new ItemStack(Items.water_bucket), FluidRegistry.WATER, 1.0F, 1.0F, 0xFFFFFF);
  */
 public final class WellRecipe {
 
@@ -33,11 +33,11 @@ public final class WellRecipe {
     /**
      * Adds a lightwell recipe
      *
-     * @param input               The input item
-     * @param outputFluid         The output fluid
+     * @param input                The input item
+     * @param outputFluid          The output fluid
      * @param productionMultiplier Production speed multiplier
      * @param shatterMultiplier    Shatter chance multiplier
-     * @param colorHex            Display color (hex)
+     * @param colorHex             Display color (hex)
      */
     public static void add(@Nullable ItemStack input, @Nullable Fluid outputFluid, float productionMultiplier,
         float shatterMultiplier, int colorHex) {

@@ -8,6 +8,8 @@ package hellfirepvp.astralsorcery.common.migration;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.ResourceLocation;
 
+import com.google.common.base.Function;
+
 /**
  * Compatibility interface for 1.7.10.
  * In 1.12.2: net.minecraft.client.renderer.block.model.IModel

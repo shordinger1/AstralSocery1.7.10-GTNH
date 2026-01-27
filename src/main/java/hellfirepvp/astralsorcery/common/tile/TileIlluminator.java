@@ -23,7 +23,6 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.client.effect.EffectHelper;
 import hellfirepvp.astralsorcery.client.effect.fx.EntityFXFacingParticle;
-import hellfirepvp.astralsorcery.common.block.BlockFlareLight;
 import hellfirepvp.astralsorcery.common.entities.EntityFlare;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
 import hellfirepvp.astralsorcery.common.tile.base.TileEntityTick;
@@ -130,26 +129,30 @@ public class TileIlluminator extends TileEntityTick {
     private boolean placeFlares() {
         boolean needsRecalc = false;
         for (LinkedList<BlockPos> list : validPositions) {
-            if (list == null || list.stackSize <= 0) {
+            // 1.7.10: LinkedList uses isEmpty() or size() instead of stackSize
+            if (list == null || list.isEmpty()) {
                 needsRecalc = true;
                 continue;
             }
             int index = rand.nextInt(list.size());
             BlockPos at = list.remove(index);
-            if (!needsRecalc && list == null || list.stackSize <= 0) needsRecalc = true;
+            // 1.7.10: Check isEmpty() after removal
+            if (!needsRecalc && list.isEmpty()) needsRecalc = true;
             at = at.add(rand.nextInt(5) - 2, rand.nextInt(13) - 6, rand.nextInt(5) - 2);
-            if (getWorld().isBlockLoaded(at) && at.getY() >= 0
-                && at.getY() <= 255
-                && illuminatorCheck.isStateValid(world, at, world.getBlock(at.posX, at.posY, at.posZ))) {
+            // 1.7.10: Use chunk check instead of isBlockLoaded(BlockPos)
+            if (getWorld().blockExists(at.getX(), at.getY(), at.getZ()) && at.getY() >= 0 && at.getY() <= 255
+            // 1.7.10: Pass block and metadata (0 for air check)
+                && illuminatorCheck.isStateValid(getWorld(), at, getWorld().getBlock(at.posX, at.posY, at.posZ), 0)) {
                 EnumDyeColor color = EnumDyeColor.YELLOW;
                 if (this.chosenColor != null) {
                     color = this.chosenColor;
                 }
-                Block lightState = BlocksAS.blockVolatileLight.withProperty(BlockFlareLight.COLOR, color);
-                if (world.setBlock(at.getX(), at.getY(), at.getZ(), lightState, 0, 3)) {
+                // 1.7.10: Use metadata instead of withProperty
+                int metadata = color != null ? color.ordinal() : EnumDyeColor.YELLOW.ordinal();
+                if (getWorld().setBlock(at.getX(), at.getY(), at.getZ(), BlocksAS.blockVolatileLight, metadata, 3)) {
                     if (rand.nextInt(4) == 0) {
                         EntityFlare.spawnAmbient(
-                            world,
+                            getWorld(),
                             new Vector3(this).add(-1 + rand.nextFloat() * 3, 0.6, -1 + rand.nextFloat() * 3));
                     }
                 }
@@ -186,10 +189,11 @@ public class TileIlluminator extends TileEntityTick {
 
         compound.setBoolean("playerPlaced", this.playerPlaced);
         compound.setInteger("boostTimeout", this.boost);
+        // 1.7.10: EnumDyeColor uses ordinal() instead of getMetadata()
         if (chosenColor != null) {
-            compound.setInteger("wandColor", this.chosenColor.getMetadata());
+            compound.setInteger("wandColor", this.chosenColor.ordinal());
         } else {
-            compound.setInteger("wandColor", EnumDyeColor.YELLOW.getMetadata());
+            compound.setInteger("wandColor", EnumDyeColor.YELLOW.ordinal());
         }
     }
 
@@ -200,7 +204,11 @@ public class TileIlluminator extends TileEntityTick {
         this.playerPlaced = compound.getBoolean("playerPlaced");
         this.boost = compound.getInteger("boostTimeout");
         if (compound.hasKey("wandColor")) {
-            this.chosenColor = EnumDyeColor.byMetadata(compound.getInteger("wandColor"));
+            // 1.7.10: Use EnumDyeColor values()[index] instead of byMetadata()
+            int colorIndex = compound.getInteger("wandColor");
+            if (colorIndex >= 0 && colorIndex < EnumDyeColor.values().length) {
+                this.chosenColor = EnumDyeColor.values()[colorIndex];
+            }
         }
         if (this.chosenColor == null) {
             this.chosenColor = EnumDyeColor.YELLOW;
@@ -215,11 +223,13 @@ public class TileIlluminator extends TileEntityTick {
     public static class LightCheck implements BlockStateCheck.WorldSpecific {
 
         @Override
-        public boolean isStateValid(World world, BlockPos pos, Block state) {
+        // 1.7.10: BlockStateCheck.WorldSpecific requires metadata parameter
+        public boolean isStateValid(World world, BlockPos pos, Block state, int metadata) {
             return world.isAirBlock(pos.getX(), pos.getY(), pos.getZ())
                 && !MiscUtils.canSeeSky(world, pos, false, false)
                 && world.getBlockLightValue(pos.getX(), pos.getY(), pos.getZ()) < 8
-                && world.getSkyBlockTypeBrightness(EnumSkyBlock.SKY, pos.getX(), pos.getY(), pos.getZ()) < 6;
+                // 1.7.10: Use EnumSkyBlock.Sky instead of EnumSkyBlock.SKY
+                && world.getSkyBlockTypeBrightness(EnumSkyBlock.Sky, pos.getX(), pos.getY(), pos.getZ()) < 6;
         }
 
     }

@@ -82,7 +82,8 @@ public class ContainerJournal extends Container {
             ItemStack itemstack1 = slot.getStack();
             itemstack = itemstack1.copy();
 
-            if (itemstack1 != null && itemstack1.stackSize > 0 && itemstack1.getItem() instanceof ItemConstellationPaper
+            if (itemstack1 != null && itemstack1.stackSize > 0
+                && itemstack1.getItem() instanceof ItemConstellationPaper
                 && ItemConstellationPaper.getConstellation(itemstack1) != null) {
                 if (index >= 0 && index < 36) {
                     if (!this.mergeItemStack(itemstack1, 36, 63, false)) {

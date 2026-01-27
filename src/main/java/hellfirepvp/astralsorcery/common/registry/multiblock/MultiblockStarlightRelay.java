@@ -53,7 +53,6 @@ public class MultiblockStarlightRelay {
 
     private final String[][] shape = new String[][] {
         // Y = -1 (Simple base)
-        {"   A   ", " AHHA  ", "AHBRHA ", " AHAHA ", "  R   "},
-    };
+        { "   A   ", " AHHA  ", "AHBRHA ", " AHAHA ", "  R   " }, };
 
 }

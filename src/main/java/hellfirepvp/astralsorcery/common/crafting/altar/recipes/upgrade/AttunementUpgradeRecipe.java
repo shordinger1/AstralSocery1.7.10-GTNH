@@ -25,13 +25,13 @@ import hellfirepvp.astralsorcery.common.crafting.INighttimeRecipe;
 import hellfirepvp.astralsorcery.common.crafting.ISpecialCraftingEffects;
 import hellfirepvp.astralsorcery.common.crafting.ItemHandle;
 import hellfirepvp.astralsorcery.common.crafting.altar.AbstractAltarRecipe;
-import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.crafting.altar.ActiveCraftingTask;
 import hellfirepvp.astralsorcery.common.crafting.altar.recipes.DiscoveryRecipe;
 import hellfirepvp.astralsorcery.common.crafting.helper.ShapeMap;
 import hellfirepvp.astralsorcery.common.crafting.helper.ShapedRecipeSlot;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
 import hellfirepvp.astralsorcery.common.tile.TileAltar;
+import hellfirepvp.astralsorcery.common.util.BlockPos;
 
 /**
  * This class is part of the Astral Sorcery Mod

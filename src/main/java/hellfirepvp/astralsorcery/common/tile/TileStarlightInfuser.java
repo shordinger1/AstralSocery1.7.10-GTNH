@@ -16,7 +16,6 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.minecraft.client.audio.SoundCategory;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -196,8 +195,8 @@ public class TileStarlightInfuser extends TileReceiverBase implements IWandInter
 
         if (!(out == null || out.stackSize <= 0)) {
             if (out.stackSize > 0) {
-                ItemUtils.dropItem(world, pos.getX() + 0.5, pos.getY() + 1.3, pos.getZ() + 0.5, out)
-                    .setNoDespawn();
+                ItemUtils.dropItem(worldObj, xCoord + 0.5, yCoord + 1.3, zCoord + 0.5, out);
+                // 1.7.10: EntityItem doesn't have setNoDespawn() method
             }
         }
         int size = offsetsLiquidStarlight.length;
@@ -209,7 +208,7 @@ public class TileStarlightInfuser extends TileReceiverBase implements IWandInter
         while (size > 0) {
             BlockPos offset = offsetsLiquidStarlight[indexes.get(size - 1)];
             size--;
-            if (world.rand.nextFloat() < craftingTask.getRecipeToCraft()
+            if (worldObj.rand.nextFloat() < craftingTask.getRecipeToCraft()
                 .getLiquidStarlightConsumptionChance()) {
                 if (!craftingTask.getSupportingChalices()
                     .isEmpty()) {
@@ -224,10 +223,10 @@ public class TileStarlightInfuser extends TileReceiverBase implements IWandInter
                         tc.markForUpdate();
                     }
                 } else {
-                    world.setBlockToAir(getPos().add(offset));
+                    worldObj.setBlockToAir(xCoord + offset.getX(), yCoord + offset.getY(), zCoord + offset.getZ());
                 }
                 EntityFlare.spawnAmbient(
-                    world,
+                    worldObj,
                     new Vector3(this).add(-3 + rand.nextFloat() * 7, 0.6, -3 + rand.nextFloat() * 7));
                 if (!altarRecipe.doesConsumeMultiple()) break;
             }
@@ -235,9 +234,9 @@ public class TileStarlightInfuser extends TileReceiverBase implements IWandInter
         craftingTask.getRecipeToCraft()
             .onCraftServerFinish(this, rand);
         ResearchManager.informCraftingInfusionCompletion(this, craftingTask);
-        SoundHelper.playSoundAround(Sounds.craftFinish, world, getPos(), 1F, 1.7F);
+        SoundHelper.playSoundAround(Sounds.craftFinish, worldObj, new Vector3(xCoord, yCoord, zCoord), 1F, 1.7F);
         EntityFlare
-            .spawnAmbient(world, new Vector3(this).add(-3 + rand.nextFloat() * 7, 0.6, -3 + rand.nextFloat() * 7));
+            .spawnAmbient(worldObj, new Vector3(this).add(-3 + rand.nextFloat() * 7, 0.6, -3 + rand.nextFloat() * 7));
         craftingTask = null;
     }
 
@@ -267,7 +266,7 @@ public class TileStarlightInfuser extends TileReceiverBase implements IWandInter
     @Nullable
     @Override
     public PatternBlockArray getRequiredStructure() {
-        return MultiBlockArrays.patternStarlightInfuser;
+        return MultiBlockArrays.patternStarlightInfuserPattern;
     }
 
     @Nonnull
@@ -414,15 +413,15 @@ public class TileStarlightInfuser extends TileReceiverBase implements IWandInter
                 if (!(stack == null || stack.stackSize <= 0)) {
                     playerIn.inventory.addItemStackToInventory(stack);
                     stack = null;
-                    world.playSound(
-                        null,
-                        pos.getX(),
-                        pos.getY(),
-                        pos.getZ(),
-                        null /* TODO: SoundEvents - needs 1.7.10 sound string */,
-                        SoundCategory.PLAYERS,
-                        0.5F,
-                        world.rand.nextFloat() * 0.2F + 0.8F);
+                    // 1.7.10: playSound takes (String name, double x, y, z, float volume, float pitch)
+                    // TODO: Add correct sound string
+                    // worldObj.playSound(
+                    // "random.click",
+                    // xCoord + 0.5,
+                    // yCoord + 0.5,
+                    // zCoord + 0.5,
+                    // 0.5F,
+                    // worldObj.rand.nextFloat() * 0.2F + 0.8F);
                     markForUpdate();
                 }
             } else {
@@ -435,15 +434,15 @@ public class TileStarlightInfuser extends TileReceiverBase implements IWandInter
                         if (heldItem.stackSize <= 0) {
                             playerIn.inventory.mainInventory[playerIn.inventory.currentItem] = null;
                         }
-                        world.playSound(
-                            null,
-                            pos.getX(),
-                            pos.getY(),
-                            pos.getZ(),
-                            null /* TODO: SoundEvents - needs 1.7.10 sound string */,
-                            SoundCategory.PLAYERS,
-                            0.5F,
-                            world.rand.nextFloat() * 0.2F + 0.8F);
+                        // 1.7.10: playSound takes (String name, double x, y, z, float volume, float pitch)
+                        // TODO: Add correct sound string
+                        // worldObj.playSound(
+                        // "random.click",
+                        // xCoord + 0.5,
+                        // yCoord + 0.5,
+                        // zCoord + 0.5,
+                        // 0.5F,
+                        // worldObj.rand.nextFloat() * 0.2F + 0.8F);
                         markForUpdate();
                     }
                 }

@@ -11,7 +11,6 @@ package hellfirepvp.astralsorcery.common.tile;
 import javax.annotation.Nonnull;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.ITickable;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -30,7 +29,7 @@ import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
  * Created by HellFirePvP
  * Date: 10.11.2016 / 22:28
  */
-public class TileGrindstone extends TileEntitySynchronized implements ITickable {
+public class TileGrindstone extends TileEntitySynchronized {
 
     public static final int TICKS_WHEEL_ROTATION = 20;
 
@@ -39,8 +38,8 @@ public class TileGrindstone extends TileEntitySynchronized implements ITickable 
     private boolean repeat = false; // Used for repeat after effect went off..~
 
     @Override
-    public void update() {
-        if (getWorld().isRemote) {
+    public void updateEntity() {
+        if (worldObj.isRemote) {
             if (tickWheelAnimation > 0) {
                 prevTickWheelAnimation = tickWheelAnimation;
                 tickWheelAnimation--;
@@ -58,10 +57,10 @@ public class TileGrindstone extends TileEntitySynchronized implements ITickable 
 
     public void playWheelEffect() {
         PktPlayEffect effect = new PktPlayEffect(PktPlayEffect.EffectType.GRINDSTONE_WHEEL, getPos());
-        if (getWorld().isRemote) {
+        if (worldObj.isRemote) {
             playWheelAnimation(effect);
         } else {
-            PacketChannel.CHANNEL.sendToAllAround(effect, PacketChannel.pointFromPos(world, getPos(), 32));
+            PacketChannel.CHANNEL.sendToAllAround(effect, PacketChannel.pointFromPos(worldObj, getPos(), 32));
         }
     }
 
@@ -92,11 +91,11 @@ public class TileGrindstone extends TileEntitySynchronized implements ITickable 
     public void readCustomNBT(NBTTagCompound compound) {
         super.readCustomNBT(compound);
 
-        NBTTagCompound itemTag = compound.getCompoundTag("item");
-        if (itemTag.getSize() <= 0) {
-            grindingItem = null;
+        // 1.7.10: Check if key exists and use loadItemStackFromNBT
+        if (compound.hasKey("item")) {
+            grindingItem = ItemStack.loadItemStackFromNBT(compound.getCompoundTag("item"));
         } else {
-            grindingItem = new ItemStack(itemTag);
+            grindingItem = null;
         }
     }
 
@@ -104,7 +103,8 @@ public class TileGrindstone extends TileEntitySynchronized implements ITickable 
     public void writeCustomNBT(NBTTagCompound compound) {
         super.writeCustomNBT(compound);
 
-        NBTHelper.setAsSubTag(compound, "item", (tag1, stack1) -> stack1.writeToNBT(tag1));
+        // 1.7.10: Use NBTHelper.setStack() which handles ItemStack serialization
+        NBTHelper.setStack(compound, "item", grindingItem);
     }
 
 }

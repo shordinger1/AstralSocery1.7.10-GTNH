@@ -13,18 +13,17 @@ import java.util.ArrayList;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.feature.WorldGenMinable;
 import net.minecraftforge.common.config.Configuration;
 
+import cpw.mods.fml.common.registry.GameRegistry;
 import hellfirepvp.astralsorcery.AstralSorcery;
 import hellfirepvp.astralsorcery.common.block.BlockMarble;
 import hellfirepvp.astralsorcery.common.data.config.Config;
 import hellfirepvp.astralsorcery.common.data.config.entry.ConfigEntry;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
-import hellfirepvp.astralsorcery.common.util.MiscUtils;
 import hellfirepvp.astralsorcery.common.world.WorldGenAttribute;
 
 /**
@@ -36,7 +35,7 @@ import hellfirepvp.astralsorcery.common.world.WorldGenAttribute;
  */
 public class GenAttributeMarble extends WorldGenAttribute {
 
-    private WorldGenMinable marbleMineable = null;
+    private List<WorldGenMinable> marbleMineables = null;
     private List<Block> replaceableStates = null;
     private List<String> replaceableStatesSerialized = new ArrayList<>(); // Delay resolving states to a later state...
 
@@ -65,7 +64,7 @@ public class GenAttributeMarble extends WorldGenAttribute {
                 continue;
             }
             String strMeta = spl[2];
-            Integer meta;
+            int meta;
             try {
                 meta = Integer.parseInt(strMeta);
             } catch (NumberFormatException exc) {
@@ -73,21 +72,15 @@ public class GenAttributeMarble extends WorldGenAttribute {
                     .error("Skipping invalid replacement state: " + stateStr + " - Its 'meta' is not a number!");
                 continue;
             }
-            Block b = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(spl[0], spl[1]));
+            Block b = GameRegistry.findBlock(spl[0], spl[1]);
             if (b == null || b == Blocks.air) {
                 AstralSorcery.log
                     .error("Skipping invalid replacement state: " + stateStr + " - The block does not exist!");
                 continue;
             }
-            if (meta == -1) {
-                if (b instanceof BlockVariants) {
-                    replaceableStates.addAll(((BlockVariants) b).getValidStates());
-                } else {
-                    replaceableStates.add(b);
-                }
-            } else {
-                replaceableStates.add(b);
-            }
+            // In 1.7.10, blocks don't have multiple variants in the same way
+            // Just add the block regardless of meta
+            replaceableStates.add(b);
         }
     }
 
@@ -97,10 +90,16 @@ public class GenAttributeMarble extends WorldGenAttribute {
     public void generate(Random random, int chunkX, int chunkZ, World world) {
         if (replaceableStates == null) {
             resolveReplaceableStates();
-            marbleMineable = new WorldGenMinable(
-                BlocksAS.blockMarble.withProperty(BlockMarble.MARBLE_TYPE, BlockMarble.MarbleBlockType.RAW),
-                Config.marbleVeinSize,
-                (s) -> MiscUtils.getMatchingState(this.replaceableStates, s) != null);
+            // Create a WorldGenMinable for each replaceable block type
+            marbleMineables = new ArrayList<>();
+            for (Block targetBlock : replaceableStates) {
+                WorldGenMinable gen = new WorldGenMinable(
+                    BlocksAS.blockMarble,
+                    BlockMarble.MarbleBlockType.RAW.getMeta(),
+                    Config.marbleVeinSize,
+                    targetBlock);
+                marbleMineables.add(gen);
+            }
         }
 
         for (int i = 0; i < Config.marbleAmount; i++) {
@@ -108,7 +107,12 @@ public class GenAttributeMarble extends WorldGenAttribute {
             int rY = 50 + random.nextInt(10);
             int rZ = (chunkZ * 16) + random.nextInt(16);
             BlockPos pos = new BlockPos(rX, rY, rZ);
-            marbleMineable.generate(world, random, pos);
+            // Try each WorldGenMinable until one succeeds
+            for (WorldGenMinable gen : marbleMineables) {
+                if (gen.generate(world, random, pos.posX, pos.posY, pos.posZ)) {
+                    break;
+                }
+            }
         }
     }
 }

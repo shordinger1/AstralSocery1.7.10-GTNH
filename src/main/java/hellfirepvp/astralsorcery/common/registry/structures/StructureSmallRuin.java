@@ -12,8 +12,6 @@ import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockAccess;
 
-import hellfirepvp.astralsorcery.common.block.BlockMarble;
-import hellfirepvp.astralsorcery.common.block.BlockMarbleStairs;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
 import hellfirepvp.astralsorcery.common.structure.array.StructureBlockArray;
 import hellfirepvp.astralsorcery.common.tile.TileStructController;

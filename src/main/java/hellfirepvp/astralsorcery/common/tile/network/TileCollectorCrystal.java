@@ -9,18 +9,18 @@
 package hellfirepvp.astralsorcery.common.tile.network;
 
 import java.awt.*;
-import net.minecraft.util.EnumChatFormatting;
 import java.util.Random;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 
 import com.google.common.collect.Lists;
@@ -93,8 +93,9 @@ public class TileCollectorCrystal extends TileSourceBase
         super.updateEntity();
 
         if (!getWorld().isRemote) {
+            // 1.7.10: updateEntity() is the equivalent of tick() in ITickable
             if (ticksExisted > 4 && associatedType == null) {
-                if (!getWorld().setBlockToAir(getPos())) {
+                if (!getWorld().setBlockToAir(getPos().getX(), getPos().getY(), getPos().getZ())) {
                     return;
                 }
             }
@@ -147,7 +148,8 @@ public class TileCollectorCrystal extends TileSourceBase
     @Override
     public PatternBlockArray getRequiredStructure() {
         if (type == BlockCollectorCrystalBase.CollectorCrystalType.CELESTIAL_CRYSTAL) {
-            return MultiBlockArrays.patternCollectorEnhancement;
+            // 1.7.10: Need to cast since MultiBlockArrays pattern returns Object
+            return (PatternBlockArray) MultiBlockArrays.patternCollectorEnhancement;
         }
         return null;
     }
@@ -197,7 +199,8 @@ public class TileCollectorCrystal extends TileSourceBase
             }
         }
 
-        BlockPos randomPos = offsetsLiquidStarlight[rand.nextInt(offsetsLiquidStarlight.length)].add(pos);
+        BlockPos randomPos = offsetsLiquidStarlight[rand.nextInt(offsetsLiquidStarlight.length)]
+            .add(getPos().getX(), getPos().getY(), getPos().getZ());
         Vector3 from = new Vector3(randomPos).add(rand.nextFloat(), 0.8, rand.nextFloat());
         Vector3 to = new Vector3(this).add(0.5, 0.5, 0.5);
         Vector3 mov = to.clone()
@@ -229,7 +232,8 @@ public class TileCollectorCrystal extends TileSourceBase
         if (usedCrystalProperties != null
             && (usedCrystalProperties.getPurity() > 90 || usedCrystalProperties.getCollectiveCapability() > 90)
             && rand.nextInt(100) == 0) {
-            AstralSorcery.proxy.fireLightning(world, to, from, c);
+            // 1.7.10: use getWorld() instead of world
+            AstralSorcery.proxy.fireLightning(getWorld(), to, from, c);
         }
     }
 
@@ -239,9 +243,11 @@ public class TileCollectorCrystal extends TileSourceBase
             for (BlockPos linkTo : Lists.newArrayList(getLinkedPositions())) {
                 tryUnlink(player, linkTo);
             }
-            player.addChatMessage(
-                new ChatComponentTranslation("misc.link.unlink.all")
-                    .setStyle(new Style().setColor(EnumChatFormatting.GREEN)));
+            // 1.7.10: ChatStyle works differently - chain the calls on the component
+            ChatComponentTranslation msg = new ChatComponentTranslation("misc.link.unlink.all");
+            msg.getChatStyle()
+                .setColor(EnumChatFormatting.GREEN);
+            player.addChatMessage(msg);
             return false;
         }
         return true;
@@ -303,7 +309,8 @@ public class TileCollectorCrystal extends TileSourceBase
     public void setEnhanced(boolean enhanced) {
         if (!getWorld().isRemote && type == BlockCollectorCrystalBase.CollectorCrystalType.CELESTIAL_CRYSTAL) {
             this.multiBlockPresent = enhanced;
-            WorldNetworkHandler handle = WorldNetworkHandler.getNetworkHandler(world);
+            // 1.7.10: use getWorld() instead of world
+            WorldNetworkHandler handle = WorldNetworkHandler.getNetworkHandler(getWorld());
             IIndependentStarlightSource source = handle.getSourceAt(getPos());
             if (source instanceof IndependentCrystalSource) {
                 ((IndependentCrystalSource) source).setEnhanced(enhanced);
@@ -340,8 +347,9 @@ public class TileCollectorCrystal extends TileSourceBase
     public void readCustomNBT(NBTTagCompound compound) {
         super.readCustomNBT(compound);
 
-        if (compound.hasUniqueId("playerRef")) {
-            this.playerRef = compound.getUniqueId("playerRef");
+        // 1.7.10: hasUniqueId/getUniqueId don't exist, use manual UUID handling
+        if (compound.hasKey("playerRefMost") && compound.hasKey("playerRefLeast")) {
+            this.playerRef = new UUID(compound.getLong("playerRefMost"), compound.getLong("playerRefLeast"));
         } else if (compound.hasKey("player") && compound.getBoolean("player")) {
             this.playerRef = DUMMY_UUID; // Legacy data conversion..
         } else {
@@ -360,8 +368,10 @@ public class TileCollectorCrystal extends TileSourceBase
     public void writeCustomNBT(NBTTagCompound compound) {
         super.writeCustomNBT(compound);
 
+        // 1.7.10: setUniqueId doesn't exist, use manual UUID handling
         if (this.playerRef != null) {
-            compound.setUniqueId("playerRef", this.playerRef);
+            compound.setLong("playerRefMost", this.playerRef.getMostSignificantBits());
+            compound.setLong("playerRefLeast", this.playerRef.getLeastSignificantBits());
         }
         if (associatedType != null) {
             associatedType.writeToNBT(compound);
@@ -380,8 +390,14 @@ public class TileCollectorCrystal extends TileSourceBase
 
     @Override
     public AxisAlignedBB getRenderBoundingBox() {
-        return Block.FULL_BLOCK_AABB.grow(1)
-            .offset(getPos());
+        // 1.7.10: FULL_BLOCK_AABB doesn't exist, create AxisAlignedBB manually
+        return AxisAlignedBB.getBoundingBox(
+            getPos().getX() - 1,
+            getPos().getY() - 1,
+            getPos().getZ() - 1,
+            getPos().getX() + 2,
+            getPos().getY() + 2,
+            getPos().getZ() + 2);
     }
 
     @Nullable

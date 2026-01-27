@@ -14,8 +14,8 @@ import java.util.Map;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
-import net.minecraft.client.resources.I18n;
 
+import net.minecraft.client.resources.I18n;
 import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.Lists;

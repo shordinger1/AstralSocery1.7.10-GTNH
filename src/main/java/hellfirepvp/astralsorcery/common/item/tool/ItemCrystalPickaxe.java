@@ -23,7 +23,6 @@ import hellfirepvp.astralsorcery.common.item.crystal.CrystalProperties;
 import hellfirepvp.astralsorcery.common.item.crystal.ToolCrystalProperties;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
 
-
 /**
  * This class is part of the Astral Sorcery Mod
  * The complete source code for this mod can be found on github.
@@ -33,11 +32,8 @@ import hellfirepvp.astralsorcery.common.registry.RegistryItems;
  */
 public class ItemCrystalPickaxe extends ItemCrystalToolBase {
 
-    private static final Set<Block> EFFECTIVE_SET = Sets.newHashSet(
-        Blocks.redstone_ore,
-        Blocks.lit_redstone_ore,
-        Blocks.obsidian
-    );
+    private static final Set<Block> EFFECTIVE_SET = Sets
+        .newHashSet(Blocks.redstone_ore, Blocks.lit_redstone_ore, Blocks.obsidian);
 
     public ItemCrystalPickaxe() {
         super(3, EFFECTIVE_SET);

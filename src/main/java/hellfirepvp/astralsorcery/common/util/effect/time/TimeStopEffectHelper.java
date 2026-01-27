@@ -10,7 +10,6 @@ package hellfirepvp.astralsorcery.common.util.effect.time;
 
 import java.awt.*;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import javax.annotation.Nonnull;
@@ -119,23 +118,28 @@ public class TimeStopEffectHelper {
     @SideOnly(Side.CLIENT)
     public void playClientTickEffect() {
         Random rand = new Random();
-        // 1.7.10: EntitySelectors doesn't exist, use IEntitySelector
+        // 1.7.10: EntitySelectors doesn't exist, need to filter manually
         final double r = range;
-        List<EntityLivingBase> entities = Minecraft.getMinecraft().theWorld.getEntitiesWithinAABB(
+        // Get entities in AABB, then filter by range manually
+        List<EntityLivingBase> allEntities = Minecraft.getMinecraft().theWorld.getEntitiesWithinAABB(
             EntityLivingBase.class,
-            AxisAlignedBB.getBoundingBox(-range, -range, -range, range, range, range)
-                .offset(position.getX(), position.getY(), position.getZ()),
-            new net.minecraft.command.IEntitySelector() {
-
-                @Override
-                public boolean isEntityApplicable(Entity entity) {
-                    // 1.7.10: Check if entity is within range manually
-                    double dx = entity.posX - position.getX();
-                    double dy = entity.posY - position.getY();
-                    double dz = entity.posZ - position.getZ();
-                    return (dx * dx + dy * dy + dz * dz) <= (r * r);
-                }
-            });
+            AxisAlignedBB.getBoundingBox(
+                position.getX() - range,
+                position.getY() - range,
+                position.getZ() - range,
+                position.getX() + range,
+                position.getY() + range,
+                position.getZ() + range));
+        // Filter by range
+        List<EntityLivingBase> entities = new java.util.LinkedList<>();
+        for (EntityLivingBase e : allEntities) {
+            double dx = e.posX - (double) position.getX();
+            double dy = e.posY - (double) position.getY();
+            double dz = e.posZ - (double) position.getZ();
+            if ((dx * dx + dy * dy + dz * dz) <= (r * r)) {
+                entities.add(e);
+            }
+        }
         for (EntityLivingBase e : entities) {
             if (e != null && !e.isDead && targetController.shouldFreezeEntity(e)) {
                 if (reducedParticles && rand.nextInt(5) == 0) continue;
@@ -151,32 +155,50 @@ public class TimeStopEffectHelper {
         for (int xx = minX; xx <= maxX; ++xx) {
             for (int zz = minZ; zz <= maxZ; ++zz) {
                 Chunk ch = Minecraft.getMinecraft().theWorld.getChunkFromChunkCoords(xx, zz);
-                if (!(ch == null || ch.stackSize <= 0)) {
-                    Map<BlockPos, TileEntity> map = ch.getTileEntityMap();
-                    for (Map.Entry<BlockPos, TileEntity> teEntry : map.entrySet()) {
+                // 1.7.10: Chunk doesn't have stackSize or getTileEntityMap()
+                // Need to scan chunk for tile entities manually
+                if (ch != null) {
+                    java.util.List<TileEntity> tileEntities = new java.util.LinkedList<>();
+                    // Scan the chunk for tile entities
+                    for (int x = 0; x < 16; x++) {
+                        for (int z = 0; z < 16; z++) {
+                            for (int y = 0; y < 256; y++) {
+                                TileEntity te = Minecraft.getMinecraft().theWorld
+                                    .getTileEntity(ch.xPosition * 16 + x, y, ch.zPosition * 16 + z);
+                                if (te != null && !tileEntities.contains(te)) {
+                                    tileEntities.add(te);
+                                }
+                            }
+                        }
+                    }
+                    for (TileEntity te : tileEntities) {
                         if (reducedParticles && rand.nextInt(5) == 0) continue;
-                        TileEntity te = teEntry.getValue();
-                        if (te != null && te instanceof ITickable
-                            && position.getDistance(te.xCoord, te.yCoord, te.zCoord) <= range) {
+                        if (te instanceof ITickable) {
+                            // 1.7.10: Calculate distance manually
+                            double dx = te.xCoord - position.getX();
+                            double dy = te.yCoord - position.getY();
+                            double dz = te.zCoord - position.getZ();
+                            double distSq = dx * dx + dy * dy + dz * dz;
+                            if (distSq <= range * range) {
+                                double x = te.xCoord + rand.nextFloat();
+                                double y = te.yCoord + rand.nextFloat();
+                                double z = te.zCoord + rand.nextFloat();
 
-                            double x = te.xCoord + rand.nextFloat();
-                            double y = te.yCoord + rand.nextFloat();
-                            double z = te.zCoord + rand.nextFloat();
-
-                            EntityFXFacingParticle p = EffectHelper.genericFlareParticle(x, y, z);
-                            p.setColor(Color.WHITE)
-                                .enableAlphaFade(EntityComplexFX.AlphaFunction.FADE_OUT);
-                            p.scale(rand.nextFloat() * 0.5F + 0.3F)
-                                .gravity(0.004);
-                            p.setMaxAge(40 + rand.nextInt(20));
-
-                            if (rand.nextFloat() < 0.9F) {
-                                p = EffectHelper.genericFlareParticle(x, y, z);
+                                EntityFXFacingParticle p = EffectHelper.genericFlareParticle(x, y, z);
                                 p.setColor(Color.WHITE)
                                     .enableAlphaFade(EntityComplexFX.AlphaFunction.FADE_OUT);
-                                p.scale(rand.nextFloat() * 0.2F + 0.1F)
+                                p.scale(rand.nextFloat() * 0.5F + 0.3F)
                                     .gravity(0.004);
-                                p.setMaxAge(30 + rand.nextInt(10));
+                                p.setMaxAge(40 + rand.nextInt(20));
+
+                                if (rand.nextFloat() < 0.9F) {
+                                    p = EffectHelper.genericFlareParticle(x, y, z);
+                                    p.setColor(Color.WHITE)
+                                        .enableAlphaFade(EntityComplexFX.AlphaFunction.FADE_OUT);
+                                    p.scale(rand.nextFloat() * 0.2F + 0.1F)
+                                        .gravity(0.004);
+                                    p.setMaxAge(30 + rand.nextInt(10));
+                                }
                             }
                         }
                     }

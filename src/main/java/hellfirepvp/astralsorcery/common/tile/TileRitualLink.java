@@ -57,8 +57,8 @@ public class TileRitualLink extends TileEntityTick implements ILinkableTile, IMu
             playClientEffects();
         } else {
             if (linkedTo != null) {
-                if (MiscUtils.isChunkLoaded(world, new ChunkPos(linkedTo))) {
-                    TileRitualLink link = MiscUtils.getTileAt(world, linkedTo, TileRitualLink.class, true);
+                if (MiscUtils.isChunkLoaded(worldObj, new ChunkPos(linkedTo))) {
+                    TileRitualLink link = MiscUtils.getTileAt(worldObj, linkedTo, TileRitualLink.class, true);
                     if (link == null) {
                         linkedTo = null;
                         markForUpdate();
@@ -70,7 +70,10 @@ public class TileRitualLink extends TileEntityTick implements ILinkableTile, IMu
 
     @SideOnly(Side.CLIENT)
     private void playClientEffects() {
-        if (this.linkedTo != null && Minecraft.getMinecraft().thePlayer.getDistanceSq(getPos()) < 1024) { // 32 Squared
+        // 1.7.10: getDistanceSq takes 3 double coordinates, not BlockPos
+        if (this.linkedTo != null
+            && Minecraft.getMinecraft().thePlayer.getDistanceSq(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5) < 1024) { // 32
+                                                                                                                    // Squared
             if (ticksExisted % 4 == 0) {
                 Collection<Vector3> positions = MiscUtils.getCirclePositions(
                     new Vector3(this).add(0.5, 0.5, 0.5),
@@ -112,21 +115,10 @@ public class TileRitualLink extends TileEntityTick implements ILinkableTile, IMu
     @Override
     public PatternBlockArray getRequiredStructure() {
         if (previewPatternCopy == null) {
-            previewPatternCopy = new PatternBlockArray(
-                MultiBlockArrays.patternRitualPedestalWithLink.getRegistryName());
-            for (Map.Entry<BlockPos, BlockInfo> entry : MultiBlockArrays.patternRitualPedestalWithLink.getPattern()
-                .entrySet()) {
-                BlockPos pos = entry.getKey();
-                BlockInfo info = entry.getValue();
-                previewPatternCopy.addBlock(pos.down(5), info.state, info.matcher);
-            }
-            for (Map.Entry<BlockPos, TileCallback> entry : MultiBlockArrays.patternRitualPedestalWithLink
-                .getTileCallbacks()
-                .entrySet()) {
-                BlockPos pos = entry.getKey();
-                TileCallback callback = entry.getValue();
-                previewPatternCopy.addTileCallback(pos.down(5), callback);
-            }
+            // 1.7.10: Use the standard ritual pedestal pattern instead
+            // The GT StructureLib multiblock doesn't have getPattern() methods accessible
+            // We'll use the regular ritual pedestal pattern
+            previewPatternCopy = (PatternBlockArray) MultiBlockArrays.patternRitualPedestal;
         }
         return previewPatternCopy;
     }

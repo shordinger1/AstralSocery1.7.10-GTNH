@@ -5,17 +5,19 @@
 
 package hellfirepvp.astralsorcery.common.migration.net.darkhax.orestages.api;
 
-import hellfirepvp.astralsorcery.common.util.data.Tuple;
-import net.minecraft.block.Block;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import net.minecraft.block.Block;
+
+import hellfirepvp.astralsorcery.common.util.data.Tuple;
 
 /**
  * 1.7.10 Migration of OreTiersAPI from OreStages mod
@@ -45,15 +47,15 @@ public final class OreTiersAPI {
     /**
      * Adds a replacement for a block.
      *
-     * @param stage The stage to add the replacement to.
-     * @param original The original block.
-     * @param originalMeta The original block meta.
-     * @param replacement The replacement block.
+     * @param stage           The stage to add the replacement to.
+     * @param original        The original block.
+     * @param originalMeta    The original block meta.
+     * @param replacement     The replacement block.
      * @param replacementMeta The replacement block meta.
-     * @param defAllow Whether to allow by default.
+     * @param defAllow        Whether to allow by default.
      */
     public static void addReplacement(@Nonnull String stage, @Nonnull Block original, int originalMeta,
-                                       @Nonnull Block replacement, int replacementMeta, boolean defAllow) {
+        @Nonnull Block replacement, int replacementMeta, boolean defAllow) {
 
         BlockMeta originalKey = new BlockMeta(original, originalMeta);
         BlockMeta replacementKey = new BlockMeta(replacement, replacementMeta);
@@ -82,13 +84,13 @@ public final class OreTiersAPI {
     /**
      * Adds a replacement for a block (metadata 0).
      *
-     * @param stage The stage to add the replacement to.
-     * @param original The original block.
+     * @param stage       The stage to add the replacement to.
+     * @param original    The original block.
      * @param replacement The block to replace it with.
-     * @param defAllow Whether to allow by default.
+     * @param defAllow    Whether to allow by default.
      */
-    public static void addReplacement(@Nonnull String stage, @Nonnull Block original,
-                                       @Nonnull Block replacement, boolean defAllow) {
+    public static void addReplacement(@Nonnull String stage, @Nonnull Block original, @Nonnull Block replacement,
+        boolean defAllow) {
         addReplacement(stage, original, 0, replacement, 0, defAllow);
     }
 
@@ -120,7 +122,7 @@ public final class OreTiersAPI {
      * Checks if a specific block+meta has a replacement.
      *
      * @param block The block to check for.
-     * @param meta The metadata to check for.
+     * @param meta  The metadata to check for.
      * @return Whether or not the block+meta has a replacement.
      */
     public static boolean hasReplacement(Block block, int meta) {
@@ -175,7 +177,7 @@ public final class OreTiersAPI {
      * Gets stage info from a block with metadata.
      *
      * @param block The block to get stage info for.
-     * @param meta The metadata to get stage info for.
+     * @param meta  The metadata to get stage info for.
      * @return The stage info for the passed block+meta, or null if not found.
      */
     @Nullable
@@ -207,6 +209,7 @@ public final class OreTiersAPI {
      * Helper class to represent Block + metadata combination.
      */
     public static class BlockMeta {
+
         public final Block block;
         public final int meta;
 

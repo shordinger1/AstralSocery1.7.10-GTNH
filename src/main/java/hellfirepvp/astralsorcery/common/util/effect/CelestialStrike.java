@@ -14,6 +14,7 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.AxisAlignedBB;
@@ -35,6 +36,7 @@ import hellfirepvp.astralsorcery.common.CommonProxy;
 import hellfirepvp.astralsorcery.common.constellation.distribution.ConstellationSkyHandler;
 import hellfirepvp.astralsorcery.common.network.PacketChannel;
 import hellfirepvp.astralsorcery.common.network.packet.server.PktParticleEvent;
+import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.util.DamageUtil;
 import hellfirepvp.astralsorcery.common.util.SkyCollectionHelper;
 import hellfirepvp.astralsorcery.common.util.WrapMathHelper;
@@ -53,11 +55,12 @@ public class CelestialStrike {
         Vector3 displayPosition) {
         double radius = 16D;
         // 1.7.10: EntitySelectors doesn't exist, use IEntitySelector
+        BlockPos pos = position.toBlockPos();
         List<EntityLivingBase> livingEntities = world.getEntitiesWithinAABB(
             EntityLivingBase.class,
-            AxisAlignedBB.getBoundingBox(0, 0, 0, 0, 0, 0)
-                .expand(radius, radius / 2, radius)
-                .offset(position.toBlockPos()),
+            // 1.7.10: AxisAlignedBB.getBoundingBox takes x, y, z coordinates, not BlockPos
+            AxisAlignedBB.getBoundingBox(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ())
+                .expand(radius, radius / 2, radius),
             new net.minecraft.command.IEntitySelector() {
 
                 @Override
@@ -81,10 +84,13 @@ public class CelestialStrike {
             .getCurrentDaytimeDistribution(world) * 40F;
         dmg += SkyCollectionHelper.getSkyNoiseDistribution(world, position.toBlockPos()) * 60F;
         for (EntityLivingBase living : livingEntities) {
-            if ((living instanceof EntityPlayer)
-                && (((EntityPlayer) living).isSpectator() || ((EntityPlayer) living).isCreative()
-                    || (attacker != null && living.isOnSameTeam(attacker)))) {
-                continue;
+            if ((living instanceof EntityPlayer)) {
+                EntityPlayer player = (EntityPlayer) living;
+                // 1.7.10: Check spectator mode using dimensionId == -1 or creative using capabilities
+                if (player.capabilities.isCreativeMode
+                    || player.dimension == -1 && attacker != null && living.isOnSameTeam(attacker)) {
+                    continue;
+                }
             }
             float dstPerc = (float) (Vector3.atEntityCenter(living)
                 .distance(position) / radius);

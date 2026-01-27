@@ -17,7 +17,6 @@ import net.minecraft.block.Block;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.common.data.config.Config;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.migration.IProperty;
 import hellfirepvp.astralsorcery.common.migration.ModelResourceLocation;
 
@@ -44,7 +43,14 @@ public interface BlockDynamicStateMapper {
         return (Block) this;
     }
 
-    public Map<IBlockState, ModelResourceLocation> getModelLocations(Block blockIn);
+    /**
+     * Get model locations for this block
+     * In 1.7.10, maps metadata values to model resource locations
+     *
+     * @param blockIn The block
+     * @return Map of metadata to model resource locations
+     */
+    public Map<Integer, ModelResourceLocation> getModelLocations(Block blockIn);
 
     public static interface Festive extends BlockDynamicStateMapper {
 

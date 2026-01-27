@@ -8,7 +8,6 @@
 
 package hellfirepvp.astralsorcery.common.tile.base;
 
-import net.minecraft.client.renderer.texture.ITickable;
 import net.minecraft.nbt.NBTTagCompound;
 
 /**
@@ -18,7 +17,8 @@ import net.minecraft.nbt.NBTTagCompound;
  * Created by HellFirePvP
  * Date: 02.08.2016 / 17:34
  */
-public abstract class TileEntityTick extends TileEntitySynchronized implements ITickable {
+// 1.7.10: Don't implement ITickable - that's for texture animation, not tile entity ticking
+public abstract class TileEntityTick extends TileEntitySynchronized {
 
     protected int ticksExisted = 0;
 

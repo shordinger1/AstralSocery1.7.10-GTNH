@@ -13,12 +13,14 @@ import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.event.ForgeEventFactory;
@@ -41,7 +43,7 @@ public class EntityUtils {
 
     public static boolean canEntitySpawnHere(World world, BlockPos at, ResourceLocation entityKey,
         boolean respectConditions, @Nullable Function<Entity, Void> preCheckEntity) {
-        Entity entity = EntityList.createEntityByIDFromName(entityKey, world);
+        Entity entity = EntityList.createEntityByName(entityKey.toString(), world);
         if (entity == null) {
             return false;
         }
@@ -56,15 +58,10 @@ public class EntityUtils {
         }
         if (respectConditions) {
             if (entity instanceof EntityLiving) {
-                Event.Result canSpawn = ForgeEventFactory.canEntitySpawn(
-                    (EntityLiving) entity,
-                    world,
-                    at.getX() + 0.5F,
-                    at.getY() + 0.5F,
-                    at.getZ() + 0.5F,
-                    null);
-                if (canSpawn != Event.Result.ALLOW && (canSpawn != Event.Result.DEFAULT
-                    || (!((EntityLiving) entity).getCanSpawnHere() || !((EntityLiving) entity).isNotColliding()))) {
+                Event.Result canSpawn = ForgeEventFactory
+                    .canEntitySpawn((EntityLiving) entity, world, at.getX() + 0.5F, at.getY() + 0.5F, at.getZ() + 0.5F);
+                if (canSpawn != Event.Result.ALLOW
+                    && (canSpawn != Event.Result.DEFAULT || !((EntityLiving) entity).getCanSpawnHere())) {
                     return false;
                 }
             }
@@ -73,10 +70,11 @@ public class EntityUtils {
     }
 
     public static boolean doesEntityHaveSpace(World world, Entity entity) {
-        return !world.containsAnyLiquid(entity.getEntityBoundingBox())
-            && world.getCollisionBoxes(entity, entity.getEntityBoundingBox())
+        AxisAlignedBB box = entity.getBoundingBox();
+        return !world.isAABBInMaterial(box, Material.water) && !world.isAABBInMaterial(box, Material.lava)
+            && world.getCollidingBoundingBoxes(entity, box)
                 .isEmpty()
-            && world.checkNoEntityCollision(entity.getEntityBoundingBox(), entity);
+            && world.checkNoEntityCollision(box, entity);
     }
 
     public static void applyVortexMotion(Function<Void, Vector3> getPositionFunction,
@@ -158,7 +156,7 @@ public class EntityUtils {
 
     @Nullable
     public static <T> T selectClosest(Collection<T> elements, Function<T, Double> dstFunc) {
-        if (elements == null || elements.stackSize <= 0) return null;
+        if (elements == null || elements.isEmpty()) return null;
 
         double dstClosest = Double.MAX_VALUE;
         T closestElement = null;

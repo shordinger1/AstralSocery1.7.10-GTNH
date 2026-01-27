@@ -40,8 +40,9 @@ public interface ChargedCrystalToolBase {
         ItemStack inert = new ItemStack(((ChargedCrystalToolBase) stack.getItem()).getInertVariant());
         applyToolProperties(inert, prop);
         if (stack.hasTagCompound()) {
-            inert.setTagCompound((NBTTagCompound) stack.getTagCompound()
-                .copy());
+            inert.setTagCompound(
+                (NBTTagCompound) stack.getTagCompound()
+                    .copy());
         }
         return inert;
     }

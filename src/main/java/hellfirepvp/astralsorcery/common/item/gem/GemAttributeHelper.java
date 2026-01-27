@@ -10,6 +10,7 @@ package hellfirepvp.astralsorcery.common.item.gem;
 
 import java.util.*;
 import java.util.ArrayList;
+import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
@@ -23,7 +24,6 @@ import hellfirepvp.astralsorcery.common.constellation.perk.attribute.AttributeTy
 import hellfirepvp.astralsorcery.common.constellation.perk.attribute.GemAttributeModifier;
 import hellfirepvp.astralsorcery.common.constellation.perk.attribute.PerkAttributeModifier;
 import hellfirepvp.astralsorcery.common.data.config.entry.ConfigEntry;
-import hellfirepvp.astralsorcery.common.migration.Function;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
 import hellfirepvp.astralsorcery.common.util.WrapMathHelper;
 
@@ -100,10 +100,9 @@ public class GemAttributeHelper {
         for (int i = 0; i < rolls; i++) {
             String type = null;
             if (allowDuplicateTypes) {
-                type = MiscUtils.getWeightedRandomEntry(
-                    configuredModifiers.keySet(),
-                    random,
-                    new Function<String, Integer>() {
+                type = MiscUtils
+                    .getWeightedRandomEntry(configuredModifiers.keySet(), random, new Function<String, Integer>() {
+
                         @Override
                         public Integer apply(String s) {
                             return configuredModifiers.getOrDefault(s, 1);
@@ -111,7 +110,7 @@ public class GemAttributeHelper {
                     });
             } else {
                 List<String> keys = new ArrayList<>(configuredModifiers.keySet());
-                while (!keys == null || keys.stackSize <= 0 && type == null) {
+                while (!keys.isEmpty() && type == null) {
                     String item = getWeightedResultAndRemove(keys, random);
                     if (item != null) {
                         boolean foundType = false;
@@ -191,10 +190,11 @@ public class GemAttributeHelper {
 
     @Nullable
     private static String getWeightedResultAndRemove(List<String> list, Random random) {
-        if (list == null || list.stackSize <= 0) {
+        if (list == null || list.isEmpty()) {
             return null;
         }
         String result = MiscUtils.getWeightedRandomEntry(list, random, new Function<String, Integer>() {
+
             @Override
             public Integer apply(String s) {
                 return configuredModifiers.getOrDefault(s, 1);

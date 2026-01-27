@@ -64,6 +64,27 @@ public class BlockPos extends ChunkCoordinates {
     }
 
     /**
+     * Add another BlockPos to this position and return a new BlockPos.
+     */
+    public BlockPos add(BlockPos other) {
+        return new BlockPos(this.posX + other.posX, this.posY + other.posY, this.posZ + other.posZ);
+    }
+
+    /**
+     * Subtract offset from this position and return a new BlockPos.
+     */
+    public BlockPos subtract(int x, int y, int z) {
+        return new BlockPos(this.posX - x, this.posY - y, this.posZ - z);
+    }
+
+    /**
+     * Subtract another BlockPos from this position and return a new BlockPos.
+     */
+    public BlockPos subtract(BlockPos other) {
+        return new BlockPos(this.posX - other.posX, this.posY - other.posY, this.posZ - other.posZ);
+    }
+
+    /**
      * Add offset to this position and return a new BlockPos.
      */
     public BlockPos add(double x, double y, double z) {

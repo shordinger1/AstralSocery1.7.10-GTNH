@@ -11,11 +11,9 @@ package hellfirepvp.astralsorcery.common.tile.storage;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -59,14 +57,17 @@ public class StorageKey {
 
         StorageKey that = (StorageKey) o;
 
-        return (item.getHasSubtypes() || metadata == that.metadata) && item.getRegistryName()
-            .equals(that.item.getRegistryName());
+        // 1.7.10: Use itemRegistry.getNameForObject() instead of getRegistryName()
+        String thisName = Item.itemRegistry.getNameForObject(this.item);
+        String thatName = Item.itemRegistry.getNameForObject(that.item);
+        return (item.getHasSubtypes() || metadata == that.metadata) && thisName.equals(thatName);
     }
 
     @Override
     public int hashCode() {
-        int result = item.getRegistryName()
-            .hashCode();
+        // 1.7.10: Use itemRegistry.getNameForObject() instead of getRegistryName()
+        String itemName = Item.itemRegistry.getNameForObject(this.item);
+        int result = itemName.hashCode();
         if (item.getHasSubtypes()) {
             result = 31 * result + metadata;
         }
@@ -76,10 +77,9 @@ public class StorageKey {
     @Nonnull
     public NBTTagCompound serialize() {
         NBTTagCompound keyTag = new NBTTagCompound();
-        keyTag.setString(
-            "name",
-            item.getRegistryName()
-                .toString());
+        // 1.7.10: Use itemRegistry.getNameForObject() instead of getRegistryName()
+        String itemName = Item.itemRegistry.getNameForObject(this.item);
+        keyTag.setString("name", itemName);
         keyTag.setInteger("meta", metadata);
         return keyTag;
     }
@@ -87,9 +87,10 @@ public class StorageKey {
     // If the item in question does no longer exist in the registry, return null.
     @Nullable
     public static StorageKey deserialize(NBTTagCompound nbt) {
-        ResourceLocation rl = new ResourceLocation(nbt.getString("name"));
-        Item i = ForgeRegistries.ITEMS.getValue(rl);
-        if (i == null || i == null) {
+        // 1.7.10: Use Item.itemRegistry.getObject() instead of ForgeRegistries.ITEMS.getValue()
+        String name = nbt.getString("name");
+        Item i = (Item) Item.itemRegistry.getObject(name);
+        if (i == null) {
             return null;
         }
         int meta = nbt.getInteger("meta");

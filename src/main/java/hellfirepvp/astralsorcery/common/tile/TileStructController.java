@@ -46,11 +46,13 @@ public class TileStructController extends TileEntityTick {
         if (!getWorld().isRemote) {
             if (ticksExisted % 60 == 0) {
                 if (this.type == null) {
-                    worldObj.setBlockToAir(getPos());
+                    // 1.7.10: setBlockToAir takes x, y, z coordinates
+                    worldObj.setBlockToAir(getPos().getX(), getPos().getY(), getPos().getZ());
                 } else {
                     PatternBlockArray match = this.type.matchProvider.apply(null);
                     if (match == null || !match.matches(worldObj, getPos().add(this.type.structureMatchOffset))) {
-                        worldObj.setBlockToAir(getPos());
+                        // 1.7.10: setBlockToAir takes x, y, z coordinates
+                        worldObj.setBlockToAir(getPos().getX(), getPos().getY(), getPos().getZ());
                     }
                 }
             }

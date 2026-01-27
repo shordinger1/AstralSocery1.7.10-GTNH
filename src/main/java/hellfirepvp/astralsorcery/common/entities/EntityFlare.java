@@ -177,10 +177,9 @@ public class EntityFlare extends EntityFlying {
                             bp.getZ() - strollRange / 2 + rand.nextInt(strollRange));
                     }
 
-                    if (moveTarget != null
-                        && (moveTarget.getY() <= 1
-                            || !worldObj.isAirBlock(moveTarget.getX(), moveTarget.getY(), moveTarget.getZ())
-                            || getDistanceSq(moveTarget.getX(), moveTarget.getY(), moveTarget.getZ()) < 5D)) {
+                    if (moveTarget != null && (moveTarget.getY() <= 1
+                        || !worldObj.isAirBlock(moveTarget.getX(), moveTarget.getY(), moveTarget.getZ())
+                        || getDistanceSq(moveTarget.getX(), moveTarget.getY(), moveTarget.getZ()) < 5D)) {
                         moveTarget = null;
                     }
                 } else if (followingEntityId != -1) {
@@ -210,15 +209,14 @@ public class EntityFlare extends EntityFlying {
                             .toBlockPos();
                     }
 
-                    if (moveTarget != null
-                        && (moveTarget.getY() <= 1
-                            || getDistanceSq(moveTarget.getX(), moveTarget.getY(), moveTarget.getZ()) < 3D)) {
+                    if (moveTarget != null && (moveTarget.getY() <= 1
+                        || getDistanceSq(moveTarget.getX(), moveTarget.getY(), moveTarget.getZ()) < 3D)) {
                         moveTarget = null;
                     }
                 }
 
                 if (getAttackTarget() != null && !getAttackTarget().isDead
-                    // 1.7.10: Use getDistanceToEntity() instead of getDistance()
+                // 1.7.10: Use getDistanceToEntity() instead of getDistance()
                     && getAttackTarget().getDistanceToEntity(this) < 10
                     && rand.nextInt(40) == 0) {
                     DamageUtil.attackEntityFrom(getAttackTarget(), CommonProxy.dmgSourceStellar, 5.5F);

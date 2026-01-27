@@ -41,7 +41,7 @@ public class ShootingStarExplosion {
     public static void play(World world, Vector3 pos, boolean extinguished, long seed) {
         if (!extinguished && ShootingStarHandler.StarConfigEntry.doExplosion) {
             boolean doDamage = world.getGameRules()
-                .getBoolean("mobGriefing");
+                .getGameRuleBooleanValue("mobGriefing");
             world.newExplosion(null, pos.getX(), pos.getY(), pos.getZ(), 4.5F, false, doDamage);
         }
 

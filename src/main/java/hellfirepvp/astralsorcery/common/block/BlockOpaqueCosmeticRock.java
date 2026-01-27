@@ -20,7 +20,6 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import hellfirepvp.astralsorcery.common.migration.BlockStateContainer;
-import hellfirepvp.astralsorcery.common.migration.IBlockState;
 import hellfirepvp.astralsorcery.common.migration.IStringSerializable;
 import hellfirepvp.astralsorcery.common.migration.PropertyEnum;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
@@ -47,14 +46,14 @@ public class BlockOpaqueCosmeticRock extends Block implements BlockCustomName {
         this.blockState = new BlockStateContainer(this, BLOCK_TYPE);
     }
 
-    public IBlockState getDefaultState() {
-        return this.blockState.getBaseState()
-            .withProperty(BLOCK_TYPE, BlockType.NONE);
-    }
+//     public IBlockState getDefaultState() {
+//         return this.blockState.getBaseState()
+//             .withProperty(BLOCK_TYPE, BlockType.NONE);
+//     }
 
-    protected void setDefaultState(IBlockState state) {
-        // In 1.7.10, default state is tracked separately
-    }
+//     protected void setDefaultState(IBlockState state) {
+//         // In 1.7.10, default state is tracked separately
+//     }
 
     @Override
     public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
@@ -77,15 +76,15 @@ public class BlockOpaqueCosmeticRock extends Block implements BlockCustomName {
         }
     }
 
-    public IBlockState getStateFromMeta(int meta) {
-        return meta < BlockType.values().length ? getDefaultState().withProperty(BLOCK_TYPE, BlockType.values()[meta])
-            : getDefaultState();
-    }
+//     public IBlockState getStateFromMeta(int meta) {
+//         return meta < BlockType.values().length ? getDefaultState().withProperty(BLOCK_TYPE, BlockType.values()[meta])
+//             : getDefaultState();
+//     }
 
-    public int getMetaFromState(IBlockState state) {
-        BlockType type = state.getValue(BLOCK_TYPE);
-        return type.ordinal();
-    }
+//     public int getMetaFromState(IBlockState state) {
+//         BlockType type = state.getValue(BLOCK_TYPE);
+//         return type.ordinal();
+//     }
 
     protected BlockStateContainer createBlockState() {
         return new BlockStateContainer(this, BLOCK_TYPE);
@@ -113,7 +112,7 @@ public class BlockOpaqueCosmeticRock extends Block implements BlockCustomName {
 
     @Override
     public String getIdentifierForMeta(int meta) {
-        BlockType mt = getStateFromMeta(meta).getValue(BLOCK_TYPE);
+        BlockType mt = BlockType.values()[meta >= BlockType.values().length ? 0 : meta];
         return mt.getName();
     }
 

@@ -13,7 +13,6 @@ import java.util.ArrayList;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.BiomeDictionary;
@@ -21,8 +20,10 @@ import net.minecraftforge.common.config.Configuration;
 
 import com.google.common.collect.Lists;
 
+import cpw.mods.fml.common.registry.GameRegistry;
 import hellfirepvp.astralsorcery.AstralSorcery;
 import hellfirepvp.astralsorcery.common.base.RockCrystalHandler;
+import hellfirepvp.astralsorcery.common.block.BlockVariants;
 import hellfirepvp.astralsorcery.common.data.config.Config;
 import hellfirepvp.astralsorcery.common.data.config.entry.ConfigEntry;
 import hellfirepvp.astralsorcery.common.lib.BlocksAS;
@@ -121,7 +122,8 @@ public class GenAttributeRockCrystals extends WorldGenAttribute {
         if (this.doIgnoreDimensionSpecifications) return true;
 
         Integer dimId = world.provider.dimensionId;
-        if (this.applicableDimensions == null || applicableDimensions.stackSize <= 0) return false;
+        // 1.7.10: List uses isEmpty(), not stackSize
+        if (this.applicableDimensions == null || applicableDimensions.isEmpty()) return false;
         for (Integer dim : this.applicableDimensions) {
             if (dim.equals(dimId)) return true;
         }
@@ -132,8 +134,9 @@ public class GenAttributeRockCrystals extends WorldGenAttribute {
         if (this.doIgnoreBiomeSpecifications) return true;
 
         BiomeGenBase b = world.getBiomeGenForCoords(pos.getX(), pos.getZ());
-        Collection<BiomeDictionary.Type> types = BiomeDictionary.getTypes(b);
-        if (types == null || types.stackSize <= 0) return false;
+        // 1.7.10: Use getTypesForBiome() which returns Type[], not Collection
+        BiomeDictionary.Type[] types = BiomeDictionary.getTypesForBiome(b);
+        if (types == null || types.length <= 0) return false;
         boolean applicable = false;
         for (BiomeDictionary.Type t : types) {
             if (biomeTypes.contains(t)) applicable = true;
@@ -158,7 +161,8 @@ public class GenAttributeRockCrystals extends WorldGenAttribute {
                     .error("Skipping invalid replacement state: " + stateStr + " - Its 'meta' is not a number!");
                 continue;
             }
-            Block b = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(spl[0], spl[1]));
+            // 1.7.10: Use GameRegistry.findBlock() instead of ForgeRegistries
+            Block b = GameRegistry.findBlock(spl[0], spl[1]);
             if (b == null || b == Blocks.air) {
                 AstralSorcery.log
                     .error("Skipping invalid replacement state: " + stateStr + " - The block does not exist!");

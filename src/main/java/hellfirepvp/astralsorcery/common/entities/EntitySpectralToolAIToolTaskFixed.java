@@ -14,12 +14,12 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.WorldServer;
 
+import hellfirepvp.astralsorcery.common.CommonProxy;
 import hellfirepvp.astralsorcery.common.constellation.cape.impl.CapeEffectPelotrio;
 import hellfirepvp.astralsorcery.common.util.BlockPos;
 import hellfirepvp.astralsorcery.common.util.DamageUtil;
 import hellfirepvp.astralsorcery.common.util.EntityUtils;
 import hellfirepvp.astralsorcery.common.util.MiscUtils;
-import hellfirepvp.astralsorcery.common.CommonProxy;
 
 // 1.7.10: Class name matches filename with underscore prefix
 public class EntitySpectralToolAIToolTaskFixed extends EntityAIBase {
@@ -74,11 +74,15 @@ public class EntitySpectralToolAIToolTaskFixed extends EntityAIBase {
         // 1.7.10: getEntitiesWithinAABB without predicate - filter manually
         BlockPos center = new BlockPos(parentEntity);
         AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
-            center.getX() - 8, center.getY() - 8, center.getZ() - 8,
-            center.getX() + 8, center.getY() + 8, center.getZ() + 8);
+            center.getX() - 8,
+            center.getY() - 8,
+            center.getZ() - 8,
+            center.getX() + 8,
+            center.getY() + 8,
+            center.getZ() + 8);
 
-        List<EntityLivingBase> allEntities = parentEntity.worldObj.getEntitiesWithinAABB(
-            EntityLivingBase.class, searchBox);
+        List<EntityLivingBase> allEntities = parentEntity.worldObj
+            .getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
 
         // Filter for hostile entities (not players, not spectral tools, not dead)
         List<EntityLivingBase> hostile = new ArrayList<>();
@@ -90,11 +94,10 @@ public class EntitySpectralToolAIToolTaskFixed extends EntityAIBase {
             hostile.add(e);
         }
 
-        if (hostile == null || hostile.stackSize <= 0) return null;
+//        if (hostile == null || hostile.stackSize <= 0) return null;
 
         // Find closest
-        return EntityUtils.selectClosest(hostile,
-            e -> e.getDistanceSqToEntity(parentEntity));
+        return EntityUtils.selectClosest(hostile, e -> e.getDistanceSqToEntity(parentEntity));
     }
 
     // 1.7.10: shouldContinueExecuting doesn't override in EntityAIBase

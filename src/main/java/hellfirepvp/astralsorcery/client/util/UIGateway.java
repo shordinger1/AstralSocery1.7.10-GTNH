@@ -109,7 +109,7 @@ public class UIGateway {
             Vector3 otherPos = new Vector3(other);
             if (sameWorld && otherPos.distance(gatePosition) < 16) continue;
 
-            Vector3 direction = otherPos.add(-gatePosition.posX, -gatePosition.posY, -gatePosition.posZ)
+            Vector3 direction = otherPos.add(-gatePosition.getX(), -gatePosition.getY(), -gatePosition.getZ())
                 .normalize()
                 .multiply(sphereRadius);
             GatewayEntry potentialEntry = new GatewayEntry(other, dimId, direction);

@@ -8,9 +8,9 @@
 
 package hellfirepvp.astralsorcery.common.event;
 
-import com.google.common.base.Function;
-
 import net.minecraft.entity.player.EntityPlayer;
+
+import com.google.common.base.Function;
 
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.relauncher.Side;

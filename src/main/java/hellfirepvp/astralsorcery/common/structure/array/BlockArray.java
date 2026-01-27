@@ -9,24 +9,23 @@
 package hellfirepvp.astralsorcery.common.structure.array;
 // TODO: Forge fluid system - manual review needed
 
-import java.util.*;
-import java.util.function.Function;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.BlockFluidBase;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidStack;
 
 import hellfirepvp.astralsorcery.common.block.BlockStructural;
 import hellfirepvp.astralsorcery.common.item.base.render.ISpecialStackDescriptor;
@@ -47,11 +46,10 @@ public class BlockArray {
 
     protected Map<BlockPos, TileEntityCallback> tileCallbacks = new HashMap<>();
     protected Map<BlockPos, BlockInformation> pattern = new HashMap<>();
-    private BlockPos min = new BlockPos(0, 0, 0), max = new BlockPos(0, 0, 0), size = new BlockPos(0, 0, 0);
+    protected BlockPos min = new BlockPos(0, 0, 0), max = new BlockPos(0, 0, 0), size = new BlockPos(0, 0, 0);
 
     public void addAir(int x, int y, int z) {
-
-        addBlock(x, y, z, Blocks.air, state -> state.getMaterial() == Material.air);
+        addBlock(x, y, z, Blocks.air, new BlockStateCheck.Block(Blocks.air));
     }
 
     public void addBlock(int x, int y, int z, @Nonnull Block state) {
@@ -59,8 +57,7 @@ public class BlockArray {
     }
 
     public void addBlock(BlockPos offset, @Nonnull Block state) {
-        Block b = state;
-        pattern.put(offset, new BlockInformation(b, state));
+        pattern.put(offset, new BlockInformation(state, state));
         updateSize(offset);
     }
 
@@ -69,8 +66,7 @@ public class BlockArray {
     }
 
     public void addBlock(BlockPos offset, @Nonnull Block state, BlockStateCheck match) {
-        Block b = state;
-        pattern.put(offset, new BlockInformation(b, state, match));
+        pattern.put(offset, new BlockInformation(state, state, match));
         updateSize(offset);
     }
 
@@ -78,11 +74,11 @@ public class BlockArray {
         addAll(other, null);
     }
 
-    public void addAll(BlockArray other, @Nullable Function<BlockPos, BlockPos> positionTransform) {
+    public void addAll(BlockArray other, @Nullable PositionTransform positionTransform) {
         for (Map.Entry<BlockPos, BlockInformation> patternEntry : other.pattern.entrySet()) {
             BlockPos to = patternEntry.getKey();
             if (positionTransform != null) {
-                to = positionTransform.apply(to);
+                to = positionTransform.transform(to);
             }
             pattern.put(to, patternEntry.getValue());
             updateSize(to);
@@ -90,7 +86,7 @@ public class BlockArray {
         for (Map.Entry<BlockPos, TileEntityCallback> patternEntry : other.tileCallbacks.entrySet()) {
             BlockPos to = patternEntry.getKey();
             if (positionTransform != null) {
-                to = positionTransform.apply(to);
+                to = positionTransform.transform(to);
             }
             tileCallbacks.put(to, patternEntry.getValue());
         }
@@ -105,7 +101,7 @@ public class BlockArray {
     }
 
     public boolean isEmpty() {
-        return (pattern == null || pattern.stackSize <= 0);
+        return (pattern == null || pattern.isEmpty());
     }
 
     public BlockPos getMax() {
@@ -166,11 +162,11 @@ public class BlockArray {
     }
 
     public void addAirCube(int ox, int oy, int oz, int tx, int ty, int tz) {
-        addBlockCube(Blocks.air, state -> state.getMaterial() == Material.air, ox, oy, oz, tx, ty, tz);
+        addBlockCube(Blocks.air, new BlockStateCheck.Block(Blocks.air), ox, oy, oz, tx, ty, tz);
     }
 
     public void addBlockCube(@Nonnull Block state, int ox, int oy, int oz, int tx, int ty, int tz) {
-        addBlockCube(state, new BlockStateCheck.Meta(state, state.getMetaFromState(state)), ox, oy, oz, tx, ty, tz);
+        addBlockCube(state, new BlockStateCheck.Meta(state, 0), ox, oy, oz, tx, ty, tz);
     }
 
     public void addBlockCube(@Nonnull Block state, BlockStateCheck match, int ox, int oy, int oz, int tx, int ty,
@@ -214,7 +210,7 @@ public class BlockArray {
             BlockInformation info = entry.getValue();
             BlockPos at = center.add(entry.getKey());
             Block state = info.state;
-            int meta = info.type.getMetaFromState(state);
+            int meta = info.metadata;
             if (!world.setBlock(at.getX(), at.getY(), at.getZ(), state, meta, 3)) {
                 continue;
             }
@@ -241,8 +237,11 @@ public class BlockArray {
             int meta = info.metadata;
             ItemStack s;
             if (info.type instanceof BlockFluidBase) {
-                s = FluidUtil
-                    .getFilledBucket(new FluidStack(((BlockFluidBase) info.type).getFluid(), Fluid.BUCKET_VOLUME));
+                // 1.7.10: Simplified fluid handling - just return the block itself
+                // Fluid bucket items would need to be looked up differently
+                Item i = Item.getItemFromBlock(info.type);
+                if (i == null) continue;
+                s = new ItemStack(i, 1, meta);
             } else if (info.type instanceof BlockStructural) {
                 continue;
                 // Block otherState = info.state.getValue(BlockStructural.BLOCK_TYPE).getSupportedState();
@@ -256,15 +255,10 @@ public class BlockArray {
                 if (i == null) continue;
                 s = new ItemStack(i, 1, meta);
             }
-            if (!s == null || s.stackSize <= 0) {
+            if (s != null && s.stackSize > 0) {
                 boolean found = false;
                 for (ItemStack stack : out) {
-                    if (stack.getItem()
-                        .getRegistryName()
-                        .equals(
-                            s.getItem()
-                                .getRegistryName())
-                        && stack.getItemDamage() == s.getItemDamage()) {
+                    if (stack.getItem() == s.getItem() && stack.getItemDamage() == s.getItemDamage()) {
                         stack.stackSize = stack.stackSize + 1;
                         found = true;
                         break;
@@ -280,10 +274,18 @@ public class BlockArray {
 
     public static interface TileEntityCallback {
 
-        public boolean isApplicable(TileEntity te);
+        boolean isApplicable(TileEntity te);
 
-        public void onPlace(IBlockAccess access, BlockPos at, TileEntity te);
+        void onPlace(IBlockAccess access, BlockPos at, TileEntity te);
+    }
 
+    /**
+     * Interface for transforming block positions during addAll operations
+     * Used instead of Java 8's Function<BlockPos, BlockPos>
+     */
+    public interface PositionTransform {
+
+        BlockPos transform(BlockPos pos);
     }
 
     public static class BlockInformation {
@@ -294,13 +296,13 @@ public class BlockArray {
         public final BlockStateCheck matcher;
 
         protected BlockInformation(Block type, Block state) {
-            this(type, state, new BlockStateCheck.Meta(type, type.getMetaFromState(state)));
+            this(type, state, new BlockStateCheck.Meta(type, 0));
         }
 
         protected BlockInformation(Block type, Block state, BlockStateCheck matcher) {
             this.type = type;
             this.state = state;
-            this.metadata = type.getMetaFromState(state);
+            this.metadata = 0;
             this.matcher = matcher;
         }
 

@@ -225,7 +225,7 @@ public class GuiProgressionRenderer {
                 Rectangle2D rect = calcBoundingRectangle(focusedClusterZoom);
                 Vector3 center = new Vector3(rect.getCenterX(), rect.getCenterY(), 0);
                 Vector3 mousePos = new Vector3(mousePointScaled.getScaledPosX(), mousePointScaled.getScaledPosY(), 0);
-                Vector3 dir = center.add(-mousePos.posX, -mousePos.posY, -mousePos.posZ);
+                Vector3 dir = center.add(-mousePos.getX(), -mousePos.getY(), -mousePos.getZ());
                 if (vDiv > 0.05) {
                     dir.divide(vDiv);
                 }

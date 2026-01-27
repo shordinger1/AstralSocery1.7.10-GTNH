@@ -48,16 +48,19 @@ public class TreeCaptureHelper {
 
     @SubscribeEvent
     public void onTreeGrowth(SaplingGrowTreeEvent event) {
+        // 1.7.10: SaplingGrowTreeEvent has x, y, z fields instead of getPos()
+        BlockPos pos = new BlockPos(event.x, event.y, event.z);
         LogCategory.TREE_BEACON
-            .info(() -> "Captured tree growth at " + event.getPos() + " in dim " + event.world.provider.dimensionId);
-        WorldBlockPos pos = new WorldBlockPos(event.world, event.getPos());
-        if (oneTimeCatches.contains(pos)) {
-            LogCategory.TREE_BEACON.info(() -> "Expected growth at " + pos + " - skipping!");
-            oneTimeCatches.remove(pos);
+            .info(() -> "Captured tree growth at " + pos + " in dim " + event.world.provider.dimensionId);
+        WorldBlockPos worldPos = new WorldBlockPos(event.world, pos);
+        if (oneTimeCatches.contains(worldPos)) {
+            LogCategory.TREE_BEACON.info(() -> "Expected growth at " + worldPos + " - skipping!");
+            oneTimeCatches.remove(worldPos);
             return;
         }
 
-        if (watchers == null || watchers.stackSize <= 0) return;
+        // 1.7.10: List uses isEmpty(), not stackSize
+        if (watchers == null || watchers.isEmpty()) return;
         Iterator<WeakReference<TreeWatcher>> iterator = watchers.iterator();
         while (iterator.hasNext()) {
             WeakReference<TreeWatcher> watch = iterator.next();
@@ -67,17 +70,17 @@ public class TreeCaptureHelper {
                 iterator.remove();
                 continue;
             }
-            if (watcher.watches(pos)) {
+            if (watcher.watches(worldPos)) {
                 LogCategory.TREE_BEACON.info(
                     () -> "TreeWatcher at " + watcher.center
                         + " watches "
-                        + pos
+                        + worldPos
                         + " - with squared radius: "
                         + watcher.watchRadiusSq
                         + " (real: "
                         + Math.sqrt(watcher.watchRadiusSq)
                         + ")");
-                addWatch(watch, pos);
+                addWatch(watch, worldPos);
                 event.setResult(Event.Result.DENY);
             }
         }
@@ -101,7 +104,8 @@ public class TreeCaptureHelper {
     @Nonnull
     public static List<WorldBlockPos> getAndClearCachedEntries(@Nullable TreeWatcher watcher) {
         if (watcher == null) return Lists.newArrayList();
-        if (watchers == null || watchers.stackSize <= 0) return Lists.newArrayList();
+        // 1.7.10: List uses isEmpty(), not stackSize
+        if (watchers == null || watchers.isEmpty()) return Lists.newArrayList();
         Iterator<WeakReference<TreeWatcher>> iterator = watchers.iterator();
         while (iterator.hasNext()) {
             WeakReference<TreeWatcher> itW = iterator.next();
@@ -150,8 +154,9 @@ public class TreeCaptureHelper {
         private final BlockPos center;
         private final double watchRadiusSq;
 
+        // 1.7.10: TileEntity has getWorldObj() method, worldObj is protected
         public TreeWatcher(TileEntity te, double watchRadius) {
-            this(te.worldObj, new BlockPos(te.xCoord, te.yCoord, te.zCoord), watchRadius);
+            this(te.getWorldObj(), new BlockPos(te.xCoord, te.yCoord, te.zCoord), watchRadius);
         }
 
         public TreeWatcher(World world, BlockPos center, double watchRadius) {
@@ -165,7 +170,13 @@ public class TreeCaptureHelper {
         }
 
         public boolean watches(WorldBlockPos pos) {
-            return pos.getWorld().provider.dimensionId == dimId && center.distanceSq(pos) <= watchRadiusSq;
+            if (pos.getWorld().provider.dimensionId != dimId) return false;
+            // 1.7.10: BlockPos doesn't have distanceSq(), calculate manually
+            double dx = center.getX() - pos.getX();
+            double dy = center.getY() - pos.getY();
+            double dz = center.getZ() - pos.getZ();
+            double distanceSq = dx * dx + dy * dy + dz * dz;
+            return distanceSq <= watchRadiusSq;
         }
     }
 

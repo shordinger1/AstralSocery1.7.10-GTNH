@@ -12,6 +12,11 @@ package hellfirepvp.astralsorcery.common.util;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -43,16 +48,13 @@ import net.minecraftforge.fluids.BlockFluidBase;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 
-import cpw.mods.fml.common.FMLCommonHandler;
 import com.google.common.base.Predicate;
+
+import cpw.mods.fml.common.FMLCommonHandler;
 import hellfirepvp.astralsorcery.AstralSorcery;
 import hellfirepvp.astralsorcery.common.base.Mods;
 import hellfirepvp.astralsorcery.common.migration.BiFunction;
-import hellfirepvp.astralsorcery.common.migration.BinaryOperator;
-import hellfirepvp.astralsorcery.common.migration.Collector;
-import hellfirepvp.astralsorcery.common.migration.Function;
 import hellfirepvp.astralsorcery.common.migration.RayTraceResult;
-import hellfirepvp.astralsorcery.common.migration.Supplier;
 import hellfirepvp.astralsorcery.common.util.data.NonDuplicateArrayList;
 import hellfirepvp.astralsorcery.common.util.data.Tuple;
 import hellfirepvp.astralsorcery.common.util.data.Vector3;
@@ -106,13 +108,13 @@ public class MiscUtils {
 
     @Nullable
     public static <T> T getRandomEntry(List<T> list, Random rand) {
-        if (list == null || list == null || list.stackSize <= 0) return null;
+        if (list == null || list.isEmpty()) return null;
         return list.get(rand.nextInt(list.size()));
     }
 
     @Nullable
     public static <T> T getWeightedRandomEntry(Collection<T> list, Random rand,
-                                               Function<T, Integer> getWeightFunction) {
+        Function<T, Integer> getWeightFunction) {
         List<WRItemObject<T>> weightedItems = new ArrayList<>(list.size());
         for (T e : list) {
             weightedItems.add(new WRItemObject<>(getWeightFunction.apply(e), e));
@@ -210,7 +212,8 @@ public class MiscUtils {
     @Nullable
     public static <T> T iterativeSearch(Collection<T> collection, Predicate<T> matchingFct) {
         for (T element : collection) {
-            if (matchingFct.test(element)) {
+            // 1.7.10: com.google.common.base.Predicate uses apply(), not test()
+            if (matchingFct.apply(element)) {
                 return element;
             }
         }
@@ -233,7 +236,8 @@ public class MiscUtils {
 
     public static <T> boolean matchesAny(T element, Collection<Predicate<T>> tests) {
         for (Predicate<T> test : tests) {
-            if (test.test(element)) {
+            // 1.7.10: com.google.common.base.Predicate uses apply(), not test()
+            if (test.apply(element)) {
                 return true;
             }
         }
@@ -336,13 +340,14 @@ public class MiscUtils {
 
     @Nullable
     public static ItemStack getMainOrOffHand(EntityLivingBase entity, Item search,
-                                             @Nullable Predicate<ItemStack> acceptorFnc) {
+        @Nullable Predicate<ItemStack> acceptorFnc) {
         // 1.7.10: Use getEquipmentInSlot instead of getCurrentEquippedItem
         ItemStack held = entity.getEquipmentInSlot(0); // 0 = main hand
-        if ((held == null || held.stackSize <= 0) || !search.getClass()
-            .isAssignableFrom(
-                held.getItem()
-                    .getClass())
+        if (held == null || held.stackSize <= 0
+            || !search.getClass()
+                .isAssignableFrom(
+                    held.getItem()
+                        .getClass())
             // 1.7.10: com.google.common.base.Predicate uses apply(), not test()
             || (acceptorFnc != null && !acceptorFnc.apply(held))) {
             // 1.7.10 doesn't have offhand, just return null if main hand doesn't match
@@ -399,14 +404,14 @@ public class MiscUtils {
     }
 
     public static String capitalizeFirst(String str) {
-        if (str == null || (str == null || str.length() <= 0)) {
+        if (str == null || str.length() <= 0) {
             return str;
         }
         return String.valueOf(Character.toTitleCase(str.charAt(0))) + str.substring(1);
     }
 
     public static boolean canToolBreakBlockWithoutPlayer(@Nonnull World world, @Nonnull BlockPos pos,
-                                                         @Nonnull Block state, @Nonnull ItemStack stack) {
+        @Nonnull Block state, @Nonnull ItemStack stack) {
         // 1.7.10: Get hardness differently
         float hardness = state.getBlockHardness(world, pos.getX(), pos.getY(), pos.getZ());
         if (hardness == -1) {
@@ -420,7 +425,7 @@ public class MiscUtils {
         // 1.7.10: getHarvestTool takes metadata as int parameter
         int metadata = world.getBlockMetadata(pos.getX(), pos.getY(), pos.getZ());
         String tool = state.getHarvestTool(metadata);
-        if (tool == null || (stack == null || stack.stackSize <= 0)) {
+        if (tool == null || stack == null || stack.stackSize <= 0) {
             return state.getMaterial()
                 .isToolNotRequired();
         }
@@ -457,7 +462,7 @@ public class MiscUtils {
     }
 
     public static boolean breakBlockWithoutPlayer(WorldServer world, BlockPos pos, Block suggestedBrokenState,
-                                                  boolean breakBlock, boolean ignoreHarvestRestrictions, boolean playEffects) {
+        boolean breakBlock, boolean ignoreHarvestRestrictions, boolean playEffects) {
         FakePlayer fp = AstralSorcery.proxy.getASFakePlayerServer(world);
         int exp = 0;
         try {
@@ -594,7 +599,7 @@ public class MiscUtils {
     }
 
     public static List<Vector3> getCirclePositions(Vector3 centerOffset, Vector3 axis, double radius,
-                                                   int amountOfPointsOnCircle) {
+        int amountOfPointsOnCircle) {
         List<Vector3> out = new LinkedList<>();
         Vector3 circleVec = axis.clone()
             .perpendicular()
@@ -694,13 +699,13 @@ public class MiscUtils {
 
     @Nullable
     public static BlockPos searchAreaForFirst(World world, BlockPos center, int radius, @Nullable Vector3 offsetFrom,
-                                              BlockStateCheck acceptor) {
+        BlockStateCheck acceptor) {
         return searchAreaForFirst(world, center, radius, offsetFrom, BlockStateCheck.WorldSpecific.wrap(acceptor));
     }
 
     @Nullable
     public static BlockPos searchAreaForFirst(World world, BlockPos center, int radius, @Nullable Vector3 offsetFrom,
-                                              BlockStateCheck.WorldSpecific acceptor) {
+        BlockStateCheck.WorldSpecific acceptor) {
         for (int r = 0; r <= radius; r++) {
             List<BlockPos> posList = new LinkedList<>();
             for (int xx = -r; xx <= r; xx++) {
@@ -719,7 +724,7 @@ public class MiscUtils {
                     }
                 }
             }
-            if (!posList == null || posList.stackSize <= 0) {
+            if (!posList.isEmpty()) {
                 Vector3 offset = new Vector3(center).add(0.5, 0.5, 0.5);
                 if (offsetFrom != null) {
                     offset = offsetFrom;
@@ -740,7 +745,7 @@ public class MiscUtils {
     }
 
     public static List<BlockPos> searchAreaFor(World world, BlockPos center, Block blockToSearch, int metaToSearch,
-                                               int radius) {
+        int radius) {
         List<BlockPos> found = new LinkedList<>();
         for (int xx = -radius; xx <= radius; xx++) {
             for (int yy = -radius; yy <= radius; yy++) {
@@ -763,26 +768,13 @@ public class MiscUtils {
     }
 
     private static <T> Collector<T, ?, List<T>> mergeNonDuplicateList() {
-        return new ListCollector<T, NonDuplicateArrayList<T>, List<T>>(new Supplier<NonDuplicateArrayList<T>>() {
-
-            @Override
-            public NonDuplicateArrayList<T> get() {
-                return new NonDuplicateArrayList<T>();
-            }
-        }, new BiConsumer<NonDuplicateArrayList<T>, T>() {
-
-            @Override
-            public void accept(NonDuplicateArrayList<T> list, T item) {
-                list.add(item);
-            }
-        }, new BinaryOperator<NonDuplicateArrayList<T>>() {
-
-            @Override
-            public NonDuplicateArrayList<T> apply(NonDuplicateArrayList<T> left, NonDuplicateArrayList<T> right) {
+        return new ListCollector<>(
+            (Supplier<NonDuplicateArrayList<T>>) NonDuplicateArrayList::new,
+            NonDuplicateArrayList::add,
+            (left, right) -> {
                 left.addAll(right);
                 return left;
-            }
-        });
+            });
     }
 
     static {
@@ -833,13 +825,7 @@ public class MiscUtils {
 
         @Override
         public Function<A, R> finisher() {
-            return new Function<A, R>() {
-
-                @Override
-                public R apply(A element) {
-                    return (R) element;
-                }
-            };
+            return element -> (R) element;
         }
 
         @Override

@@ -40,7 +40,6 @@ import hellfirepvp.astralsorcery.common.item.base.ItemHighlighted;
 import hellfirepvp.astralsorcery.common.item.base.render.ItemDynamicColor;
 import hellfirepvp.astralsorcery.common.lib.Sounds;
 import hellfirepvp.astralsorcery.common.registry.RegistryItems;
-import hellfirepvp.astralsorcery.common.util.SoundHelper;
 import hellfirepvp.astralsorcery.common.util.WRItemObject;
 import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
 
@@ -124,7 +123,11 @@ public class ItemConstellationPaper extends Item implements ItemHighlighted, Ite
         if (itemStackIn == null || itemStackIn.stackSize <= 0) return itemStackIn;
         if (worldIn.isRemote && getConstellation(itemStackIn) != null) {
             // 1.7.10: playSound expects String, not ResourceLocation
-            playerIn.playSound(Sounds.bookFlip.getSoundName().toString(), 1F, 1F);
+            playerIn.playSound(
+                Sounds.bookFlip.getSoundName()
+                    .toString(),
+                1F,
+                1F);
             AstralSorcery.proxy.openGui(
                 CommonProxy.EnumGuiId.CONSTELLATION_PAPER,
                 playerIn,
@@ -165,9 +168,9 @@ public class ItemConstellationPaper extends Item implements ItemHighlighted, Ite
                 }
             }
 
-            if (!constellations == null || constellations.stackSize <= 0) {
+            if ( constellations.isEmpty()) {
                 // 1.7.10: Just pick a random constellation from the list
-                IConstellation result = constellations.get(worldIn.rand.nextInt(constellations.size()));
+                IConstellation result = constellations.get(worldIn.rand.nextInt(0));
                 setConstellation(stack, result);
             }
         }
@@ -193,8 +196,8 @@ public class ItemConstellationPaper extends Item implements ItemHighlighted, Ite
                             new ChatComponentTranslation(cst.getUnlocalizedName())));
                     if (ResearchManager.clientProgress.getSeenConstellations()
                         .size() == 1) {
-                        ((EntityPlayer) entityIn).addChatMessage(
-                            new ChatComponentTranslation("progress.seen.constellation.first.chat"));
+                        ((EntityPlayer) entityIn)
+                            .addChatMessage(new ChatComponentTranslation("progress.seen.constellation.first.chat"));
                     }
                 }
             }

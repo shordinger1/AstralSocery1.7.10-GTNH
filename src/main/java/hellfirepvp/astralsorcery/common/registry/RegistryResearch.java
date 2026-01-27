@@ -159,7 +159,7 @@ public class RegistryResearch {
         resBore.addPage(getTextPage("BORE_CORE.2"));
         resBore.addPage(new JournalPageTraitRecipe(RegistryRecipes.rBore));
         resBore.addPage(getTextPage("BORE_CORE.4"));
-        resBore.addPage(new JournalPageStructure(MultiBlockArrays.patternFountain));
+        resBore.addPage(new JournalPageStructure((hellfirepvp.astralsorcery.common.structure.array.BlockArray) MultiBlockArrays.patternFountain));
 
         ResearchNode resBoreLiquid = new ResearchNode(TileBore.BoreType.LIQUID.asStack(), "BORE_HEAD_LIQUID", 8, 4);
         resBoreLiquid.addPage(getTextPage("BORE_HEAD_LIQUID.1"));
@@ -220,7 +220,7 @@ public class RegistryResearch {
         resInfuser.addPage(getTextPage("INFUSER.1"));
         resInfuser.addPage(new JournalPageConstellationRecipe(RegistryRecipes.rStarlightInfuser));
         resInfuser.addPage(getTextPage("INFUSER.3"));
-        resInfuser.addPage(new JournalPageStructure(MultiBlockArrays.patternStarlightInfuser));
+        resInfuser.addPage(new JournalPageStructure((hellfirepvp.astralsorcery.common.structure.array.BlockArray) MultiBlockArrays.patternStarlightInfuser));
 
         ResearchNode resTreeBeacon = new ResearchNode(new ItemStack(BlocksAS.treeBeacon), "TREEBEACON", 3, 0);
         resTreeBeacon.addPage(getTextPage("TREEBEACON.1"));
@@ -263,7 +263,7 @@ public class RegistryResearch {
         ResearchNode resRitualLink = new ResearchNode(new ItemStack(BlocksAS.ritualLink), "RITUAL_LINK", 5, 2);
         resRitualLink.addPage(getTextPage("RITUAL_LINK.1"));
         resRitualLink.addPage(new JournalPageConstellationRecipe(RegistryRecipes.rRitualLink));
-        resRitualLink.addPage(new JournalPageStructure(MultiBlockArrays.patternRitualPedestalWithLink));
+        resRitualLink.addPage(new JournalPageStructure((hellfirepvp.astralsorcery.common.structure.array.BlockArray) MultiBlockArrays.patternRitualPedestalWithLink));
 
         ResearchNode resIllWand = new ResearchNode(new ItemStack(ItemsAS.illuminationWand), "ILLUMINATION_WAND", 6, 1);
         resIllWand.addPage(getTextPage("ILLUMINATION_WAND.1"));
@@ -283,7 +283,7 @@ public class RegistryResearch {
         ResearchNode resEnhancedCollCrystal = new ResearchNode(cel, "ENHANCED_COLLECTOR", 2, 5);
         resEnhancedCollCrystal.addPage(getTextPage("ENHANCED_COLLECTOR.1"));
         resEnhancedCollCrystal.addPage(
-            new JournalPageStructure(MultiBlockArrays.patternCollectorEnhancement, null, new Vector3(0, -36, 0)));
+            new JournalPageStructure((hellfirepvp.astralsorcery.common.structure.array.BlockArray) MultiBlockArrays.patternCollectorEnhancement, null, new Vector3(0, -36, 0)));
 
         ResearchNode resCelCrystalCluster = new ResearchNode(
             new ItemStack(BlocksAS.celestialCrystals, 1, 3),
@@ -317,7 +317,7 @@ public class RegistryResearch {
             3);
         resTraitUpgrade.addPage(getTextPage("ALTAR4.1"));
         resTraitUpgrade.addPage(new JournalPageConstellationRecipe(RegistryRecipes.rAltarUpgradeTrait));
-        resTraitUpgrade.addPage(new JournalPageStructure(MultiBlockArrays.patternAltarTrait));
+        resTraitUpgrade.addPage(new JournalPageStructure((hellfirepvp.astralsorcery.common.structure.array.BlockArray) MultiBlockArrays.patternAltarTrait));
         resTraitUpgrade.addPage(getTextPage("ALTAR4.4"));
 
         ResearchNode resEnchantmentAmulet = new ResearchNode(
@@ -487,11 +487,10 @@ public class RegistryResearch {
 
         ResearchNode resOtherOres = new ResearchNode(
             new ItemStack[] {
-//                new ItemStack(Blocks.magma),
-                new ItemStack(Blocks.sand),
-                new ItemStack(Blocks.diamond_ore), new ItemStack(Blocks.nether_wart),
+                // new ItemStack(Blocks.magma),
+                new ItemStack(Blocks.sand), new ItemStack(Blocks.diamond_ore), new ItemStack(Blocks.nether_wart),
                 new ItemStack(Blocks.sandstone), new ItemStack(Blocks.netherrack), new ItemStack(Blocks.pumpkin),
-//                new ItemStack(Blocks.sea_lantern)
+            // new ItemStack(Blocks.sea_lantern)
             },
             "TRANSMUTATION_ORES",
             3,
@@ -511,7 +510,7 @@ public class RegistryResearch {
         resPlayerAtt.addPage(getTextPage("ATT_PLAYER.2"));
         resPlayerAtt.addPage(new JournalPageAttunementRecipe(RegistryRecipes.rAttunementAltar));
         resPlayerAtt.addPage(getTextPage("ATT_PLAYER.4"));
-        resPlayerAtt.addPage(new JournalPageStructure(MultiBlockArrays.patternAttunementFrame));
+        resPlayerAtt.addPage(new JournalPageStructure((hellfirepvp.astralsorcery.common.structure.array.BlockArray) MultiBlockArrays.patternAttunementFrame));
         resPlayerAtt.addPage(getTextPage("ATT_PLAYER.6"));
 
         ResearchNode resAttPerks = new ResearchNode(new ItemStack(BlocksAS.attunementRelay), "ATT_PERKS", 6, 3);
@@ -539,7 +538,7 @@ public class RegistryResearch {
         ResearchNode resRitPedestal = new ResearchNode(new ItemStack(BlocksAS.ritualPedestal), "RIT_PEDESTAL", 8, 3);
         resRitPedestal.addPage(getTextPage("RIT_PEDESTAL.1"));
         resRitPedestal.addPage(new JournalPageAttunementRecipe(RegistryRecipes.rRitualPedestal));
-        resRitPedestal.addPage(new JournalPageStructure(MultiBlockArrays.patternRitualPedestal));
+        resRitPedestal.addPage(new JournalPageStructure((hellfirepvp.astralsorcery.common.structure.array.BlockArray) MultiBlockArrays.patternRitualPedestal));
 
         ResearchNode resRitualAccel = new ResearchNode(new ItemStack(BlocksAS.ritualPedestal), "PED_ACCEL", 8, 2);
         resRitualAccel.addPage(getTextPage("PED_ACCEL.1"));
@@ -553,7 +552,7 @@ public class RegistryResearch {
             7);
         resConstellationUpgrade.addPage(getTextPage("ALTAR3.1"));
         resConstellationUpgrade.addPage(new JournalPageAttunementRecipe(RegistryRecipes.rAltarUpgradeConstellation));
-        resConstellationUpgrade.addPage(new JournalPageStructure(MultiBlockArrays.patternAltarConstellation));
+        resConstellationUpgrade.addPage(new JournalPageStructure((hellfirepvp.astralsorcery.common.structure.array.BlockArray) MultiBlockArrays.patternAltarConstellation));
         resConstellationUpgrade.addPage(getTextPage("ALTAR3.4"));
 
         ResearchNode resMountedTelescope = new ResearchNode(
@@ -606,7 +605,7 @@ public class RegistryResearch {
         resCelestialGateway.addPage(getTextPage("CELESTIAL_GATEWAY.1"));
         resCelestialGateway.addPage(new JournalPageAttunementRecipe(RegistryRecipes.rCelestialGateway));
         resCelestialGateway.addPage(getTextPage("CELESTIAL_GATEWAY.3"));
-        resCelestialGateway.addPage(new JournalPageStructure(MultiBlockArrays.patternCelestialGateway));
+        resCelestialGateway.addPage(new JournalPageStructure((hellfirepvp.astralsorcery.common.structure.array.BlockArray) MultiBlockArrays.patternCelestialGateway));
 
         ResearchNode resShiftStar = new ResearchNode(new ItemStack(ItemsAS.shiftingStar), "SHIFT_STAR", 6, 2);
         resShiftStar.addPage(getTextPage("SHIFT_STAR.1"));
@@ -787,7 +786,7 @@ public class RegistryResearch {
         ResearchNode resRelay = new ResearchNode(new ItemStack(BlocksAS.attunementRelay), "SPEC_RELAY", 2, 0);
         resRelay.addPage(getTextPage("SPEC_RELAY.1"));
         resRelay.addPage(new JournalPageDiscoveryRecipe(RegistryRecipes.rAttenuationAltarRelay));
-        resRelay.addPage(new JournalPageStructure(MultiBlockArrays.patternCollectorRelay));
+        resRelay.addPage(new JournalPageStructure((hellfirepvp.astralsorcery.common.structure.array.BlockArray) MultiBlockArrays.patternCollectorRelay));
         resRelay.addPage(getTextPage("SPEC_RELAY.4"));
 
         ResearchNode resWell = new ResearchNode(new ItemStack(BlocksAS.blockWell), "WELL", 0, 2);
@@ -851,7 +850,7 @@ public class RegistryResearch {
             1);
         resAltarUpgradeAttenuation.addPage(getTextPage("ALTAR2.1"));
         resAltarUpgradeAttenuation.addPage(new JournalPageDiscoveryRecipe(RegistryRecipes.rAltarUpgradeAttenuation));
-        resAltarUpgradeAttenuation.addPage(new JournalPageStructure(MultiBlockArrays.patternAltarAttunement));
+        resAltarUpgradeAttenuation.addPage(new JournalPageStructure((hellfirepvp.astralsorcery.common.structure.array.BlockArray) MultiBlockArrays.patternAltarAttunement));
         resAltarUpgradeAttenuation.addPage(getTextPage("ALTAR2.4"));
 
         ResearchNode resIlluminationPowder = new ResearchNode(
