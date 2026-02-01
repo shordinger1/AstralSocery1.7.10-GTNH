@@ -1,0 +1,167 @@
+/*******************************************************************************
+ * Astral Sorcery - Minecraft 1.7.10 Port
+ *
+ * ASNEIAltarDiscoveryHandler - NEI recipe handler for Discovery Altar
+ ******************************************************************************/
+
+package hellfirepvp.astralsorcery.client.nei;
+
+import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.List;
+
+import net.minecraft.item.ItemStack;
+
+import codechicken.nei.PositionedStack;
+import codechicken.nei.recipe.TemplateRecipeHandler;
+import hellfirepvp.astralsorcery.common.crafting.altar.ASAltarRecipe;
+import hellfirepvp.astralsorcery.common.crafting.altar.AltarRecipeRegistry;
+import hellfirepvp.astralsorcery.common.tile.TileAltar;
+
+/**
+ * NEI Recipe Handler for Discovery Altar
+ */
+public class ASNEIAltarDiscoveryHandler extends TemplateRecipeHandler {
+
+    // Discovery Altar: 3x3 grid (9 slots)
+    private static final int[][] DISCOVERY_LAYOUT = { { 22, 70 }, { 49, 70 }, { 76, 70 }, { 22, 97 }, { 49, 97 },
+        { 76, 97 }, { 22, 124 }, { 49, 124 }, { 76, 124 } };
+
+    private static final int[] OUTPUT_POSITION = { 48, 18 };
+
+    public ASNEIAltarDiscoveryHandler() {}
+
+    @Override
+    public String getRecipeName() {
+        return "Discovery Altar";
+    }
+
+    @Override
+    public String getOverlayIdentifier() {
+        return "astralsorcery.altar.discovery";
+    }
+
+    @Override
+    public String getGuiTexture() {
+        return "astralsorcery:textures/gui/nei/recipetemplatealtardiscovery";
+    }
+
+    @Override
+    public int recipiesPerPage() {
+        return 1;
+    }
+
+    public java.awt.Rectangle getBackgroundSize() {
+        return new java.awt.Rectangle(116, 162);
+    }
+
+    @Override
+    public void drawBackground(int recipe) {
+        codechicken.lib.gui.GuiDraw.changeTexture(getGuiTexture() + ".png");
+        codechicken.lib.gui.GuiDraw.drawTexturedModalRect(0, 0, 0, 0, 116, 162);
+    }
+
+    @Override
+    public void loadTransferRects() {
+        this.transferRects.add(new RecipeTransferRect(new Rectangle(0, 0, 116, 162), getOverlayIdentifier()));
+    }
+
+    @Override
+    public void loadCraftingRecipes(String outputId, Object... results) {
+        if (outputId.equals(getOverlayIdentifier())) {
+            List<ASAltarRecipe> recipes = AltarRecipeRegistry.getRecipesForLevel(TileAltar.AltarLevel.DISCOVERY);
+            System.out.println("[ASNEI Discovery] Loading " + recipes.size() + " recipes");
+            for (ASAltarRecipe recipe : recipes) {
+                arecipes.add(new CachedAltarRecipe(recipe));
+            }
+        } else if (outputId.equals("item") && results.length > 0 && results[0] instanceof ItemStack) {
+            loadCraftingRecipes((ItemStack) results[0]);
+        }
+    }
+
+    @Override
+    public void loadCraftingRecipes(ItemStack result) {
+        List<ASAltarRecipe> recipes = AltarRecipeRegistry.findRecipesByOutput(result);
+        for (ASAltarRecipe recipe : recipes) {
+            if (recipe.getAltarLevel() == TileAltar.AltarLevel.DISCOVERY) {
+                arecipes.add(new CachedAltarRecipe(recipe));
+            }
+        }
+    }
+
+    @Override
+    public void loadUsageRecipes(ItemStack ingredient) {
+        List<ASAltarRecipe> recipes = AltarRecipeRegistry.getRecipesForLevel(TileAltar.AltarLevel.DISCOVERY);
+        for (ASAltarRecipe recipe : recipes) {
+            ItemStack[] inputs = recipe.getInputs();
+            for (ItemStack input : inputs) {
+                if (input != null && itemsMatch(ingredient, input)) {
+                    arecipes.add(new CachedAltarRecipe(recipe));
+                    break;
+                }
+            }
+        }
+    }
+
+    private boolean itemsMatch(ItemStack a, ItemStack b) {
+        if (a == null || b == null) return false;
+        if (a.getItem() != b.getItem()) return false;
+        int metaA = a.getItemDamage();
+        int metaB = b.getItemDamage();
+        return metaA == metaB || metaA == 32767 || metaB == 32767;
+    }
+
+    @Override
+    public void drawExtras(int recipe) {
+        // Background has all visual elements already
+    }
+
+    @Override
+    public TemplateRecipeHandler newInstance() {
+        return new ASNEIAltarDiscoveryHandler();
+    }
+
+    public class CachedAltarRecipe extends CachedRecipe {
+
+        private final ASAltarRecipe recipe;
+        private final List<PositionedStack> inputs;
+        private final PositionedStack output;
+
+        public CachedAltarRecipe(ASAltarRecipe recipe) {
+            this.recipe = recipe;
+            this.inputs = new ArrayList<>();
+
+            ItemStack[] recipeInputs = recipe.getInputs();
+            for (int i = 0; i < recipeInputs.length && i < DISCOVERY_LAYOUT.length; i++) {
+                if (recipeInputs[i] != null) {
+                    int[] pos = DISCOVERY_LAYOUT[i];
+                    inputs.add(new PositionedStack(recipeInputs[i].copy(), pos[0], pos[1]));
+                }
+            }
+
+            ItemStack outputStack = recipe.getOutput();
+            this.output = outputStack != null
+                ? new PositionedStack(outputStack.copy(), OUTPUT_POSITION[0], OUTPUT_POSITION[1])
+                : null;
+        }
+
+        @Override
+        public List<PositionedStack> getIngredients() {
+            return getCycledIngredients(cycleticks / 20, inputs);
+        }
+
+        @Override
+        public PositionedStack getResult() {
+            return output;
+        }
+
+        @Override
+        public List<PositionedStack> getOtherStacks() {
+            List<PositionedStack> other = new ArrayList<>();
+            if (output != null) {
+                other.add(output);
+            }
+            return other;
+        }
+    }
+}
