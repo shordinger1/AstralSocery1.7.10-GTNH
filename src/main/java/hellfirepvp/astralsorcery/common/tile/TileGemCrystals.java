@@ -1,174 +1,31 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * TileGemCrystals - Gem crystal cluster
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.tile;
 
-import java.util.Random;
+import net.minecraft.nbt.NBTTagCompound;
 
-import javax.annotation.Nullable;
-
-import net.minecraft.block.Block;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import hellfirepvp.astralsorcery.client.effect.EffectHandler;
-import hellfirepvp.astralsorcery.client.effect.EffectHelper;
-import hellfirepvp.astralsorcery.client.effect.EntityComplexFX;
-import hellfirepvp.astralsorcery.client.effect.fx.EntityFXFacingParticle;
-import hellfirepvp.astralsorcery.client.effect.fx.EntityFXFacingSprite;
-import hellfirepvp.astralsorcery.client.util.SpriteLibrary;
-import hellfirepvp.astralsorcery.client.util.resource.SpriteSheetResource;
-import hellfirepvp.astralsorcery.common.block.BlockGemCrystals;
-import hellfirepvp.astralsorcery.common.constellation.distribution.ConstellationSkyHandler;
-import hellfirepvp.astralsorcery.common.constellation.distribution.WorldSkyHandler;
-import hellfirepvp.astralsorcery.common.network.packet.server.PktParticleEvent;
-import hellfirepvp.astralsorcery.common.tile.base.TileSkybound;
-import hellfirepvp.astralsorcery.common.util.data.Vector3;
+import hellfirepvp.astralsorcery.common.tile.base.TileEntityTick;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: TileGemCrystals
- * Created by HellFirePvP
- * Date: 27.11.2018 / 19:05
+ * TileGemCrystals - Gem crystal cluster TileEntity (1.7.10)
  */
-public class TileGemCrystals extends TileSkybound {
+public class TileGemCrystals extends TileEntityTick {
 
-    private static final Random rand = new Random();
-
-    @Nullable
-    public BlockGemCrystals.GrowthStageType getGrowth() {
-        Block block = worldObj.getBlock(xCoord, yCoord, zCoord);
-        if (!(block instanceof BlockGemCrystals)) return null;
-        int metadata = worldObj.getBlockMetadata(xCoord, yCoord, zCoord);
-        return BlockGemCrystals.GrowthStageType.values()[hellfirepvp.astralsorcery.common.util.WrapMathHelper
-            .clamp(metadata, 0, BlockGemCrystals.GrowthStageType.values().length - 1)];
+    public TileGemCrystals() {
+        super();
     }
 
     @Override
-    public void updateEntity() {
-        super.updateEntity();
-
-        if (!getWorld().isRemote) {
-            tryGrow();
-        } else {
-            BlockGemCrystals.GrowthStageType growthStage = getGrowth();
-            if (growthStage != null && growthStage.getGrowthStage() == 2) {
-                playHarvestEffects(growthStage);
-            }
-        }
-    }
-
-    private void tryGrow() {
-        int r = 50000;
-        WorldSkyHandler handle = ConstellationSkyHandler.getInstance()
-            .getWorldHandler(worldObj);
-        if (doesSeeSky() && handle != null) {
-            double dstr = ConstellationSkyHandler.getInstance()
-                .getCurrentDaytimeDistribution(worldObj);
-            if (dstr > 0) {
-                r *= (0.7 + ((1 - dstr) * 0.3));
-            }
-        }
-
-        if (worldObj.rand.nextInt(Math.max(r, 1)) == 0) {
-            grow();
-        }
-    }
-
-    public void grow() {
-        Block current = worldObj.getBlock(xCoord, yCoord, zCoord);
-        if (!(current instanceof BlockGemCrystals)) {
-            return;
-        }
-
-        int metadata = worldObj.getBlockMetadata(xCoord, yCoord, zCoord);
-        BlockGemCrystals.GrowthStageType stageType = BlockGemCrystals.GrowthStageType
-            .values()[hellfirepvp.astralsorcery.common.util.WrapMathHelper
-                .clamp(metadata, 0, BlockGemCrystals.GrowthStageType.values().length - 1)];
-        BlockGemCrystals.GrowthStageType next = null;
-        switch (stageType) {
-            case STAGE_0:
-                next = BlockGemCrystals.GrowthStageType.STAGE_1;
-                break;
-            case STAGE_1:
-                if (ConstellationSkyHandler.getInstance()
-                    .getCurrentDaytimeDistribution(worldObj) <= 0.1) {
-                    next = BlockGemCrystals.GrowthStageType.STAGE_2_DAY;
-                } else if (ConstellationSkyHandler.getInstance()
-                    .getCurrentDaytimeDistribution(worldObj) >= 0.8) {
-                        next = BlockGemCrystals.GrowthStageType.STAGE_2_NIGHT;
-                    } else {
-                        next = BlockGemCrystals.GrowthStageType.STAGE_2_SKY;
-                    }
-                break;
-            case STAGE_2_SKY:
-            case STAGE_2_DAY:
-            case STAGE_2_NIGHT:
-                next = BlockGemCrystals.GrowthStageType.STAGE_1;
-                break;
-        }
-        if (next != null) {
-            worldObj.setBlockMetadataWithNotify(xCoord, yCoord, zCoord, next.ordinal(), 3);
-        }
-    }
-
-    @SideOnly(Side.CLIENT)
-    private void playHarvestEffects(BlockGemCrystals.GrowthStageType growthStage) {
-        if (rand.nextInt(4) == 0) {
-
-            EntityFXFacingParticle p = EffectHelper
-                .genericFlareParticle(xCoord + rand.nextFloat(), yCoord + rand.nextFloat(), zCoord + rand.nextFloat());
-            p.gravity(0.004);
-            p.enableAlphaFade(EntityComplexFX.AlphaFunction.FADE_OUT);
-            p.setColor(growthStage.getDisplayColor());
-            p.scale(0.35F);
-        }
-    }
-
-    @SideOnly(Side.CLIENT)
-    public static void playBreakParticles(PktParticleEvent event) {
-        Vector3 at = event.getVec();
-        BlockGemCrystals.GrowthStageType growthStage = BlockGemCrystals.GrowthStageType
-            .values()[(int) event.getAdditionalDataLong()];
-        float scale = 0.4F;
-        SpriteSheetResource sprite;
-        switch (growthStage) {
-            case STAGE_0:
-                sprite = SpriteLibrary.spriteGemExplodeGray;
-                scale = 0.5F;
-                break;
-            case STAGE_1:
-                sprite = SpriteLibrary.spriteGemExplodeGray;
-                scale = 0.8F;
-                break;
-            case STAGE_2_SKY:
-                sprite = SpriteLibrary.spriteGemExplodeBlue;
-                scale = 1.2F;
-                break;
-            case STAGE_2_DAY:
-                sprite = SpriteLibrary.spriteGemExplodeRed;
-                scale = 1.2F;
-                break;
-            case STAGE_2_NIGHT:
-                sprite = SpriteLibrary.spriteGemExplodeWhite;
-                scale = 1.2F;
-                break;
-            default:
-                sprite = SpriteLibrary.spriteGemExplodeGray;
-                break;
-        }
-        EffectHandler.getInstance()
-            .registerFX(
-                EntityFXFacingSprite
-                    .fromSpriteSheet(sprite, at.getX() + 0.5, at.getY() + (scale * 0.25), at.getZ() + 0.5, scale, 0));
+    public void writeCustomNBT(NBTTagCompound compound) {
+        super.writeCustomNBT(compound);
     }
 
     @Override
-    protected void onFirstTick() {}
+    public void readCustomNBT(NBTTagCompound compound) {
+        super.readCustomNBT(compound);
+    }
 }

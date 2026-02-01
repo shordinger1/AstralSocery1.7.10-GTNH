@@ -1,9 +1,7 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * VerticalConeBlockDiscoverer - Discovers blocks in a vertical cone shape
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.util.data;
@@ -11,15 +9,33 @@ package hellfirepvp.astralsorcery.common.util.data;
 import java.util.LinkedList;
 import java.util.List;
 
-import hellfirepvp.astralsorcery.common.util.BlockPos;
-import hellfirepvp.astralsorcery.common.util.WrapMathHelper;
+import net.minecraft.util.MathHelper;
+
+import hellfirepvp.astralsorcery.common.util.math.BlockPos;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: VerticalConeBlockDiscoverer
- * Created by HellFirePvP
- * Date: 03.11.2017 / 23:41
+ * VerticalConeBlockDiscoverer - Vertical cone block discovery (1.7.10)
+ * <p>
+ * <b>Features:</b>
+ * <ul>
+ * <li>Discovers blocks in a vertical cone shape from offset point</li>
+ * <li>Cone radius decreases as you go down</li>
+ * <li>Used to find blocks in a cone-shaped area</li>
+ * </ul>
+ * <p>
+ * <b>1.7.10 API Changes from 1.12.2:</b>
+ * <ul>
+ * <li>ChunkCoordinates → BlockPos from util.math</li>
+ * <li>Vector3.toBlockPos() for conversion</li>
+ * </ul>
+ * <p>
+ * <b>Usage:</b>
+ * 
+ * <pre>
+ * 
+ * VerticalConeBlockDiscoverer discoverer = new VerticalConeBlockDiscoverer(new BlockPos(0, 64, 0));
+ * List&lt;BlockPos&gt; blocks = discoverer.tryDiscoverBlocksDown(10, 5);
+ * </pre>
  */
 public class VerticalConeBlockDiscoverer {
 
@@ -29,13 +45,20 @@ public class VerticalConeBlockDiscoverer {
         this.offset = offset;
     }
 
+    /**
+     * Discover blocks in a vertical cone downwards
+     *
+     * @param lengthDown Length of the cone
+     * @param flatRadius Maximum radius at the top
+     * @return List of discovered block positions
+     */
     public List<BlockPos> tryDiscoverBlocksDown(float lengthDown, float flatRadius) {
         List<BlockPos> out = new LinkedList<>();
 
-        int lX = WrapMathHelper.floor(offset.getX() - flatRadius);
-        int hX = WrapMathHelper.ceil(offset.getX() + flatRadius);
-        int lZ = WrapMathHelper.floor(offset.getZ() - flatRadius);
-        int hZ = WrapMathHelper.ceil(offset.getZ() + flatRadius);
+        int lX = MathHelper.floor_float(offset.getX() - flatRadius);
+        int hX = MathHelper.ceiling_float_int(offset.getX() + flatRadius);
+        int lZ = MathHelper.floor_float(offset.getZ() - flatRadius);
+        int hZ = MathHelper.ceiling_float_int(offset.getZ() + flatRadius);
 
         Vector3 center = new Vector3(offset.getX() + 0.5, offset.getY(), offset.getZ() + 0.5);
         for (int yy = offset.getY(); yy >= Math.max(0, offset.getY() - lengthDown); yy--) {
@@ -48,7 +71,7 @@ public class VerticalConeBlockDiscoverer {
                     double dZ = center.getZ() - at.getZ();
                     double dstCur = Math.sqrt(dX * dX + dZ * dZ);
                     if (dstCur <= dstAllowed) {
-                        out.add(new BlockPos(at.toBlockPos()));
+                        out.add(at.toBlockPos());
                     }
                 }
             }

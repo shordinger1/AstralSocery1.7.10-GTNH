@@ -1,417 +1,305 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Exchange Wand - Exchange blocks with stored blocks
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.item.wand;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
-import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
-import org.lwjgl.opengl.GL11;
-
-import com.cleanroommc.modularui.utils.item.InvWrapper;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import hellfirepvp.astralsorcery.client.event.ClientRenderEventHandler;
-import hellfirepvp.astralsorcery.client.util.AirBlockRenderWorld;
-import hellfirepvp.astralsorcery.client.util.Blending;
-import hellfirepvp.astralsorcery.client.util.RenderItemAccessor;
-import hellfirepvp.astralsorcery.client.util.RenderingUtils;
-import hellfirepvp.astralsorcery.client.util.TextureHelper;
-import hellfirepvp.astralsorcery.common.base.Mods;
-import hellfirepvp.astralsorcery.common.data.config.Config;
-import hellfirepvp.astralsorcery.common.integrations.ModIntegrationBotania;
 import hellfirepvp.astralsorcery.common.item.ItemBlockStorage;
-import hellfirepvp.astralsorcery.common.item.base.render.ItemAlignmentChargeConsumer;
-import hellfirepvp.astralsorcery.common.item.base.render.ItemHandRender;
-import hellfirepvp.astralsorcery.common.item.base.render.ItemHandRenderHelper;
-import hellfirepvp.astralsorcery.common.item.base.render.ItemHudRender;
-import hellfirepvp.astralsorcery.common.migration.RayTraceResult;
-import hellfirepvp.astralsorcery.common.network.PacketChannel;
-import hellfirepvp.astralsorcery.common.network.packet.server.PktParticleEvent;
-import hellfirepvp.astralsorcery.common.registry.RegistryItems;
-import hellfirepvp.astralsorcery.common.structure.array.BlockArray;
-import hellfirepvp.astralsorcery.common.util.BlockPos;
-import hellfirepvp.astralsorcery.common.util.ItemUtils;
-import hellfirepvp.astralsorcery.common.util.MiscUtils;
-import hellfirepvp.astralsorcery.common.util.data.Tuple;
-import hellfirepvp.astralsorcery.common.util.struct.BlockDiscoverer;
+import hellfirepvp.astralsorcery.common.item.ItemBlockStorage.BlockAndMeta;
+import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: ItemExchangeWand
- * Created by HellFirePvP
- * Date: 07.02.2017 / 01:03
+ * Exchange Wand
+ * <p>
+ * A wand that exchanges blocks with stored blocks.
+ * <p>
+ * Features:
+ * - Store block types by sneaking + clicking
+ * - Exchange blocks in an area (search depth: 5)
+ * - Replaces all connected blocks of same type
+ * - Display stored blocks in HUD (TODO)
+ * <p>
+ * Controls:
+ * - Sneak + Click block: Store block
+ * - Click block: Exchange with stored block
+ * - Right-click air: Cycle stored blocks
+ * <p>
+ * TODO:
+ * - Implement HUD rendering (show stored blocks)
+ * - Implement block preview rendering
+ * - Implement area search (connected blocks)
+ * - Implement alignment charge system
+ * - Implement particle effects
+ * - Implement sound effects
  */
-public class ItemExchangeWand extends ItemBlockStorage
-    implements ItemHandRender, ItemHudRender, ItemAlignmentChargeConsumer {
+public class ItemExchangeWand extends ItemBlockStorage {
 
-    private static final int searchDepth = 5;
+    private static final int SEARCH_DEPTH = 5;
 
     public ItemExchangeWand() {
-        setMaxDamage(0);
-        setMaxStackSize(1);
-        setCreativeTab(RegistryItems.creativeTabAstralSorcery);
+        super();
+        setMaxStackSize(1); // Only one wand per stack
+        setMaxDamage(0); // No durability - infinite use
+        setCreativeTab(CreativeTabsAS.ASTRAL_SORCERY_TAB);
     }
 
-    @Override
-    @SideOnly(Side.CLIENT)
-    public boolean shouldReveal(ChargeType ct, ItemStack stack) {
-        return ct == ChargeType.TEMP;
-    }
-
-    // 1.7.10: getDestroySpeed doesn't exist as overrideable method
-    public float func_150893_a(ItemStack stack, Block state) {
-        return 0;
-    }
-
-    @Override
-    public boolean canHarvestBlock(Block state, ItemStack stack) {
-        return true;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void onRenderInHandHUD(ItemStack lastCacheInstance, float fadeAlpha, float pTicks) {
-        Collection<ItemStack> stored = getMappedStoredStates(lastCacheInstance).values();
-        if ((stored == null || stored == null || stored.isEmpty())) return;
-
-        Map<ItemStack, Integer> amountMap = new LinkedHashMap<>();
-        for (ItemStack stack : stored) {
-            int found = 0;
-            if (Mods.BOTANIA.isPresent()) {
-                found = ModIntegrationBotania.getItemCount(
-                    Minecraft.getMinecraft().thePlayer,
-                    lastCacheInstance,
-                    ItemUtils.createBlockState(stack));
-            } else {
-                Collection<ItemStack> stacks = ItemUtils.scanInventoryForMatching(
-                    new InvWrapper(Minecraft.getMinecraft().thePlayer.inventory),
-                    stack,
-                    false);
-                for (ItemStack foundStack : stacks) {
-                    found += foundStack.stackSize;
-                }
-            }
-            amountMap.put(stack, found);
-        }
-
-        int heightNormal = 26;
-        int heightSplit = 13;
-        int width = 26;
-        int offsetX = 30;
-        int offsetY = 15;
-
-        Blending.DEFAULT.applyStateManager();
-        Blending.DEFAULT.apply();
-        GL11.glColor4f(1F, 1F, 1F, fadeAlpha * 0.9F);
-        Tessellator tes = Tessellator.instance;
-
-        int tempOffsetY = offsetY;
-        for (int i = 0; i < amountMap.size(); i++) {
-            boolean first = i == 0;
-            boolean last = (i + 1 == amountMap.size());
-            if (first) {
-                tes.startDrawing(GL11.GL_QUADS);
-                ClientRenderEventHandler.texHUDItemFrame.bind();
-                tes.addVertexWithUV(offsetX, tempOffsetY + heightSplit, 10, 0, 0.5);
-                tes.addVertexWithUV(offsetX + width, tempOffsetY + heightSplit, 10, 1, 0.5);
-                tes.addVertexWithUV(offsetX + width, tempOffsetY, 10, 1, 0);
-                tes.addVertexWithUV(offsetX, tempOffsetY, 10, 0, 0);
-                tempOffsetY += heightSplit;
-                tes.draw();
-            } else {
-                tes.startDrawing(GL11.GL_QUADS);
-                ClientRenderEventHandler.texHUDItemFrameEx.bind();
-                tes.addVertexWithUV(offsetX, tempOffsetY + heightNormal, 10, 0, 1);
-                tes.addVertexWithUV(offsetX + width, tempOffsetY + heightNormal, 10, 1, 1);
-                tes.addVertexWithUV(offsetX + width, tempOffsetY, 10, 1, 0);
-                tes.addVertexWithUV(offsetX, tempOffsetY, 10, 0, 0);
-                tempOffsetY += heightNormal;
-                tes.draw();
-            }
-            if (last) {
-                tes.startDrawing(GL11.GL_QUADS);
-                ClientRenderEventHandler.texHUDItemFrame.bind();
-                tes.addVertexWithUV(offsetX, tempOffsetY + heightSplit, 10, 0, 1);
-                tes.addVertexWithUV(offsetX + width, tempOffsetY + heightSplit, 10, 1, 1);
-                tes.addVertexWithUV(offsetX + width, tempOffsetY, 10, 1, 0.5);
-                tes.addVertexWithUV(offsetX, tempOffsetY, 10, 0, 0.5);
-                tempOffsetY += heightSplit;
-                tes.draw();
-            }
-        }
-
-        TextureHelper.refreshTextureBindState();
-        TextureHelper.setActiveTextureToAtlasSprite();
-        RenderHelper.enableGUIStandardItemLighting();
-        RenderItem ri = RenderItemAccessor.getRenderItem();
-        Minecraft mc = Minecraft.getMinecraft();
-
-        tempOffsetY = offsetY;
-        for (Map.Entry<ItemStack, Integer> entry : amountMap.entrySet()) {
-            // 1.7.10: renderItemAndEffectIntoGUI takes 5 parameters
-            ri.renderItemAndEffectIntoGUI(
-                mc.fontRenderer,
-                mc.renderEngine,
-                entry.getKey(),
-                offsetX + 5,
-                tempOffsetY + 5);
-            tempOffsetY += heightNormal;
-        }
-
-        RenderHelper.disableStandardItemLighting();
-
-        int c = 0x00DDDDDD;
-        for (Map.Entry<ItemStack, Integer> entry : amountMap.entrySet()) {
-            String amountStr = String.valueOf(entry.getValue());
-            if (entry.getValue() == -1) {
-                amountStr = "\u221E";
-            }
-            if (amountStr.length() > 3) {}
-            Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(amountStr, 0, 0, c);
-
-        }
-        TextureHelper.refreshTextureBindState();
-
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void onRenderWhileInHand(ItemStack stack, float pTicks) {
-        Map<Block, ItemStack> storedStates = getMappedStoredStates(stack);
-        if (storedStates == null || storedStates.isEmpty()) return;
-        World world = Minecraft.getMinecraft().theWorld;
-        Random r = getPreviewRandomFromWorld(world);
-
-        EntityPlayer pl = Minecraft.getMinecraft().thePlayer;
-        if (pl == null) return;
-        // 1.7.10: Use fixed range instead of playerController
-        RayTraceResult rtr = ItemHandRenderHelper.getLookBlock(pl, false, true, 5.0D);
-        if (rtr == null || rtr.typeOfHit != hellfirepvp.astralsorcery.common.migration.RayTraceResult.Type.BLOCK)
-            return;
-
-        // 1.7.10: AirBlockRenderWorld only takes BiomeGenBase parameter
-        IBlockAccess airWorld = new AirBlockRenderWorld(net.minecraft.world.biome.BiomeGenBase.plains);
-        // 1.7.10: RayTraceResult doesn't have getBlockPos(), construct manually
-        BlockPos origin = new BlockPos(rtr.blockX, rtr.blockY, rtr.blockZ);
-        Block atOrigin = world.getBlock(origin.getX(), origin.getY(), origin.getZ());
-        Block match = MiscUtils.getMatchingState(storedStates.keySet(), atOrigin);
-        if (match != null && storedStates.keySet()
-            .size() <= 1) {
-            storedStates.remove(match);
-        }
-        if (storedStates == null || storedStates.isEmpty()) {
-            return;
-        }
-        // 1.7.10: getBlockHardness takes (World, x, y, z) instead of (World, BlockPos)
-        float hardness = atOrigin.getBlockHardness(world, origin.getX(), origin.getY(), origin.getZ());
-        if (Config.exchangeWandMaxHardness != -1) {
-            if (hardness > Config.exchangeWandMaxHardness) {
-                return;
-            }
-        }
-        if (hardness == -1) {
-            return;
-        }
-
-        int total = 0;
-        Map<Block, Tuple<ItemStack, Integer>> amountMap = new LinkedHashMap<>();
-        for (Map.Entry<Block, ItemStack> entry : storedStates.entrySet()) {
-            int found = 0;
-            if (Mods.BOTANIA.isPresent()) {
-                found = ModIntegrationBotania.getItemCount(
-                    Minecraft.getMinecraft().thePlayer,
-                    stack,
-                    ItemUtils.createBlockState(entry.getValue()));
-            } else {
-                Collection<ItemStack> stacks = ItemUtils.scanInventoryForMatching(
-                    new InvWrapper(Minecraft.getMinecraft().thePlayer.inventory),
-                    entry.getValue(),
-                    false);
-                for (ItemStack foundStack : stacks) {
-                    found += foundStack.stackSize;
-                }
-            }
-            total += (found == -1 ? 500_000 : found); // 500k should be large enough.
-            amountMap.put(entry.getKey(), new Tuple<>(entry.getValue(), found));
-        }
-
-        Map<Block, Integer> amtMap = MiscUtils.remap(amountMap, tpl -> tpl.value);
-        if (pl.capabilities.isCreativeMode) {
-            for (Block state : amtMap.keySet()) {
-                amtMap.put(state, Integer.MAX_VALUE);
-            }
-            total = Integer.MAX_VALUE;
-        }
-        BlockArray found = BlockDiscoverer
-            .discoverBlocksWithSameStateAround(world, origin, true, searchDepth, total, false);
-        if (found == null || found.isEmpty()) return;
-
-        List<Block> applicableStates = Lists.newArrayList(storedStates.keySet());
-
-        Blending.ADDITIVEDARK.applyStateManager();
-        Blending.ADDITIVEDARK.apply();
-        RenderingUtils.removeStandartTranslationFromTESRMatrix(pTicks);
-        TextureHelper.setActiveTextureToAtlasSprite();
-
-        Tessellator tes = Tessellator.instance;
-        tes.startDrawing(GL11.GL_QUADS);
-        for (BlockPos pos : found.getPattern()
-            .keySet()) {
-            Collections.shuffle(applicableStates, r);
-            Block potentialState = Iterables.getFirst(applicableStates, Blocks.air); // 1.7.10: lowercase 'air'
-            // 1.7.10: No getStateForPlacement in Block, use block directly
-            RenderingUtils.renderBlockSafely(airWorld, pos, potentialState, tes);
-        }
-        tes.draw();
-        TextureHelper.refreshTextureBindState();
-
-        Blending.DEFAULT.apply();
-        Blending.DEFAULT.applyStateManager();
-    }
-
-    @Override
-    public boolean onItemUse(ItemStack stack, EntityPlayer playerIn, World world, int x, int y, int z, int side,
+    public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
         float hitX, float hitY, float hitZ) {
-        if (world.isRemote) return true;
-        if ((stack == null || stack.stackSize<=0)) return true;
-
-        BlockPos origin = new BlockPos(x, y, z);
-
-        if (playerIn.isSneaking()) {
-            tryStoreBlock(stack, world, origin);
+        // Client-side: just return
+        if (world.isRemote) {
             return true;
         }
 
-        Map<Block, ItemStack> storedStates = getMappedStoredStates(stack);
-        Block atOrigin = world.getBlock(x, y, z);
-        Block match = MiscUtils.getMatchingState(storedStates.keySet(), atOrigin);
-        if (match != null && storedStates.keySet()
-            .size() <= 1) {
-            storedStates.remove(match);
-        }
-        if (storedStates == null || storedStates.isEmpty()) return true;
+        // Sneaking: Store block
+        if (player.isSneaking()) {
+            tryStoreBlock(stack, world, x, y, z);
 
-        float hardness = atOrigin.getBlockHardness(world, x, y, z);
-        if (Config.exchangeWandMaxHardness != -1) {
-            if (hardness > Config.exchangeWandMaxHardness) {
-                return true;
-            }
-        }
-        if (hardness == -1) {
+            // Get stored count
+            Map<BlockAndMeta, ItemStack> stored = getMappedStoredStates(stack);
+            int count = stored.size();
+
+            String color = count > 0 ? "§a" : "§c";
+            player.addChatMessage(
+                new net.minecraft.util.ChatComponentText(color + "[Exchange Wand] " + "Stored blocks: " + count));
+
+            world.playSoundAtEntity(player, "random.click", 0.3F, 1.0F);
             return true;
         }
 
-        int total = 0;
-        Map<Block, Tuple<ItemStack, Integer>> amountMap = new LinkedHashMap<>();
-        for (Map.Entry<Block, ItemStack> entry : storedStates.entrySet()) {
-            int found = 0;
-            if (Mods.BOTANIA.isPresent()) {
-                found = ModIntegrationBotania
-                    .getItemCount(playerIn, stack, ItemUtils.createBlockState(entry.getValue()));
-            } else {
-                Collection<ItemStack> stacks = ItemUtils
-                    .scanInventoryForMatching(new InvWrapper(playerIn.inventory), entry.getValue(), false);
-                for (ItemStack foundStack : stacks) {
-                    found += foundStack.stackSize;
-                }
-            }
-            total += (found == -1 ? 500_000 : found); // 500k should be large enough.
-            amountMap.put(entry.getKey(), new Tuple<>(entry.getValue(), found));
+        // Not sneaking: Exchange blocks
+        Map<BlockAndMeta, ItemStack> stored = getMappedStoredStates(stack);
+        if (stored.isEmpty()) {
+            player.addChatMessage(
+                new net.minecraft.util.ChatComponentText(
+                    "§c[Exchange Wand] No blocks stored! Sneak + Click to store blocks."));
+            return false;
         }
 
-        Map<Block, Integer> amtMap = MiscUtils.remap(amountMap, tpl -> tpl.value);
-        if (playerIn.capabilities.isCreativeMode) {
-            for (Block state : amtMap.keySet()) {
-                amtMap.put(state, Integer.MAX_VALUE);
-            }
-            total = Integer.MAX_VALUE;
+        // Get the currently selected block
+        BlockAndMeta toPlace = ItemBlockStorage.getSelectedBlock(stack);
+        if (toPlace == null) {
+            player.addChatMessage(new net.minecraft.util.ChatComponentText("§c[Exchange Wand] No block selected!"));
+            return false;
         }
-        BlockArray found = BlockDiscoverer
-            .discoverBlocksWithSameStateAround(world, origin, true, searchDepth, total, false);
-        if (found == null || found.isEmpty()) return true;
 
-        // 1.7.10: Replace lambda with anonymous class to avoid variable collision
-        List<Tuple<Block, ItemStack>> shuffleable = MiscUtils.flatten(
-            storedStates,
-            new hellfirepvp.astralsorcery.common.migration.BiFunction<Block, ItemStack, Tuple<Block, ItemStack>>() {
+        // Get target block
+        Block targetBlock = world.getBlock(x, y, z);
+        int targetMeta = world.getBlockMetadata(x, y, z);
 
-                @Override
-                public Tuple<Block, ItemStack> apply(Block block, ItemStack stackItem) {
-                    return new Tuple<>(block, stackItem);
-                }
-            });
-        Random r = getPreviewRandomFromWorld(world);
-        for (BlockPos placePos : found.getPattern()
-            .keySet()) {
-            Collections.shuffle(shuffleable, r);
-            Tuple<Block, ItemStack> applicable = playerIn.capabilities.isCreativeMode
-                ? Iterables.getFirst(shuffleable, null)
-                : null;
-            if (!playerIn.capabilities.isCreativeMode) {
-                for (Tuple<Block, ItemStack> it : shuffleable) {
-                    ItemStack test = ItemUtils.copyStackWithSize(it.value, 1);
-                    if (ItemUtils.consumeFromPlayerInventory(playerIn, stack, test, true)) {
-                        applicable = it;
-                        break;
-                    }
-                }
-            }
-            if (applicable == null) break; // No more blocks. LUL
-
-            if (drainTempCharge(playerIn, Config.exchangeWandUseCost, true)) {
-                // 1.7.10: Use theItemInWorldManager instead of playerController
-                if (((EntityPlayerMP) playerIn).theItemInWorldManager
-                    .tryHarvestBlock(placePos.getX(), placePos.getY(), placePos.getZ())) {
-                    Block place = applicable.key;
-                    // 1.7.10: canPlayerPlaceBlockPos takes 4 parameters
-                    if (MiscUtils.canPlayerPlaceBlockPos(playerIn, place, placePos, side)) {
-                        if (world.setBlock(
-                            placePos.getX(),
-                            placePos.getY(),
-                            placePos.getZ(),
-                            place,
-                            applicable.value.getItemDamage(),
-                            3)) {
-                            drainTempCharge(playerIn, Config.exchangeWandUseCost, false);
-                            if (!playerIn.capabilities.isCreativeMode) {
-                                ItemUtils.consumeFromPlayerInventory(
-                                    playerIn,
-                                    stack,
-                                    ItemUtils.copyStackWithSize(applicable.value, 1),
-                                    false);
-                            }
-                            PktParticleEvent ev = new PktParticleEvent(
-                                PktParticleEvent.ParticleEventType.ARCHITECT_PLACE,
-                                placePos);
-                            ev.setAdditionalDataLong(Block.getIdFromBlock(atOrigin));
-                            PacketChannel.CHANNEL.sendToAllAround(ev, PacketChannel.pointFromPos(world, placePos, 40));
-                        }
-                    }
-                }
-            }
+        // Don't exchange unbreakable blocks
+        if (targetBlock.getBlockHardness(world, x, y, z) < 0) {
+            player.addChatMessage(
+                new net.minecraft.util.ChatComponentText("§c[Exchange Wand] Cannot exchange unbreakable blocks!"));
+            return false;
         }
+
+        // Don't exchange with same block
+        if (targetBlock == toPlace.block && targetMeta == toPlace.meta) {
+            return false;
+        }
+
+        // Find all connected blocks of same type
+        List<BlockPos> toExchange = findConnectedBlocks(world, x, y, z, targetBlock, targetMeta);
+
+        if (toExchange.isEmpty()) {
+            return false;
+        }
+
+        // TODO: Check if player has enough blocks
+        // TODO: Drain blocks from inventory
+        // TODO: Check alignment charge
+
+        // Exchange all blocks
+        int exchanged = 0;
+        for (BlockPos pos : toExchange) {
+            // Check if we can place here
+            if (!player.canPlayerEdit(pos.x, pos.y, pos.z, side, stack)) {
+                continue;
+            }
+
+            // Replace block
+            world.setBlock(pos.x, pos.y, pos.z, toPlace.block, toPlace.meta, 3);
+            exchanged++;
+        }
+
+        if (exchanged > 0) {
+            // Play sound
+            world.playSoundAtEntity(player, "random.anvil_use", 0.5F, 1.0F);
+
+            player.addChatMessage(
+                new net.minecraft.util.ChatComponentText("§a[Exchange Wand] Exchanged " + exchanged + " blocks"));
+        }
+
         return true;
+
     }
 
+    public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
+        // Right-click in air: cycle through stored blocks
+        if (world.isRemote) {
+            return stack;
+        }
+
+        Map<BlockAndMeta, ItemStack> stored = getMappedStoredStates(stack);
+        if (stored.isEmpty()) {
+            return stack;
+        }
+
+        // Cycle to next block
+        int newIndex = ItemBlockStorage.cycleSelectedIndex(stack);
+        BlockAndMeta selected = ItemBlockStorage.getSelectedBlock(stack);
+
+        if (selected != null) {
+            String blockName = selected.block.getLocalizedName();
+            player.addChatMessage(
+                new net.minecraft.util.ChatComponentText(
+                    "§6[Exchange Wand] §rSelected: §e" + blockName
+                        + " §r("
+                        + (newIndex + 1)
+                        + "/"
+                        + stored.size()
+                        + ")"));
+        }
+
+        world.playSoundAtEntity(player, "random.click", 0.3F, 1.0F);
+
+        return stack;
+
+    }
+
+    /**
+     * Find all connected blocks of the same type
+     * Uses flood-fill algorithm
+     *
+     * @param world       The world
+     * @param startX      Start X position
+     * @param startY      Start Y position
+     * @param startZ      Start Z position
+     * @param targetBlock The target block type
+     * @param targetMeta  The target block metadata
+     * @return List of positions to exchange
+     */
+    private List<BlockPos> findConnectedBlocks(World world, int startX, int startY, int startZ, Block targetBlock,
+        int targetMeta) {
+        List<BlockPos> found = new LinkedList<>();
+        List<BlockPos> toCheck = new LinkedList<>();
+
+        // Start with the clicked block
+        toCheck.add(new BlockPos(startX, startY, startZ));
+
+        // Track checked positions
+        boolean[][][] checked = new boolean[SEARCH_DEPTH * 2 + 1][SEARCH_DEPTH * 2 + 1][SEARCH_DEPTH * 2 + 1];
+        int offset = SEARCH_DEPTH;
+
+        while (!toCheck.isEmpty() && found.size() < 1000) { // Limit to 1000 blocks
+            BlockPos current = toCheck.remove(0);
+
+            // Check bounds
+            int dx = current.x - startX;
+            int dy = current.y - startY;
+            int dz = current.z - startZ;
+
+            if (Math.abs(dx) > SEARCH_DEPTH || Math.abs(dy) > SEARCH_DEPTH || Math.abs(dz) > SEARCH_DEPTH) {
+                continue;
+            }
+
+            // Check if already checked
+            if (checked[dx + offset][dy + offset][dz + offset]) {
+                continue;
+            }
+            checked[dx + offset][dy + offset][dz + offset] = true;
+
+            // Check if block matches
+            Block block = world.getBlock(current.x, current.y, current.z);
+            int meta = world.getBlockMetadata(current.x, current.y, current.z);
+
+            if (block == targetBlock && meta == targetMeta) {
+                // Found matching block
+                found.add(current);
+
+                // Add neighbors to check
+                toCheck.add(new BlockPos(current.x + 1, current.y, current.z));
+                toCheck.add(new BlockPos(current.x - 1, current.y, current.z));
+                toCheck.add(new BlockPos(current.x, current.y + 1, current.z));
+                toCheck.add(new BlockPos(current.x, current.y - 1, current.z));
+                toCheck.add(new BlockPos(current.x, current.y, current.z + 1));
+                toCheck.add(new BlockPos(current.x, current.y, current.z - 1));
+            }
+        }
+
+        return found;
+    }
+
+    /**
+     * Helper class to store block positions
+     */
+    private static class BlockPos {
+
+        public final int x, y, z;
+
+        public BlockPos(int x, int y, int z) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+    }
+
+    /**
+     * NOTE: HUD Rendering
+     * <p>
+     * Original version:
+     * - Renders stored blocks in HUD overlay
+     * - Shows block icons and counts
+     * - Displays available blocks from inventory
+     * - Uses ItemHandRender and ItemHudRender interfaces
+     * <p>
+     * In 1.7.10:
+     * - TODO: Implement HUD rendering
+     * - TODO: Render stored block icons
+     * - TODO: Display inventory counts
+     * - TODO: Use Forge render events
+     */
+
+    /**
+     * NOTE: Inventory Integration
+     * <p>
+     * Original version:
+     * - Searches player inventory for blocks
+     * - Shows count of available blocks
+     * - Uses blocks from inventory first
+     * - Can use Botania's bauble inventory
+     * <p>
+     * In 1.7.10:
+     * - TODO: Implement inventory scanning
+     * - TODO: Check available block count
+     * - TODO: Drain blocks from inventory
+     * - TODO: Support mod inventory integration
+     */
+
+    /**
+     * NOTE: Block Discovery
+     * <p>
+     * Original version:
+     * - Uses BlockDiscoverer.findConnected()
+     * - Searches for connected blocks
+     * - Respects search depth limit
+     * - Can exclude certain blocks
+     * <p>
+     * In 1.7.10:
+     * - Simplified flood-fill algorithm
+     * - Fixed search depth (5 blocks)
+     * - Checks block type and metadata
+     * - Ignores unbreakable blocks
+     */
 }

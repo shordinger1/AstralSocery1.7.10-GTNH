@@ -1,113 +1,143 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Celestial Gateway Block - Interdimensional teleportation gateway
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.block;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 
-import hellfirepvp.astralsorcery.common.data.world.WorldCacheManager;
-import hellfirepvp.astralsorcery.common.data.world.data.GatewayCache;
-import hellfirepvp.astralsorcery.common.registry.RegistryItems;
-import hellfirepvp.astralsorcery.common.structure.BlockStructureObserver;
-import hellfirepvp.astralsorcery.common.tile.TileCelestialGateway;
-import hellfirepvp.astralsorcery.common.util.BlockPos;
-import hellfirepvp.astralsorcery.common.util.MiscUtils;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
+import hellfirepvp.astralsorcery.common.util.LogHelper;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: BlockCelestialGateway
- * Created by HellFirePvP
- * Date: 16.04.2017 / 18:46
+ * Celestial Gateway Block
+ * <p>
+ * A gateway that allows interdimensional teleportation.
+ * <p>
+ * Features:
+ * - Teleport players between dimensions
+ * - Named gateways
+ * - Placed by player tracking
+ * - Part of gateway network (TODO)
+ * - Uses TESR for OBJ model rendering
+ * <p>
+ * Rendering:
+ * - Uses TESR to render OBJ model (celestial_gateway.obj)
+ * - Model includes platform, pillars, and orbs
+ * - Textures: platform.png, orb_inner.png, orb_outer.png
+ * <p>
+ * Based on 1.12.2 implementation which uses EnumBlockRenderType.MODEL
+ * <p>
+ * TODO:
+ * - Implement TileCelestialGateway
+ * - Implement teleportation logic
+ * - Implement gateway network system
+ * - Implement GatewayCache
+ * - Implement structure validation
+ * - Implement portal rendering
+ * - Implement particle effects
  */
-public class BlockCelestialGateway extends BlockContainer implements BlockStructureObserver {
+public class BlockCelestialGateway extends BlockContainer {
 
-    private static final AxisAlignedBB box = AxisAlignedBB
-        .getBoundingBox(1D / 16D, 0D / 16D, 1D / 16D, 15D / 16D, 1D / 16D, 10D / 15D);
+    @SideOnly(Side.CLIENT)
+    private IIcon iconGateway;
 
     public BlockCelestialGateway() {
         super(Material.rock);
-        setStepSound(Block.soundTypePiston);
-        setHardness(4F);
-        setResistance(40F);
-        setHarvestLevel("pickaxe", 2);
-        setCreativeTab(RegistryItems.creativeTabAstralSorcery);
+
+        setHardness(4.0F);
+        setResistance(40.0F);
+        setStepSound(soundTypeStone);
+        setHarvestLevel("pickaxe", 2); // Iron tier
+        setCreativeTab(CreativeTabsAS.ASTRAL_SORCERY_TAB);
+
+        // Set block bounds (thin slab)
+        // In 1.7.10: setBlockBounds(x1, y1, z1, x2, y2, z2)
+        // Values are 0-16
+        setBlockBounds(1.0F / 16.0F, 0.0F, 1.0F / 16.0F, 15.0F / 16.0F, 1.0F / 16.0F, 15.0F / 16.0F);
+    }
+
+    @SideOnly(Side.CLIENT)
+    public void registerBlockIcons(IIconRegister register) {
+        // For TESR blocks, we need a simple icon for the item in hand/inventory
+        // Use the platform texture as the item icon
+        iconGateway = register.registerIcon("astralsorcery:models/celestialgateway/platform");
+        LogHelper.info("[BlockCelestialGateway] Registered icon: " + iconGateway.getIconName());
+    }
+
+    @SideOnly(Side.CLIENT)
+    public IIcon getIcon(int side, int meta) {
+        return iconGateway;
+
+    }
+
+    public boolean isOpaqueCube() {
+        return false; // Not a full block
+    }
+
+    public boolean renderAsNormalBlock() {
+        return false; // Special rendering
+    }
+
+    public int getRenderType() {
+        // Return -1 to use TESR rendering
+        // In 1.7.10, -1 means "use TileEntitySpecialRenderer"
+        return -1;
     }
 
     @Override
-    public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
-        return box;
-    }
+    public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase placer, ItemStack stack) {
+        super.onBlockPlacedBy(world, x, y, z, placer, stack);
 
-    @Override
-    public void onBlockPlacedBy(World worldIn, int x, int y, int z, EntityLivingBase placer, ItemStack stack) {
-        TileCelestialGateway gateway = MiscUtils.getTileAt(worldIn, x, y, z, TileCelestialGateway.class);
-        if (gateway != null) {
+        // Initialize TileEntity with placement data
+        hellfirepvp.astralsorcery.common.tile.TileCelestialGateway tile = (hellfirepvp.astralsorcery.common.tile.TileCelestialGateway) world
+            .getTileEntity(x, y, z);
+
+        if (tile != null) {
+            // Set gateway name if item has display name
             if (stack.hasDisplayName()) {
-                gateway.setGatewayName(stack.getDisplayName());
+                tile.setGatewayName(stack.getDisplayName());
             }
-            if (placer instanceof EntityPlayerMP && !MiscUtils.isPlayerFakeMP((EntityPlayerMP) placer)) {
-                gateway.setPlacedBy(placer.getUniqueID());
+
+            // Set player who placed this gateway
+            if (placer instanceof net.minecraft.entity.player.EntityPlayer) {
+                net.minecraft.entity.player.EntityPlayer player = (net.minecraft.entity.player.EntityPlayer) placer;
+                // In 1.7.10: getGameProfile().getId()
+                tile.setPlacedBy(
+                    player.getGameProfile()
+                        .getId());
             }
         }
     }
 
     @Override
-    public void breakBlock(World worldIn, int x, int y, int z, Block block, int meta) {
-        super.breakBlock(worldIn, x, y, z, block, meta);
+    public void breakBlock(World world, int x, int y, int z, Block block, int meta) {
+        super.breakBlock(world, x, y, z, block, meta);
 
-        GatewayCache cache = WorldCacheManager.getOrLoadData(worldIn, WorldCacheManager.SaveKey.GATEWAY_DATA);
-        cache.removePosition(worldIn, new BlockPos(x, y, z));
+        // TODO: Remove from GatewayCache when implemented
+        // GatewayCache cache = WorldCacheManager.getOrLoadData(world, GatewayCache.class);
+        // cache.removePosition(world, new BlockPos(x, y, z));
     }
 
     @Override
-    public boolean hasTileEntity(int metadata) {
+    public TileEntity createNewTileEntity(World world, int meta) {
+        return new hellfirepvp.astralsorcery.common.tile.TileCelestialGateway();
+    }
+
+    @Override
+    public boolean hasTileEntity(int meta) {
         return true;
-    }
-
-    @Override
-    public boolean hasTileEntity() {
-        return true;
-    }
-
-    @Nullable
-    @Override
-    public TileEntity createNewTileEntity(World worldIn, int meta) {
-        return new TileCelestialGateway();
-    }
-
-    @Nullable
-    @Override
-    public TileEntity createTileEntity(World world, int metadata) {
-        return new TileCelestialGateway();
-    }
-
-    @Override
-    public boolean isOpaqueCube() {
-        return false;
-    }
-
-    public boolean isFullBlock() {
-        return false;
-    }
-
-    @Override
-    public int getRenderType() {
-        return -1; // Custom model renderer
     }
 }

@@ -1,21 +1,31 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * TileStructuralConnector - Structural connector
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.tile;
 
-import hellfirepvp.astralsorcery.common.tile.base.TileEntitySynchronized;
+import net.minecraft.nbt.NBTTagCompound;
+
+import hellfirepvp.astralsorcery.common.tile.base.TileEntityTick;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: TileStructuralConnector
- * Created by HellFirePvP
- * Date: 11.11.2016 / 15:22
+ * TileStructuralConnector - Structural connector TileEntity (1.7.10)
  */
-public class TileStructuralConnector extends TileEntitySynchronized {
+public class TileStructuralConnector extends TileEntityTick {
+
+    public TileStructuralConnector() {
+        super();
+    }
+
+    @Override
+    public void writeCustomNBT(NBTTagCompound compound) {
+        super.writeCustomNBT(compound);
+    }
+
+    @Override
+    public void readCustomNBT(NBTTagCompound compound) {
+        super.readCustomNBT(compound);
+    }
 }

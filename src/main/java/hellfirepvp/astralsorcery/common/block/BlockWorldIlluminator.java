@@ -1,86 +1,81 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * World Illuminator - World lighting device
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.block;
 
-import net.minecraft.block.Block;
+import java.util.ArrayList;
+import java.util.Random;
+
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 
-import hellfirepvp.astralsorcery.common.registry.RegistryItems;
-import hellfirepvp.astralsorcery.common.tile.TileIlluminator;
-import hellfirepvp.astralsorcery.common.util.MiscUtils;
+import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: BlockWorldIlluminator
- * Created by HellFirePvP
- * Date: 01.11.2016 / 16:00
+ * BlockWorldIlluminator - World lighting device (1.7.10)
+ * <p>
+ * <b>Features:</b>
+ * <ul>
+ * <li>Device for illuminating areas</li>
+ * <li>Has TileEntity (TileWorldIlluminator)</li>
+ * <li>Places BlockFlareLight automatically</li>
+ * <li>Wireless range-based lighting</li>
+ * </ul>
  */
 public class BlockWorldIlluminator extends BlockContainer {
 
     public BlockWorldIlluminator() {
         super(Material.rock);
-        setHardness(3.0F);
-        setStepSound(Block.soundTypePiston);
-        setResistance(25.0F);
-        setLightLevel(0.4F);
-        setHarvestLevel("pickaxe", 2);
-        setCreativeTab(RegistryItems.creativeTabAstralSorcery);
+        setHardness(2.0F);
+        setResistance(15.0F);
+        setStepSound(soundTypeStone);
+        setHarvestLevel("pickaxe", 1);
+        setCreativeTab(CreativeTabsAS.ASTRAL_SORCERY_TAB);
     }
 
-    @Override
-    public TileEntity createNewTileEntity(World worldIn, int meta) {
-        return new TileIlluminator();
-    }
-
-    @Override
-    public boolean hasTileEntity(int metadata) {
-        return true;
-    }
-
-    @Override
     public boolean isOpaqueCube() {
-        return false;
+        return true;
+
     }
 
-    @Override
     public boolean renderAsNormalBlock() {
+        return true;
+
+    }
+
+    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX,
+        float hitY, float hitZ) {
+        // TODO: Open illuminator GUI or toggle
         return false;
+
     }
 
-    @Override
-    public boolean isSideSolid(IBlockAccess world, int x, int y, int z, ForgeDirection side) {
-        return false;
+    public Item getItemDropped(int meta, Random rand, int fortune) {
+        return Item.getItemFromBlock(this);
+
     }
 
-    @Override
-    public void onBlockPlacedBy(World worldIn, int x, int y, int z, EntityLivingBase placer, ItemStack stack) {
-        if (!worldIn.isRemote && placer instanceof EntityPlayerMP
-            && !MiscUtils.isPlayerFakeMP((EntityPlayerMP) placer)) {
-            TileIlluminator ti = MiscUtils.getTileAt(worldIn, x, y, z, TileIlluminator.class);
-            if (ti != null) {
-                ti.setPlayerPlaced();
-            }
-        }
+    public int quantityDropped(Random rand) {
+        return 1;
+
     }
 
-    @Override
-    public int getRenderType() {
-        return -1; // Custom model renderer
+    public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune) {
+        ArrayList<ItemStack> drops = new ArrayList<ItemStack>();
+        drops.add(new ItemStack(this, 1, 0));
+        return drops;
+
     }
 
+    public TileEntity createNewTileEntity(World world, int meta) {
+        return new hellfirepvp.astralsorcery.common.tile.TileWorldIlluminator();
+    }
 }

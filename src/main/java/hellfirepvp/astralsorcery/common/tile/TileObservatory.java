@@ -1,143 +1,51 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * TileObservatory - Observatory
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.tile;
 
 import java.util.UUID;
 
-import javax.annotation.Nullable;
+import com.cleanroommc.modularui.api.IGuiHolder;
+import com.cleanroommc.modularui.factory.PosGuiData;
+import com.cleanroommc.modularui.screen.ModularPanel;
+import com.cleanroommc.modularui.screen.UISettings;
+import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.AxisAlignedBB;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import hellfirepvp.astralsorcery.common.entities.EntityObservatoryHelper;
+import hellfirepvp.astralsorcery.client.gui.modularui.ObservatoryGuiFactory;
 import hellfirepvp.astralsorcery.common.tile.base.TileEntityTick;
-import hellfirepvp.astralsorcery.common.util.BlockPos;
-import hellfirepvp.astralsorcery.common.util.MiscUtils;
-import hellfirepvp.astralsorcery.common.util.data.Vector3;
+import net.minecraft.nbt.NBTTagCompound;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: TileObservatory
- * Created by HellFirePvP
- * Date: 26.05.2018 / 14:36
+ * TileObservatory - Observatory TileEntity (1.7.10)
+ * <p>
+ * Stores player viewing angles and provides full-screen constellation viewing GUI
  */
-public class TileObservatory extends TileEntityTick {
+public class TileObservatory extends TileEntityTick implements IGuiHolder<PosGuiData> {
 
-    private UUID entityHelperRef;
-    private Integer entityIdServerRef = null;
+    // Viewing angles for the observatory
+    public float observatoryYaw = 0F;
+    public float prevObservatoryYaw = 0F;
+    public float observatoryPitch = -45F;
+    public float prevObservatoryPitch = -45F;
 
-    public float observatoryYaw = 0, prevObservatoryYaw = 0;
-    public float observatoryPitch = -45, prevObservatoryPitch = -45;
+    // TODO: Entity helper for camera positioning (from 1.12.2)
+    // private UUID entityHelperRef;
+
+    public TileObservatory() {
+        super();
+    }
 
     @Override
-    protected void onFirstTick() {}
-
-    @Override
-    public void updateEntity() {
-        super.updateEntity();
-
-        if (!getWorld().isRemote) {
-            if (this.entityHelperRef == null) {
-                createNewObservatoryEntity();
-            } else {
-                Entity e;
-                if ((e = resolveEntity(this.entityHelperRef)) == null || e.isDead) {
-                    createNewObservatoryEntity();
-                } else {
-                    double xOffset = -0.85;
-                    double zOffset = 0.15;
-                    double yawRad = -Math.toRadians(this.observatoryYaw);
-                    double xComp = 0.5F + Math.sin(yawRad) * xOffset - Math.cos(yawRad) * zOffset;
-                    double zComp = 0.5F + Math.cos(yawRad) * xOffset + Math.sin(yawRad) * zOffset;
-                    Vector3 pos = new Vector3(getPos()).add(xComp, 0.4F, zComp);
-                    // 1.7.10: setPositionAndUpdate doesn't exist, use setLocationAndAngles
-                    e.setLocationAndAngles(pos.getX(), pos.getY(), pos.getZ(), e.rotationYaw, e.rotationPitch);
-                }
-            }
-        }
+    public ModularPanel buildUI(PosGuiData guiData, PanelSyncManager guiSyncManager, UISettings settings) {
+        return ObservatoryGuiFactory.createObservatoryUI(this, guiData, guiSyncManager, settings);
     }
 
-    public boolean isUsable() {
-        for (int xx = -1; xx <= 1; xx++) {
-            for (int zz = -1; zz <= 1; zz++) {
-                if (xx == 0 && zz == 0) {
-                    continue;
-                }
-                BlockPos other = getPos().add(xx, 0, zz);
-                if (!MiscUtils.canSeeSky(this.worldObj, other, false, true)) {
-                    return false;
-                }
-            }
-        }
-        return MiscUtils.canSeeSky(
-            this.worldObj,
-            this.getPos()
-                .up(),
-            true,
-            false);
-    }
-
-    private Entity createNewObservatoryEntity() {
-        this.entityHelperRef = null;
-        this.entityIdServerRef = null;
-
-        BlockPos pos = getPos();
-        EntityObservatoryHelper helper = new EntityObservatoryHelper(worldObj, pos);
-        helper.setPositionAndRotation(pos.getX() + 0.5, pos.getY() + 0.1, pos.getZ() + 0.5, 0, 0);
-        worldObj.spawnEntityInWorld(helper);
-
-        this.entityHelperRef = helper.getUniqueID();
-        this.entityIdServerRef = helper.getEntityId();
-        return helper;
-    }
-
-    @Nullable
-    private Entity resolveEntity(UUID entityUUID) {
-        if (entityUUID == null) return null;
-        BlockPos pos = getPos();
-        // 1.7.10: AxisAlignedBB.getBoundingBox takes individual coordinates, not BlockPos
-        BlockPos min = pos.add(-3, -1, -3);
-        BlockPos max = pos.add(3, 2, 3);
-        for (Entity e : worldObj.getEntitiesWithinAABB(
-            Entity.class,
-            AxisAlignedBB.getBoundingBox(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ()))) {
-            if (e.getUniqueID()
-                .equals(entityUUID)) {
-                this.entityIdServerRef = e.getEntityId();
-                return e;
-            }
-        }
-        return null;
-    }
-
-    @Nullable
-    public Entity findRideableObservatoryEntity() {
-        if (this.entityHelperRef == null || this.entityIdServerRef == null) {
-            return null;
-        }
-        return worldObj.getEntityByID(this.entityIdServerRef);
-    }
-
-    @Nullable
-    public UUID getEntityHelperRef() {
-        return entityHelperRef;
-    }
-
-    public void setEntityHelperRef(UUID entityHelperRef) {
-        this.entityHelperRef = entityHelperRef;
-        markForUpdate();
-    }
-
+    /**
+     * Update the viewing angles (called from GUI)
+     */
     public void updatePitchYaw(float pitch, float prevPitch, float yaw, float prevYaw) {
         this.observatoryPitch = pitch;
         this.prevObservatoryPitch = prevPitch;
@@ -146,40 +54,32 @@ public class TileObservatory extends TileEntityTick {
         markForUpdate();
     }
 
-    @Override
-    @SideOnly(Side.CLIENT)
-    public AxisAlignedBB getRenderBoundingBox() {
-        return TileObservatory.INFINITE_EXTENT_AABB;
-    }
-
-    @Override
-    public void readCustomNBT(NBTTagCompound compound) {
-        super.readCustomNBT(compound);
-
-        // 1.7.10: UUID helper methods don't exist, read manually from most/least significant bits
-        if (compound.hasKey("entityMost") && compound.hasKey("entityLeast")) {
-            this.entityHelperRef = new UUID(compound.getLong("entityMost"), compound.getLong("entityLeast"));
-        } else {
-            this.entityHelperRef = null;
-        }
-        this.observatoryYaw = compound.getFloat("oYaw");
-        this.observatoryPitch = compound.getFloat("oPitch");
-        this.prevObservatoryYaw = compound.getFloat("oYawPrev");
-        this.prevObservatoryPitch = compound.getFloat("oPitchPrev");
+    /**
+     * Check if observatory can see the sky
+     */
+    public boolean isUsable() {
+        // TODO: Implement sky visibility check
+        // Check 3x3 area around observatory
+        return true;
     }
 
     @Override
     public void writeCustomNBT(NBTTagCompound compound) {
         super.writeCustomNBT(compound);
 
-        // 1.7.10: UUID helper methods don't exist, write manually as most/least significant bits
-        if (this.entityHelperRef != null) {
-            compound.setLong("entityMost", this.entityHelperRef.getMostSignificantBits());
-            compound.setLong("entityLeast", this.entityHelperRef.getLeastSignificantBits());
-        }
         compound.setFloat("oYaw", this.observatoryYaw);
         compound.setFloat("oPitch", this.observatoryPitch);
         compound.setFloat("oYawPrev", this.prevObservatoryYaw);
         compound.setFloat("oPitchPrev", this.prevObservatoryPitch);
+    }
+
+    @Override
+    public void readCustomNBT(NBTTagCompound compound) {
+        super.readCustomNBT(compound);
+
+        this.observatoryYaw = compound.getFloat("oYaw");
+        this.observatoryPitch = compound.getFloat("oPitch");
+        this.prevObservatoryYaw = compound.getFloat("oYawPrev");
+        this.prevObservatoryPitch = compound.getFloat("oPitchPrev");
     }
 }

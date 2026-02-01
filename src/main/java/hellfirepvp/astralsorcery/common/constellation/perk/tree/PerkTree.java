@@ -1,90 +1,91 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Perk tree - Manages constellation perk tree
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.constellation.perk.tree;
 
 import java.util.*;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.MinecraftForge;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import hellfirepvp.astralsorcery.AstralSorcery;
 import hellfirepvp.astralsorcery.common.constellation.IConstellation;
 import hellfirepvp.astralsorcery.common.constellation.perk.AbstractPerk;
 import hellfirepvp.astralsorcery.common.constellation.perk.tree.root.RootPerk;
-import hellfirepvp.astralsorcery.common.util.data.Tuple;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: PerkTree
- * Created by HellFirePvP
- * Date: 17.06.2018 / 09:28
+ * Perk tree - Manages constellation perk tree (1.7.10)
+ * <p>
+ * <b>Features:</b>
+ * <ul>
+ * <li>Perk registration and management</li>
+ * <li>Connection management between perks</li>
+ * <li>Root perk tracking</li>
+ * <li>Tree freezing to prevent further modification</li>
+ * </ul>
+ * <p>
+ * <b>1.7.10 API Notes:</b>
+ * <ul>
+ * <li>No ResourceLocation - use String registry names</li>
+ * <li>No Forge event bus registration for perks</li>
+ * <li>Simplified connection system</li>
+ * </ul>
  */
 public class PerkTree {
 
     public static final int PERK_TREE_VERSION = 1;
     public static final PerkTree PERK_TREE = new PerkTree();
 
-    private static Map<ResourceLocation, AbstractPerk> perkMap = new HashMap<>();
+    private static Map<String, AbstractPerk> perkMap = new HashMap<>();
     private boolean frozen = false;
 
     private List<PerkTreePoint<?>> treePoints = new LinkedList<>();
     private Map<AbstractPerk, Collection<AbstractPerk>> doubleConnections = new HashMap<>();
-    private List<Tuple<AbstractPerk, AbstractPerk>> connections = new LinkedList<>();
+    private List<Connection> connections = new LinkedList<>();
 
     private Map<IConstellation, AbstractPerk> rootPerks = new HashMap<>();
 
     private PerkTree() {}
 
+    /**
+     * Register a root perk
+     */
     public PointConnector registerRootPerk(RootPerk perk) {
         if (frozen) {
             throw new IllegalStateException("Cannot register perk: PerkTree-State already frozen!");
         }
         perkMap.put(perk.getRegistryName(), perk);
         rootPerks.put(perk.getConstellation(), perk);
-        MinecraftForge.EVENT_BUS.register(perk);
         return PERK_TREE.setPoint(perk);
     }
 
+    /**
+     * Register a perk
+     */
     public PointConnector registerPerk(AbstractPerk perk) {
         if (frozen) {
             throw new IllegalStateException("Cannot register perk: PerkTree-State already frozen!");
         }
         perkMap.put(perk.getRegistryName(), perk);
-        MinecraftForge.EVENT_BUS.register(perk);
         return PERK_TREE.setPoint(perk);
     }
 
-    @Nullable
-    public AbstractPerk getPerk(ResourceLocation key) {
+    /**
+     * Get perk by registry name
+     */
+    public AbstractPerk getPerk(String key) {
         return perkMap.get(key);
     }
 
-    @Nullable
-    public AbstractPerk getAstralSorceryPerk(String keyName) {
-        return getPerk(new ResourceLocation(AstralSorcery.MODID, keyName));
-    }
-
-    @Nullable
+    /**
+     * Get root perk for constellation
+     */
     public AbstractPerk getRootPerk(IConstellation constellation) {
         return rootPerks.get(constellation);
     }
 
-    @Nonnull
+    /**
+     * Set point in tree
+     */
     private PointConnector setPoint(AbstractPerk perk) throws IllegalArgumentException {
         PerkTreePoint<?> offsetPoint = perk.getPoint();
         if (this.treePoints.contains(offsetPoint)) {
@@ -96,7 +97,9 @@ public class PerkTree {
         return new PointConnector(perk);
     }
 
-    @Nullable
+    /**
+     * Try to get connector for perk
+     */
     public PointConnector tryGetConnector(AbstractPerk point) {
         if (point == null) return null;
         if (this.treePoints.contains(point.getPoint())) {
@@ -105,27 +108,40 @@ public class PerkTree {
         return null;
     }
 
+    /**
+     * Get connected perks
+     */
     public Collection<AbstractPerk> getConnectedPerks(AbstractPerk perk) {
-        return doubleConnections.getOrDefault(perk, Lists.newArrayList());
+        return doubleConnections.getOrDefault(perk, new ArrayList<>());
     }
 
+    /**
+     * Get all perk points
+     */
     public Collection<PerkTreePoint<?>> getPerkPoints() {
-        return ImmutableList.copyOf(this.treePoints);
+        return new ArrayList<>(this.treePoints);
     }
 
-    // Only for rendering purposes.
-    @SideOnly(Side.CLIENT)
-    public Collection<Tuple<AbstractPerk, AbstractPerk>> getConnections() {
-        return ImmutableList.copyOf(this.connections);
+    /**
+     * Get all connections (for rendering)
+     */
+    public Collection<Connection> getConnections() {
+        return new ArrayList<>(this.connections);
     }
 
-    public void clearCache(Side side) {
-        for (PerkTreePoint<?> treePoint : this.treePoints) {
-            AbstractPerk p = treePoint.getPerk();
-            p.clearCaches(side);
+    /**
+     * Clear caches
+     */
+    public void clearCache(cpw.mods.fml.relauncher.Side side) {
+        for (PerkTreePoint<?> point : this.treePoints) {
+            point.getPerk()
+                .clearCaches(side);
         }
     }
 
+    /**
+     * Remove perk from tree
+     */
     public void removePerk(AbstractPerk perk) {
         if (frozen) {
             throw new IllegalStateException("Cannot remove perk: PerkTree-State already frozen!");
@@ -134,16 +150,48 @@ public class PerkTree {
             rootPerks.remove(((RootPerk) perk).getConstellation());
         }
         perkMap.remove(perk.getRegistryName());
-        MinecraftForge.EVENT_BUS.unregister(perk);
         PerkTreePoint<?> point = perk.getPoint();
         this.treePoints.remove(point);
         new PointConnector(perk).disconnectAll();
     }
 
+    /**
+     * Freeze the tree to prevent further modifications
+     */
     public void freeze() {
         this.frozen = true;
     }
 
+    /**
+     * Connection between two perks
+     */
+    public static class Connection {
+
+        public final AbstractPerk from;
+        public final AbstractPerk to;
+
+        public Connection(AbstractPerk from, AbstractPerk to) {
+            this.from = from;
+            this.to = to;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Connection that = (Connection) o;
+            return Objects.equals(from, that.from) && Objects.equals(to, that.to);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(from, to);
+        }
+    }
+
+    /**
+     * Point connector - used to connect perks in the tree
+     */
     public class PointConnector {
 
         private final AbstractPerk point;
@@ -152,6 +200,9 @@ public class PerkTree {
             this.point = point;
         }
 
+        /**
+         * Disconnect all connections
+         */
         public boolean disconnectAll() {
             boolean removedAll = true;
             Collection<AbstractPerk> otherLinked = new LinkedList<>(doubleConnections.get(this.point));
@@ -163,6 +214,9 @@ public class PerkTree {
             return removedAll;
         }
 
+        /**
+         * Disconnect from another perk
+         */
         public boolean disconnect(AbstractPerk other) {
             if (other == null) {
                 return false;
@@ -175,51 +229,46 @@ public class PerkTree {
             if (!others.remove(other)) {
                 return false;
             }
-            Iterator<Tuple<AbstractPerk, AbstractPerk>> it = connections.iterator();
-            while (it.hasNext()) {
-                Tuple<AbstractPerk, AbstractPerk> t = it.next();
-                if ((t.getKey()
-                    .equals(other)
-                    && t.getValue()
-                        .equals(point))
-                    || (t.getKey()
-                        .equals(point)
-                        && t.getValue()
-                            .equals(other))) {
-                    it.remove();
-                }
+            // Remove connection
+            connections.removeIf(
+                c -> (c.from.equals(other) && c.to.equals(point)) || (c.from.equals(point) && c.to.equals(other)));
+
+            // Remove reverse connection
+            Collection<AbstractPerk> reverse = doubleConnections.get(other);
+            if (reverse != null) {
+                reverse.remove(point);
             }
             return true;
         }
 
+        /**
+         * Connect to another perk
+         */
         public PointConnector connect(AbstractPerk other) {
             if (other == null) {
                 return this;
             }
 
-            if (!doubleConnections.containsKey(other)) {
-                doubleConnections.put(other, new LinkedList<>());
-            }
-            Collection<AbstractPerk> pointsTo = doubleConnections.get(other);
+            Collection<AbstractPerk> pointsTo = doubleConnections.computeIfAbsent(other, p -> new LinkedList<>());
             if (!pointsTo.contains(point)) {
                 pointsTo.add(point);
             }
-            if (!doubleConnections.containsKey(point)) {
-                doubleConnections.put(point, new LinkedList<>());
-            }
-            pointsTo = doubleConnections.get(point);
+            pointsTo = doubleConnections.computeIfAbsent(point, p -> new LinkedList<>());
             if (!pointsTo.contains(other)) {
                 pointsTo.add(other);
             }
 
-            Tuple<AbstractPerk, AbstractPerk> connection = new Tuple<>(point, other);
-            Tuple<AbstractPerk, AbstractPerk> reverse = new Tuple<>(other, point);
+            Connection connection = new Connection(point, other);
+            Connection reverse = new Connection(other, point);
             if (!connections.contains(connection) && !connections.contains(reverse)) {
                 connections.add(connection);
             }
             return this;
         }
 
+        /**
+         * Connect to another perk via connector
+         */
         public PointConnector connect(PointConnector other) {
             return connect(other.point);
         }

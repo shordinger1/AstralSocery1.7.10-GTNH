@@ -1,63 +1,67 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Grapple Wand - Launches a grappling hook
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.item.wand;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.EnumAction;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import hellfirepvp.astralsorcery.common.data.config.Config;
-import hellfirepvp.astralsorcery.common.entities.EntityGrapplingHook;
-import hellfirepvp.astralsorcery.common.item.base.render.ItemAlignmentChargeConsumer;
-import hellfirepvp.astralsorcery.common.registry.RegistryItems;
+import hellfirepvp.astralsorcery.common.base.AstralBaseItem;
+import hellfirepvp.astralsorcery.common.entity.EntityGrapplingHook;
+import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
+import hellfirepvp.astralsorcery.common.util.LogHelper;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: ItemGrappleWand
- * Created by HellFirePvP
- * Date: 30.06.2017 / 11:23
+ * Grapple Wand
+ * <p>
+ * A wand that launches a grappling hook to pull the player.
+ * <p>
+ * Features:
+ * - Right-click to launch grappling hook
+ * - Pulls player toward target
+ * - Free to use (no charge system yet)
+ * <p>
+ * TODO (Future):
+ * - Implement alignment charge system
+ * - Add cooldown
+ * - Add custom sound effects
+ * - Add custom particle effects
  */
-public class ItemGrappleWand extends Item implements ItemAlignmentChargeConsumer {
+public class ItemGrappleWand extends AstralBaseItem {
 
     public ItemGrappleWand() {
-        setMaxDamage(0);
-        setMaxStackSize(1);
-        setCreativeTab(RegistryItems.creativeTabAstralSorcery);
+        super();
+        setMaxStackSize(1); // Only one wand per stack
+        setMaxDamage(0); // No durability - infinite use
+        setCreativeTab(CreativeTabsAS.ASTRAL_SORCERY_TAB);
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public boolean shouldReveal(ChargeType ct, ItemStack stack) {
-        return ct == ChargeType.TEMP;
-    }
-
-    @Override
-    public EnumAction getItemUseAction(ItemStack stack) {
-        return EnumAction.block;
-    }
-
-    @Override
-    public ItemStack onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer player) {
-        ItemStack stack = itemStackIn;
-        if ((stack == null || stack.stackSize <= 0) || worldIn.isRemote) {
+    public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
+        // Client-side: just return
+        if (world.isRemote) {
             return stack;
         }
-        if (drainTempCharge(player, Config.grappleWandUseCost, true)) {
-            worldIn.spawnEntityInWorld(new EntityGrapplingHook(worldIn, player));
-            drainTempCharge(player, Config.grappleWandUseCost, false);
+
+        // Server-side: launch grappling hook
+        try {
+            // Spawn the grappling hook entity
+            EntityGrapplingHook hook = new EntityGrapplingHook(world, player);
+            world.spawnEntityInWorld(hook);
+
+            // Play bow sound as placeholder
+            world.playSoundAtEntity(player, "random.bow", 0.5F, 0.4F);
+
+            LogHelper.debug("Player " + player.getCommandSenderName() + " fired grappling hook");
+        } catch (Exception e) {
+            LogHelper.error("Failed to spawn grappling hook: " + e.getMessage());
+            e.printStackTrace();
         }
+
         return stack;
     }
-
 }

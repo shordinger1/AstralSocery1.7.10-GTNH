@@ -12,7 +12,6 @@ import java.util.function.Function;
 
 import net.minecraft.entity.Entity;
 
-import hellfirepvp.astralsorcery.client.util.RenderingUtils;
 import hellfirepvp.astralsorcery.common.util.EntityUtils;
 import hellfirepvp.astralsorcery.common.util.data.Vector3;
 
@@ -22,6 +21,11 @@ import hellfirepvp.astralsorcery.common.util.data.Vector3;
  * Class: EntityComplexFX
  * Created by HellFirePvP
  * Date: 17.09.2016 / 22:55
+ *
+ * 1.7.10 Port:
+ * - Base class for complex particle effects
+ * - Provides lifecycle management (age, maxAge, removal)
+ * - Provides utility interfaces for particle behavior
  */
 public abstract class EntityComplexFX implements IComplexEffect {
 
@@ -70,25 +74,34 @@ public abstract class EntityComplexFX implements IComplexEffect {
         this.removeRequested = true;
     }
 
+    @Override
     public boolean isRemoved() {
         return flagRemoved;
     }
 
+    @Override
     public void flagAsRemoved() {
         flagRemoved = true;
         removeRequested = false;
     }
 
+    @Override
     public void clearRemoveFlag() {
         flagRemoved = false;
     }
 
+    /**
+     * Interface for custom render alpha calculation
+     */
     public static interface RenderAlphaFunction<T extends IComplexEffect> {
 
         public float getRenderAlpha(T fx, float currentAlpha);
 
     }
 
+    /**
+     * Predefined alpha functions
+     */
     public static enum AlphaFunction {
 
         CONSTANT,
@@ -114,6 +127,9 @@ public abstract class EntityComplexFX implements IComplexEffect {
 
     }
 
+    /**
+     * Interface for custom render offset calculation
+     */
     public static interface RenderOffsetController {
 
         public Vector3 changeRenderPosition(EntityComplexFX fx, Vector3 currentRenderPos, Vector3 currentMotion,
@@ -121,16 +137,25 @@ public abstract class EntityComplexFX implements IComplexEffect {
 
     }
 
+    /**
+     * Interface for custom position update logic
+     */
     public static interface PositionController<T extends IComplexEffect> {
 
         public Vector3 updatePosition(T fx, Vector3 position, Vector3 motionToBeMoved);
 
     }
 
+    /**
+     * Interface for custom motion update logic
+     */
     public static interface MotionController<T extends IComplexEffect> {
 
         public Vector3 updateMotion(T fx, Vector3 motion);
 
+        /**
+         * Motion controller that attracts towards a target entity
+         */
         public static class EntityTarget<T extends IComplexEffect> implements MotionController<T> {
 
             private final Entity target;
@@ -146,7 +171,7 @@ public abstract class EntityComplexFX implements IComplexEffect {
                 if (target.isDead) return motion;
                 EntityUtils.applyVortexMotion(
                     (v) -> positionFunction.apply(fx),
-                    (v) -> motion.add(v),
+                    motion::add,
                     Vector3.atEntityCorner(target),
                     256,
                     1);
@@ -157,6 +182,9 @@ public abstract class EntityComplexFX implements IComplexEffect {
 
     }
 
+    /**
+     * Interface for custom scale calculation
+     */
     public static interface ScaleFunction<T extends IComplexEffect> {
 
         public static final ScaleFunction<IComplexEffect> IDENTITY = (ScaleFunction<IComplexEffect>) (fx, pos, pTicks,
@@ -164,19 +192,32 @@ public abstract class EntityComplexFX implements IComplexEffect {
 
         public float getScale(T fx, Vector3 pos, float pTicks, float scaleIn);
 
+        /**
+         * Scale function that shrinks the particle over its lifetime
+         */
         public static class Shrink<T extends EntityComplexFX> implements ScaleFunction<T> {
 
             @Override
             public float getScale(T fx, Vector3 pos, float pTicks, float scaleIn) {
                 float prevAge = Math.max(0F, ((float) fx.getAge() - 1)) / ((float) fx.getMaxAge());
                 float currAge = Math.max(0F, ((float) fx.getAge())) / ((float) fx.getMaxAge());
-                return (float) (scaleIn * (1 - (RenderingUtils.interpolate(prevAge, currAge, pTicks))));
+                return (float) (scaleIn * (1 - (interpolate(prevAge, currAge, pTicks))));
             }
 
         }
 
     }
 
+    /**
+     * Interpolate between two values
+     */
+    protected static float interpolate(float start, float end, float partial) {
+        return start + (end - start) * partial;
+    }
+
+    /**
+     * Interface for refresh function
+     */
     public static interface RefreshFunction {
 
         public boolean shouldRefresh();

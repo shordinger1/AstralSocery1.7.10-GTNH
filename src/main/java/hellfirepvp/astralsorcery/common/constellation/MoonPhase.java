@@ -14,6 +14,8 @@ package hellfirepvp.astralsorcery.common.constellation;
  * Class: MoonPhase
  * Created by HellFirePvP
  * Date: 17.11.2016 / 02:45
+ *
+ * 1.7.10 Migration: No API changes needed
  */
 public enum MoonPhase {
 
@@ -24,6 +26,20 @@ public enum MoonPhase {
     NEW,
     WAXING1_4,
     WAXING1_2,
-    WAXING3_4
+    WAXING3_4;
+
+    /**
+     * Get current moon phase from world time
+     * 1.7.10: Uses worldTime directly
+     *
+     * @param worldTime The world time in ticks
+     * @return Current moon phase
+     */
+    public static MoonPhase getPhaseFromWorldTime(long worldTime) {
+        // In vanilla 1.7.10, moon phase cycles every 8 days
+        // phase = (int)((worldTime / 24000L) % 8L) & 7
+        long phase = (worldTime / 24000L) % 8L;
+        return values()[(int) phase];
+    }
 
 }

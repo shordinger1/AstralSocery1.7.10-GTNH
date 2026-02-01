@@ -1,33 +1,47 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Major perk - Major perk type
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.constellation.perk.tree.nodes;
 
-import hellfirepvp.astralsorcery.common.constellation.perk.attribute.AttributeModifierPerk;
-import hellfirepvp.astralsorcery.common.constellation.perk.tree.PerkTreeMajor;
-import hellfirepvp.astralsorcery.common.constellation.perk.tree.PerkTreePoint;
+import net.minecraft.entity.player.EntityPlayer;
+
+import cpw.mods.fml.relauncher.Side;
+import hellfirepvp.astralsorcery.common.constellation.perk.AbstractPerk;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: MajorPerk
- * Created by HellFirePvP
- * Date: 17.07.2018 / 18:54
+ * Major perk - Major perk type (1.7.10)
+ * <p>
+ * <b>Features:</b>
+ * <ul>
+ * <li>Major category classification</li>
+ * <li>No special logic (placeholder)</li>
+ * </ul>
  */
-public class MajorPerk extends AttributeModifierPerk {
+public class MajorPerk extends AbstractPerk {
 
+    /**
+     * Create a new major perk
+     *
+     * @param name The perk name
+     * @param x    X position in perk tree
+     * @param y    Y position in perk tree
+     */
     public MajorPerk(String name, int x, int y) {
         super(name, x, y);
         setCategory(CATEGORY_MAJOR);
     }
 
     @Override
-    protected PerkTreePoint<? extends MajorPerk> initPerkTreePoint() {
-        return new PerkTreeMajor<>(this, this.getOffset());
+    protected void applyPerkLogic(EntityPlayer player, Side side) {
+        // Override in subclasses
     }
+
+    @Override
+    protected void removePerkLogic(EntityPlayer player, Side side) {
+        // Override in subclasses
+    }
+
 }

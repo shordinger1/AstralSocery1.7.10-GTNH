@@ -1,57 +1,60 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Alcara perk - Experience conversion perk
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.constellation.perk.tree.constellation;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import net.minecraft.entity.player.EntityPlayer;
 
+import hellfirepvp.astralsorcery.common.constellation.IConstellation;
 import hellfirepvp.astralsorcery.common.constellation.perk.AbstractPerk;
 import hellfirepvp.astralsorcery.common.constellation.perk.PerkConverter;
 import hellfirepvp.astralsorcery.common.constellation.perk.attribute.AttributeTypeRegistry;
 import hellfirepvp.astralsorcery.common.constellation.perk.attribute.PerkAttributeModifier;
-import hellfirepvp.astralsorcery.common.data.research.PlayerProgress;
-import hellfirepvp.astralsorcery.common.lib.Constellations;
-import hellfirepvp.astralsorcery.common.util.MiscUtils;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: PerkAlcara
- * Created by HellFirePvP
- * Date: 20.11.2018 / 21:07
+ * Alcara perk - Experience conversion perk (1.7.10)
+ * <p>
+ * <b>Features:</b>
+ * <ul>
+ * <li>Converts perk XP to perk effect</li>
+ * <li>Focus category (only one can be active)</li>
+ * </ul>
  */
 public class PerkAlcara extends ConstellationPerk {
 
-    public PerkAlcara(int x, int y) {
-        super("cst_alcara", Constellations.alcara, x, y);
+    public PerkAlcara(IConstellation constellation, int x, int y) {
+        super("cst_alcara", constellation, x, y);
         setCategory(CATEGORY_FOCUS);
+
+        // Add converter: converts perk XP to perk effect at 50% rate
         this.addConverter(new PerkConverter() {
 
-            @Nonnull
             @Override
-            public PerkAttributeModifier convertModifier(EntityPlayer player, PlayerProgress progress,
-                PerkAttributeModifier modifier, @Nullable AbstractPerk owningPerk) {
+            public String getId() {
+                return "alcara_xp_convert";
+            }
+
+            @Override
+            public PerkAttributeModifier convertModifier(EntityPlayer player, PerkAttributeModifier modifier,
+                AbstractPerk owningPerk) {
                 if (modifier.getAttributeType()
                     .equals(AttributeTypeRegistry.ATTR_TYPE_INC_PERK_EXP)) {
+                    float value = modifier.getFlatValue();
                     switch (modifier.getMode()) {
                         case ADDITION:
                         case ADDED_MULTIPLY:
-                            return modifier.convertModifier(
+                            // Create new modifier with converted type and value
+                            return new PerkAttributeModifier(
                                 AttributeTypeRegistry.ATTR_TYPE_INC_PERK_EFFECT,
                                 modifier.getMode(),
-                                modifier.getValue(player, progress) * 0.5F);
+                                value * 0.5F);
                         case STACKING_MULTIPLY:
-                            float val = modifier.getValue(player, progress) - 1;
+                            float val = value - 1;
                             val *= 0.5F;
-                            return modifier.convertModifier(
+                            return new PerkAttributeModifier(
                                 AttributeTypeRegistry.ATTR_TYPE_INC_PERK_EFFECT,
                                 modifier.getMode(),
                                 val + 1F);
@@ -65,11 +68,13 @@ public class PerkAlcara extends ConstellationPerk {
     }
 
     @Override
-    public boolean mayUnlockPerk(PlayerProgress progress, EntityPlayer player) {
-        return super.mayUnlockPerk(progress, player) && !MiscUtils.contains(
-            progress.getAppliedPerks(),
-            perk -> perk.getCategory()
-                .equals(CATEGORY_FOCUS));
+    protected void applyPerkLogic(net.minecraft.entity.player.EntityPlayer player, cpw.mods.fml.relauncher.Side side) {
+        // Converter handles all logic
+    }
+
+    @Override
+    protected void removePerkLogic(net.minecraft.entity.player.EntityPlayer player, cpw.mods.fml.relauncher.Side side) {
+        // Converter handles all logic
     }
 
 }

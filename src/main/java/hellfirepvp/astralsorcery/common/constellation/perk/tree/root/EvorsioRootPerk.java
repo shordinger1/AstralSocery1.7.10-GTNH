@@ -1,83 +1,44 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Evorsio root perk - Root perk for Evorsio constellation
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.constellation.perk.tree.root;
 
-import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.world.World;
-import net.minecraftforge.event.world.BlockEvent;
 
-import cpw.mods.fml.common.eventhandler.EventPriority;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
-import hellfirepvp.astralsorcery.common.constellation.perk.PerkAttributeHelper;
-import hellfirepvp.astralsorcery.common.constellation.perk.attribute.AttributeTypeRegistry;
-import hellfirepvp.astralsorcery.common.data.research.PlayerProgress;
-import hellfirepvp.astralsorcery.common.data.research.ResearchManager;
-import hellfirepvp.astralsorcery.common.event.AttributeEvent;
-import hellfirepvp.astralsorcery.common.lib.Constellations;
-import hellfirepvp.astralsorcery.common.util.BlockPos;
-import hellfirepvp.astralsorcery.common.util.MiscUtils;
-import hellfirepvp.astralsorcery.common.util.log.LogCategory;
+import hellfirepvp.astralsorcery.common.constellation.IMajorConstellation;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: EvorsioRootPerk
- * Created by HellFirePvP
- * Date: 16.07.2018 / 15:41
+ * Evorsio root perk - Root perk for Evorsio constellation (1.7.10)
+ * <p>
+ * <b>Features:</b>
+ * <ul>
+ * <li>Movement-focused constellation</li>
+ * <li>Grants XP from movement</li>
+ * </ul>
+ * <p>
+ * <b>1.7.10 API Notes:</b>
+ * <ul>
+ * <li>TODO: Implement movement tracking</li>
+ * </ul>
  */
 public class EvorsioRootPerk extends RootPerk {
 
-    public EvorsioRootPerk(int x, int y) {
-        super("evorsio", Constellations.evorsio, x, y);
+    public EvorsioRootPerk(IMajorConstellation constellation, int x, int y) {
+        super(constellation, x, y);
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onBreak(BlockEvent.BreakEvent event) {
-        EntityPlayer player = event.getPlayer();
-        Side side = player.worldObj.isRemote ? Side.CLIENT : Side.SERVER;
-        if (side != Side.SERVER) return;
-        if (player != null && player instanceof EntityPlayerMP && !MiscUtils.isPlayerFakeMP((EntityPlayerMP) player)) {
-            PlayerProgress prog = ResearchManager.getProgress(player, side);
-            if (!prog.hasPerkEffect(this)) {
-                return;
-            }
+    @Override
+    protected void applyPerkLogic(EntityPlayer player, Side side) {
+        // TODO: Register movement tracking
+    }
 
-            Block broken = event.world.getBlock(event.x, event.y, event.z);
-            World world = event.world;
-            BlockPos pos = new BlockPos(event.x, event.y, event.z);
-            float gainedExp;
-            try {
-                gainedExp = broken.getBlockHardness(world, pos.getX(), pos.getY(), pos.getZ());
-            } catch (Exception exc) {
-                gainedExp = 0.5F;
-            }
-            if (gainedExp <= 0) {
-                return; // Unbreakable lol. you're not getting exp for that.
-            }
-            gainedExp *= 0.15F;
-            gainedExp *= expMultiplier;
-            gainedExp = PerkAttributeHelper.getOrCreateMap(player, side)
-                .modifyValue(player, prog, AttributeTypeRegistry.ATTR_TYPE_INC_PERK_EFFECT, gainedExp);
-            gainedExp = PerkAttributeHelper.getOrCreateMap(player, side)
-                .modifyValue(player, prog, AttributeTypeRegistry.ATTR_TYPE_INC_PERK_EXP, gainedExp);
-            gainedExp = (float) Math.sqrt(gainedExp);
-            gainedExp = AttributeEvent
-                .postProcessModded(player, AttributeTypeRegistry.ATTR_TYPE_INC_PERK_EXP, gainedExp);
-
-            float xpGain = gainedExp;
-            LogCategory.PERKS.info(() -> "Grant " + xpGain + " exp to " + player.getCommandSenderName() + " (Evorsio)");
-
-            ResearchManager.modifyExp(player, xpGain);
-        }
+    @Override
+    protected void removePerkLogic(EntityPlayer player, Side side) {
+        // TODO: Unregister movement tracking
     }
 
 }

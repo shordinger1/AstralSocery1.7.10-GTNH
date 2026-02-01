@@ -1,130 +1,107 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Opaque cosmetic rock block - placeholder for future decorative blocks
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.block;
 
-import java.util.ArrayList;
-
-import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
 
-import hellfirepvp.astralsorcery.common.migration.BlockStateContainer;
-import hellfirepvp.astralsorcery.common.migration.IStringSerializable;
-import hellfirepvp.astralsorcery.common.migration.PropertyEnum;
-import hellfirepvp.astralsorcery.common.registry.RegistryItems;
+import hellfirepvp.astralsorcery.common.base.AstralBaseBlock;
+import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: BlockOpaqueCosmetic
- * Created by HellFirePvP
- * Date: 12.05.2016 / 16:58
+ * BlockOpaqueCosmeticRock - Opaque decorative rock block (1.7.10)
+ * <p>
+ * <b>NOTE:</b> Currently a placeholder with only NONE type.
+ * Reserved for future decorative blocks.
+ * <p>
+ * <b>1.7.10 API Notes:</b>
+ * <ul>
+ * <li>No PropertyEnum - uses metadata (currently only 0)</li>
+ * <li>No IBlockState - uses direct metadata</li>
+ * <li>Simplified variant system</li>
+ * </ul>
+ * <p>
+ * <b>Original Features (may not work in 1.7.10):</b>
+ * <ul>
+ * <li>Multiple variants (currently only NONE implemented)</li>
+ * <li>Custom collision boxes</li>
+ * <li>Advanced rendering</li>
+ * </ul>
  */
-public class BlockOpaqueCosmeticRock extends Block implements BlockCustomName {
+public class BlockOpaqueCosmeticRock extends AstralBaseBlock {
 
-    public static PropertyEnum<BlockType> BLOCK_TYPE = PropertyEnum.create("blocktype", BlockType.class);
-
-    private BlockStateContainer blockState;
-
+    /**
+     * Constructor
+     * <p>
+     * High hardness and resistance similar to obsidian
+     */
     public BlockOpaqueCosmeticRock() {
         super(Material.rock);
+
+        // Set block properties
         setHardness(2.0F);
-        setHarvestLevel("pickaxe", 3);
-        setResistance(20.0F);
-        setCreativeTab(RegistryItems.creativeTabAstralSorcery);
-        this.blockState = new BlockStateContainer(this, BLOCK_TYPE);
+        setResistance(20.0F); // High resistance
+        setStepSound(soundTypeStone);
+        setCreativeTab(CreativeTabsAS.ASTRAL_SORCERY_TAB);
+        setHarvestLevel("pickaxe", 3); // Diamond tier
+
+        // NOTE: 1.7.10 doesn't have MapColor.IRON
+        // Using default rock color
     }
 
-//     public IBlockState getDefaultState() {
-//         return this.blockState.getBaseState()
-//             .withProperty(BLOCK_TYPE, BlockType.NONE);
-//     }
+    /**
+     * Get the block's display name
+     *
+     * @return Unlocalized name
+     */
+    // TODO: Implement variant names when multiple types are added
 
-//     protected void setDefaultState(IBlockState state) {
-//         // In 1.7.10, default state is tracked separately
-//     }
+    // TODO: Implement variant system when needed
+    // Original version had:
+    // - getBoundingBox() - returns FULL_BLOCK_AABB
+    // - getSubBlocks() - creative tab items
+    // - getStateFromMeta() / getMetaFromState() - metadata conversion
+    // - getIdentifierForMeta() - variant identifier
 
-    @Override
-    public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
-        return AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1);
-    }
+    // NOTE: These methods from original version may not work in 1.7.10:
+    // - IBlockState (not available in 1.7.10)
+    // - PropertyEnum (not available in 1.7.10)
+    // - NonNullList (not available in 1.7.10)
+    // - RayTraceResult (not available in 1.7.10)
 
-    @Override
-    public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
-        return AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1);
-    }
+    /**
+     * Internal enum for block types
+     * <p>
+     * Currently only NONE - placeholder for future expansion
+     */
+    public static enum BlockType {
 
-    @Override
-    public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z) {
-        this.setBlockBounds(0, 0, 0, 1, 1, 1);
-    }
-
-    public void getSubBlocks(Item item, CreativeTabs tab, ArrayList<ItemStack> list) {
-        for (BlockType bt : BlockType.values()) {
-            list.add(new ItemStack(this, 1, bt.ordinal()));
-        }
-    }
-
-//     public IBlockState getStateFromMeta(int meta) {
-//         return meta < BlockType.values().length ? getDefaultState().withProperty(BLOCK_TYPE, BlockType.values()[meta])
-//             : getDefaultState();
-//     }
-
-//     public int getMetaFromState(IBlockState state) {
-//         BlockType type = state.getValue(BLOCK_TYPE);
-//         return type.ordinal();
-//     }
-
-    protected BlockStateContainer createBlockState() {
-        return new BlockStateContainer(this, BLOCK_TYPE);
-    }
-
-    @Override
-    public int getRenderType() {
-        return 0; // Standard render type
-    }
-
-    @Override
-    public boolean isOpaqueCube() {
-        return true;
-    }
-
-    @Override
-    public boolean renderAsNormalBlock() {
-        return true;
-    }
-
-    @Override
-    public int damageDropped(int metadata) {
-        return metadata;
-    }
-
-    @Override
-    public String getIdentifierForMeta(int meta) {
-        BlockType mt = BlockType.values()[meta >= BlockType.values().length ? 0 : meta];
-        return mt.getName();
-    }
-
-    public static enum BlockType implements IStringSerializable {
-
+        /** Placeholder type - currently the only type */
         NONE;
 
-        @Override
+        /**
+         * Get the name of this type
+         *
+         * @return Type name
+         */
         public String getName() {
             return name().toLowerCase();
         }
 
+        /**
+         * Get type from metadata
+         *
+         * @param meta Metadata value
+         * @return BlockType
+         */
+        public static BlockType byMetadata(int meta) {
+            if (meta < 0 || meta >= values().length) {
+                return NONE;
+            }
+            return values()[meta];
+        }
     }
-
 }

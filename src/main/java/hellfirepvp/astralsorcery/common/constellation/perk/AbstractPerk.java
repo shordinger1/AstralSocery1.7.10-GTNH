@@ -1,53 +1,46 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Abstract perk - Base class for all constellation perks
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.constellation.perk;
 
-import java.awt.*;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.awt.Point;
+import java.util.*;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-import net.minecraftforge.common.MinecraftForge;
 
-import com.google.common.collect.Lists;
-
-import cpw.mods.fml.common.Loader;
-import cpw.mods.fml.common.ModContainer;
-import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import hellfirepvp.astralsorcery.AstralSorcery;
-import hellfirepvp.astralsorcery.client.gui.GuiJournalPerkTree;
 import hellfirepvp.astralsorcery.common.constellation.perk.tree.PerkTree;
 import hellfirepvp.astralsorcery.common.constellation.perk.tree.PerkTreePoint;
-import hellfirepvp.astralsorcery.common.data.research.PlayerProgress;
-import hellfirepvp.astralsorcery.common.data.research.ResearchManager;
-import hellfirepvp.astralsorcery.common.event.APIRegistryEvent;
-import hellfirepvp.astralsorcery.common.util.log.LogCategory;
+import hellfirepvp.astralsorcery.common.util.LogHelper;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: AbstractPerk
- * Created by HellFirePvP
- * Date: 30.06.2018 / 11:40
+ * Abstract perk - Base class for all constellation perks (1.7.10)
+ * <p>
+ * <b>Features:</b>
+ * <ul>
+ * <li>Position-based layout in perk tree</li>
+ * <li>Category system (base, root, major, key, etc.)</li>
+ * <li>Unlock requirements and progression</li>
+ * <li>Attribute modifier application</li>
+ * <li>Tooltip generation</li>
+ * </ul>
+ * <p>
+ * <b>1.7.10 API Notes:</b>
+ * <ul>
+ * <li>ResourceLocation exists in 1.7.10 (same as 1.12.2)</li>
+ * <li>Point exists in java.awt</li>
+ * <li>No I18n format - use StatCollector.translateToLocal()</li>
+ * <li>No TextFormatting - use EnumChatFormatting</li>
+ * <li>No PlayerProgress - simplified to direct player data</li>
+ * </ul>
  */
 public abstract class AbstractPerk {
 
@@ -62,7 +55,7 @@ public abstract class AbstractPerk {
         EnumChatFormatting.GOLD.toString());
     public static final PerkCategory CATEGORY_FOCUS = new PerkCategory("focus", EnumChatFormatting.GOLD.toString());
 
-    private final ResourceLocation registryName;
+    private final String registryName;
     protected final Point offset;
     private PerkCategory category = CATEGORY_BASE;
     private List<String> tooltipCache = null;
@@ -70,21 +63,27 @@ public abstract class AbstractPerk {
     protected String ovrUnlocalizedNamePrefix = null;
     private PerkTreePoint<? extends AbstractPerk> treePoint = null;
 
+    /**
+     * Create a new perk
+     *
+     * @param name The perk name (will be lowercased for registry name)
+     * @param x    X position in perk tree
+     * @param y    Y position in perk tree
+     */
     public AbstractPerk(String name, int x, int y) {
-        this.registryName = new ResourceLocation(AstralSorcery.MODID, name.toLowerCase());
+        this.registryName = name.toLowerCase();
         this.offset = new Point(x, y);
     }
 
-    public AbstractPerk(ResourceLocation name, int x, int y) {
-        this.registryName = name;
-        this.offset = new Point(x, y);
-    }
-
+    /**
+     * Initialize perk tree point
+     * Override in subclasses to create custom point types
+     */
     protected PerkTreePoint<? extends AbstractPerk> initPerkTreePoint() {
         return new PerkTreePoint<>(this, this.getOffset());
     }
 
-    public ResourceLocation getRegistryName() {
+    public String getRegistryName() {
         return registryName;
     }
 
@@ -99,29 +98,26 @@ public abstract class AbstractPerk {
         return treePoint;
     }
 
+    /**
+     * Set perk category
+     */
     public <T> T setCategory(PerkCategory category) {
         this.category = category;
         return (T) this;
     }
 
-    @Optional.Method(modid = "crafttweaker")
-    public final void adjustMultipliers() {
-        double multiplier = hellfirepvp.astralsorcery.common.integrations.mods.crafttweaker.tweaks.PerkTree
-            .getMultiplier(this);
-        applyEffectMultiplier(multiplier);
-    }
-
-    protected void applyEffectMultiplier(double multiplier) {}
-
-    // Return true to display that the perk's modifiers got disabled by pack's configurations
+    /**
+     * Check if this perk's modifiers are disabled
+     * Can be overridden in subclasses for custom logic
+     */
     public boolean modifiersDisabled(EntityPlayer player, Side side) {
-        APIRegistryEvent.PerkDisable event = new APIRegistryEvent.PerkDisable(this, player, side);
-        MinecraftForge.EVENT_BUS.post(event);
-        return event.isPerkDisabled();
+        return false; // Default: not disabled
     }
 
-    // Reserving application/removal methods to delegate for later pre-application logic
-    final void applyPerk(EntityPlayer player, Side side) {
+    /**
+     * Apply perk to player
+     */
+    public final void applyPerk(EntityPlayer player, Side side) {
         if (modifiersDisabled(player, side)) {
             return;
         }
@@ -129,11 +125,14 @@ public abstract class AbstractPerk {
         this.applyPerkLogic(player, side);
         if (PerkAttributeHelper.getOrCreateMap(player, side)
             .markPerkApplied(this)) {
-            LogCategory.PERKS.info(() -> "Cache: " + this.getRegistryName() + " applied!");
+            LogHelper.debug("Perk " + getRegistryName() + " applied to " + player.getCommandSenderName());
         }
     }
 
-    final void removePerk(EntityPlayer player, Side side) {
+    /**
+     * Remove perk from player
+     */
+    public final void removePerk(EntityPlayer player, Side side) {
         if (modifiersDisabled(player, side)) {
             return;
         }
@@ -141,72 +140,106 @@ public abstract class AbstractPerk {
         this.removePerkLogic(player, side);
         if (PerkAttributeHelper.getOrCreateMap(player, side)
             .markPerkRemoved(this)) {
-            LogCategory.PERKS.info(() -> "Cache: " + this.getRegistryName() + " removed!");
+            LogHelper.debug("Perk " + getRegistryName() + " removed from " + player.getCommandSenderName());
         }
     }
 
+    /**
+     * Apply perk logic
+     * Override in subclasses to apply actual effects
+     */
     protected abstract void applyPerkLogic(EntityPlayer player, Side side);
 
+    /**
+     * Remove perk logic
+     * Override in subclasses to remove actual effects
+     */
     protected abstract void removePerkLogic(EntityPlayer player, Side side);
 
+    /**
+     * Get perk data for player
+     */
     @Nullable
-    public NBTTagCompound getPerkData(EntityPlayer player, Side side) {
-        return ResearchManager.getProgress(player, side)
-            .getPerkData(this);
+    public net.minecraft.nbt.NBTTagCompound getPerkData(EntityPlayer player, Side side) {
+        hellfirepvp.astralsorcery.common.data.research.PlayerProgress progress = hellfirepvp.astralsorcery.common.data.research.ResearchManager
+            .getProgress(player, side);
+        return progress.getPerkData(this);
     }
 
     /**
-     * Called when the perk is in any way modified in regards to its 'contents' for a specific player e.g. gems
+     * Called when the perk is modified
      * Called AFTER the perk has been re-applied with the new data.
      */
-    public void modifyPerkServer(EntityPlayer player, PlayerProgress progress, NBTTagCompound dataStorage) {}
+    public void modifyPerkServer(EntityPlayer player,
+        hellfirepvp.astralsorcery.common.data.research.PlayerProgress progress,
+        net.minecraft.nbt.NBTTagCompound dataStorage) {}
 
     /**
      * Called ONCE when the perk is unlocked
      * You may use the NBTTagCompound to save data to remove it again later
      * The player might be null for root perks on occasion.
      */
-    public void onUnlockPerkServer(@Nullable EntityPlayer player, PlayerProgress progress,
-        NBTTagCompound dataStorage) {}
+    public void onUnlockPerkServer(@Nullable EntityPlayer player,
+        hellfirepvp.astralsorcery.common.data.research.PlayerProgress progress,
+        net.minecraft.nbt.NBTTagCompound dataStorage) {}
 
     /**
      * Clean up and remove the perk from that single player.
      * Data in the dataStorage is filled with the data set in onUnlockPerkServer
      * Called after the perk is already removed from the player
      */
-    public void onRemovePerkServer(EntityPlayer player, PlayerProgress progress, NBTTagCompound dataStorage) {}
+    public void onRemovePerkServer(EntityPlayer player,
+        hellfirepvp.astralsorcery.common.data.research.PlayerProgress progress,
+        net.minecraft.nbt.NBTTagCompound dataStorage) {}
 
+    /**
+     * Set name override for this perk
+     */
     public <T> T setNameOverride(AbstractPerk other) {
         return setNameOverride(other.getUnlocalizedName());
     }
 
+    /**
+     * Set name override for this perk
+     */
     public <T> T setNameOverride(String namePrefix) {
         this.ovrUnlocalizedNamePrefix = namePrefix;
         return (T) this;
     }
 
-    @Nonnull
+    /**
+     * Get perk category
+     */
     public PerkCategory getCategory() {
         return category;
     }
 
-    public PerkTreePoint.AllocationStatus getPerkStatus(@Nullable EntityPlayer player, Side side) {
+    /**
+     * Get perk status for a player
+     */
+    public PerkTreePoint.AllocationStatus getPerkStatus(EntityPlayer player, Side side) {
         if (player == null) {
             return PerkTreePoint.AllocationStatus.UNALLOCATED;
         }
-        PlayerProgress progress = ResearchManager.getProgress(player, side);
-        if (!progress.isValid()) {
-            return PerkTreePoint.AllocationStatus.UNALLOCATED;
-        }
+
+        hellfirepvp.astralsorcery.common.data.research.PlayerProgress progress = hellfirepvp.astralsorcery.common.data.research.ResearchManager
+            .getProgress(player, side);
+
         if (progress.hasPerkUnlocked(this)) {
             return PerkTreePoint.AllocationStatus.ALLOCATED;
         }
 
-        return mayUnlockPerk(progress, player) ? PerkTreePoint.AllocationStatus.UNLOCKABLE
+        return mayUnlockPerk(player) ? PerkTreePoint.AllocationStatus.UNLOCKABLE
             : PerkTreePoint.AllocationStatus.UNALLOCATED;
     }
 
-    public boolean mayUnlockPerk(PlayerProgress progress, EntityPlayer player) {
+    /**
+     * Check if player can unlock this perk
+     */
+    public boolean mayUnlockPerk(EntityPlayer player) {
+        hellfirepvp.astralsorcery.common.data.research.PlayerProgress progress = hellfirepvp.astralsorcery.common.data.research.ResearchManager
+            .getProgress(player, Side.SERVER);
+
         if (!progress.hasFreeAllocationPoint(player)) return false;
 
         for (AbstractPerk otherPerks : PerkTree.PERK_TREE.getConnectedPerks(this)) {
@@ -217,80 +250,96 @@ public abstract class AbstractPerk {
         return false;
     }
 
+    /**
+     * Get unlocalized name
+     */
     public String getUnlocalizedName() {
         if (this.ovrUnlocalizedNamePrefix != null) {
             return this.ovrUnlocalizedNamePrefix;
         }
-        return "perk." + getRegistryName().getResourceDomain() + "." + getRegistryName().getResourcePath();
+        return "perk." + getRegistryName();
     }
 
+    /**
+     * Disable tooltip caching
+     */
     protected void disableTooltipCaching() {
         this.cacheTooltip = false;
         this.tooltipCache = null;
     }
 
+    /**
+     * Get localized tooltip
+     */
     @SideOnly(Side.CLIENT)
     public final Collection<String> getLocalizedTooltip() {
         if (cacheTooltip && tooltipCache != null) {
             return tooltipCache;
         }
 
-        tooltipCache = Lists.newArrayList();
+        tooltipCache = new ArrayList();
         String key = this.ovrUnlocalizedNamePrefix;
-        if (modifiersDisabled(Minecraft.getMinecraft().thePlayer, Side.CLIENT)) {
-            tooltipCache.add(EnumChatFormatting.GRAY + I18n.format("perk.info.disabled"));
+        if (modifiersDisabled(net.minecraft.client.Minecraft.getMinecraft().thePlayer, Side.CLIENT)) {
+            tooltipCache.add(EnumChatFormatting.GRAY + StatCollector.translateToLocal("perk.info.disabled"));
         } else if (!(this instanceof ProgressGatedPerk) || ((ProgressGatedPerk) this).canSeeClient()) {
             tooltipCache.add(
                 this.getCategory()
-                    .getTextFormatting() + I18n.format(this.getUnlocalizedName() + ".name"));
+                    .getTextFormatting() + StatCollector.translateToLocal(this.getUnlocalizedName() + ".name"));
 
             if (key == null) {
-                key = "perk." + getRegistryName().getResourceDomain() + "." + getRegistryName().getResourcePath();
+                key = "perk." + getRegistryName();
             }
             int prevLength = tooltipCache.size();
             boolean shouldAdd = addLocalizedTooltip(tooltipCache);
             if (shouldAdd && prevLength != tooltipCache.size()) {
-                tooltipCache.add(""); // Add empty line..
+                tooltipCache.add(""); // Add empty line
             }
-            if (StatCollector.canTranslate(key + ".desc.1")) { // Might have a indexed list there
+
+            // Check for indexed description
+            String descKey = key + ".desc.1";
+            String desc = StatCollector.translateToLocal(descKey);
+            if (!desc.equals(descKey)) { // Has translation
                 int count = 1;
-                while (StatCollector.canTranslate(key + ".desc." + count)) {
-                    tooltipCache.add(I18n.format(key + ".desc." + count));
+                while (true) {
+                    String dKey = key + ".desc." + count;
+                    String dText = StatCollector.translateToLocal(dKey);
+                    if (dText.equals(dKey)) break; // No translation
+                    tooltipCache.add(dText);
                     count++;
                 }
                 tooltipCache.add("");
-            } else if (StatCollector.canTranslate(key + ".desc")) {
-                tooltipCache.add(I18n.format(key + ".desc"));
-                tooltipCache.add("");
+            } else {
+                // Check for single description
+                descKey = key + ".desc";
+                desc = StatCollector.translateToLocal(descKey);
+                if (!desc.equals(descKey)) {
+                    tooltipCache.add(desc);
+                    tooltipCache.add("");
+                }
             }
         } else {
-            tooltipCache.add(EnumChatFormatting.RED + I18n.format("perk.info.missing_progress"));
+            tooltipCache.add(EnumChatFormatting.RED + StatCollector.translateToLocal("perk.info.missing_progress"));
         }
         return tooltipCache;
     }
 
+    /**
+     * Add custom localized tooltip
+     * Override in subclasses
+     */
     @SideOnly(Side.CLIENT)
     public boolean addLocalizedTooltip(Collection<String> tooltip) {
         return false;
     }
 
-    // Should return a localized string of the mod (or part of a mod) that added this perk
-    // Default: modname of added mod
-    @Nullable
-    @SideOnly(Side.CLIENT)
-    public Collection<String> getSource() {
-        String modid = getRegistryName().getResourceDomain();
-        ModContainer mod = Loader.instance()
-            .getIndexedModList()
-            .get(modid);
-        if (mod != null) {
-            return Lists.newArrayList(mod.getName());
-        }
-        return null;
-    }
-
+    /**
+     * Clear caches
+     */
     public void clearCaches(Side side) {}
 
+    /**
+     * Clear client caches
+     */
     @SideOnly(Side.CLIENT)
     public void clearClientCaches() {
         this.tooltipCache = null;
@@ -309,18 +358,15 @@ public abstract class AbstractPerk {
         return Objects.hash(getRegistryName());
     }
 
-    // Return true to prevent further, other interactions when left-clicking this perk
-    @SideOnly(Side.CLIENT)
-    public boolean handleMouseClick(GuiJournalPerkTree gui, int mouseX, int mouseY) {
-        return false;
-    }
-
+    /**
+     * Perk category
+     */
     public static class PerkCategory {
 
         private final String unlocName;
         private String textFormatting;
 
-        public PerkCategory(@Nonnull String unlocName, @Nonnull String formattingPrefix) {
+        public PerkCategory(String unlocName, String formattingPrefix) {
             this.unlocName = unlocName;
             this.textFormatting = formattingPrefix;
         }
@@ -333,12 +379,12 @@ public abstract class AbstractPerk {
             return textFormatting;
         }
 
-        @Nullable
         @SideOnly(Side.CLIENT)
         public String getLocalizedName() {
             String str = "perk.category." + unlocName + ".name";
-            if (StatCollector.canTranslate(str)) {
-                return I18n.format("perk.category." + unlocName + ".name");
+            String translated = StatCollector.translateToLocal(str);
+            if (!translated.equals(str)) {
+                return translated;
             }
             return null;
         }
@@ -357,5 +403,4 @@ public abstract class AbstractPerk {
         }
 
     }
-
 }

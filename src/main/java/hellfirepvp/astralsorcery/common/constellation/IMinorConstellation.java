@@ -16,9 +16,17 @@ import java.util.List;
  * Class: IMinorConstellation
  * Created by HellFirePvP
  * Date: 16.11.2016 / 23:09
+ *
+ * 1.7.10 Migration: No changes needed
  */
 public interface IMinorConstellation extends IConstellation {
 
+    /**
+     * Get the moon phases when this constellation can appear
+     * 
+     * @param rSeed Random seed for phase shifting
+     * @return List of applicable moon phases
+     */
     public List<MoonPhase> getShowupMoonPhases(long rSeed);
 
 }

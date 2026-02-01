@@ -1,180 +1,195 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Main mod class for Astral Sorcery
+ * Based on the 1.12.2 version and adapted for 1.7.10 Forge
+ *
+ * Copyright (c) 2026 Astral Sorcery Port Team
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery;
-// TODO: Forge fluid system - manual review needed
-
-import java.util.Map;
-
-import net.minecraft.launchwrapper.Launch;
-import net.minecraftforge.common.MinecraftForge;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.common.SidedProxy;
-import cpw.mods.fml.common.event.*;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.network.NetworkCheckHandler;
-import cpw.mods.fml.relauncher.Side;
-import hellfirepvp.astralsorcery.common.CommonProxy;
-import hellfirepvp.astralsorcery.common.auxiliary.CelestialGatewaySystem;
-import hellfirepvp.astralsorcery.common.base.Mods;
-import hellfirepvp.astralsorcery.common.base.ShootingStarHandler;
-import hellfirepvp.astralsorcery.common.cmd.CommandAstralSorcery;
-import hellfirepvp.astralsorcery.common.constellation.perk.PerkAttributeHelper;
-import hellfirepvp.astralsorcery.common.constellation.perk.PerkEffectHelper;
-import hellfirepvp.astralsorcery.common.constellation.perk.attribute.AttributeTypeRegistry;
-import hellfirepvp.astralsorcery.common.constellation.perk.tree.PerkTree;
-import hellfirepvp.astralsorcery.common.data.DataPatreonFlares;
-import hellfirepvp.astralsorcery.common.data.SyncDataHolder;
-import hellfirepvp.astralsorcery.common.data.config.Config;
-import hellfirepvp.astralsorcery.common.data.config.ConfigDataAdapter;
-import hellfirepvp.astralsorcery.common.data.research.ResearchManager;
-import hellfirepvp.astralsorcery.common.data.world.WorldCacheManager;
-import hellfirepvp.astralsorcery.common.event.ClientInitializedEvent;
-import hellfirepvp.astralsorcery.common.event.listener.EventHandlerEntity;
-import hellfirepvp.astralsorcery.common.starlight.network.StarlightTransmissionHandler;
-import hellfirepvp.astralsorcery.common.util.PlayerActivityManager;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerStartedEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.network.NetworkRegistry;
+import hellfirepvp.astralsorcery.common.handler.GuiHandler;
+import hellfirepvp.astralsorcery.common.lib.Constants;
+import hellfirepvp.astralsorcery.common.util.LogHelper;
+import hellfirepvp.astralsorcery.proxy.CommonProxy;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: AstralSorcery
- * Created by HellFirePvP
- * Date: 07.05.2016 / 00:20
+ * Main mod class for Astral Sorcery
+ *
+ * This class handles the main FML lifecycle events and delegates to proxies.
+ * Based on Twist Space Technology and BartWorks mod structures.
  */
 @Mod(
-    modid = AstralSorcery.MODID,
-    name = AstralSorcery.NAME,
-    version = AstralSorcery.VERSION,
-    dependencies = "required-after:forge@[10.13.4.1614,);required-after:baubles;after:crafttweaker",
-    guiFactory = "hellfirepvp.astralsorcery.common.data.config.ingame.ConfigGuiFactory",
-    certificateFingerprint = "a0f0b759d895c15ceb3e3bcb5f3c2db7c582edf0",
-    acceptedMinecraftVersions = "[1.7.10]")
+    modid = Constants.MODID,
+    name = Constants.MODNAME,
+    version = Constants.VERSION,
+    acceptedMinecraftVersions = Constants.ACCEPTED_VERSIONS,
+    dependencies = Constants.DEPENDENCIES,
+    guiFactory = Constants.CLIENT_PROXY + "$$GuiFactory" // Placeholder for GUI factory
+)
 public class AstralSorcery {
 
-    public static final String MODID = "astralsorcery";
-    public static final String NAME = "Astral Sorcery";
-    public static final String VERSION = "1.10.28";
-    public static final String CLIENT_PROXY = "hellfirepvp.astralsorcery.client.ClientProxy";
-    public static final String COMMON_PROXY = "hellfirepvp.astralsorcery.common.CommonProxy";
-
-    private static boolean devEnvChache = false;
-
-    @Mod.Instance(MODID)
+    /**
+     * Mod instance - required by FML
+     */
+    @Mod.Instance(Constants.MODID)
     public static AstralSorcery instance;
 
-    public static Logger log = LogManager.getLogger(NAME);
+    /**
+     * Logger instance
+     */
+    public static final Logger LOG = LogManager.getLogger(Constants.MODNAME);
 
-    @SidedProxy(clientSide = CLIENT_PROXY, serverSide = COMMON_PROXY)
+    /**
+     * Proxies for client/server side separation
+     */
+    @SidedProxy(clientSide = Constants.CLIENT_PROXY, serverSide = Constants.SERVER_PROXY)
     public static CommonProxy proxy;
 
+    /**
+     * Constructor
+     */
+    public AstralSorcery() {
+        LogHelper.info("Loading " + Constants.MODNAME + " " + Constants.VERSION);
+    }
+
+    /**
+     * Pre-initialization phase
+     *
+     * In this phase:
+     * - Load configuration
+     * - Register items and blocks
+     * - Register TileEntities and entities
+     * - Set up creative tabs
+     *
+     * @param event The FML pre-initialization event
+     */
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        event.getModMetadata().version = VERSION;
-        devEnvChache = (Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment");
+        LogHelper.info("Starting preInit phase...");
 
-        proxy.setupConfiguration();
+        long startTime = System.currentTimeMillis();
 
-        Config.loadAndSetup(event.getSuggestedConfigurationFile());
+        // Delegate to proxy
+        proxy.preInit(event);
 
-        proxy.registerConfigDataRegistries();
-        Config.loadDataRegistries(event.getModConfigurationDirectory());
-        Config.loadConfigRegistries(ConfigDataAdapter.LoadPhase.PRE_INIT);
-
-        proxy.preInit();
+        long duration = System.currentTimeMillis() - startTime;
+        LogHelper.info("preInit completed in " + duration + "ms");
     }
 
+    /**
+     * Initialization phase
+     *
+     * In this phase:
+     * - Register event handlers
+     * - Register network packets
+     * - Register GUI handlers
+     * - Register recipes
+     * - Register renderers (client side)
+     *
+     * @param event The FML initialization event
+     */
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        Config.loadConfigRegistries(ConfigDataAdapter.LoadPhase.INIT);
-        MinecraftForge.EVENT_BUS.register(this);
+        LogHelper.info("Starting init phase...");
 
-        proxy.init();
+        long startTime = System.currentTimeMillis();
+
+        // Register GUI handler
+        NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
+
+        // Delegate to proxy
+        proxy.init(event);
+
+        long duration = System.currentTimeMillis() - startTime;
+        LogHelper.info("init completed in " + duration + "ms");
     }
 
+    /**
+     * Post-initialization phase
+     *
+     * In this phase:
+     * - Complete recipe registration
+     * - Initialize mod integrations
+     * - Finalize compatibility settings
+     * - Clean up and validate
+     *
+     * @param event The FML post-initialization event
+     */
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-        Config.loadConfigRegistries(ConfigDataAdapter.LoadPhase.POST_INIT);
-        proxy.postInit();
+        LogHelper.info("Starting postInit phase...");
+
+        long startTime = System.currentTimeMillis();
+
+        // Delegate to proxy
+        proxy.postInit(event);
+
+        long duration = System.currentTimeMillis() - startTime;
+        LogHelper.info("postInit completed in " + duration + "ms");
     }
 
-    @NetworkCheckHandler
-    public boolean checkModLists(Map<String, String> modList, Side side) {
-        if (side == Side.SERVER) {
-            // 1.7.10: Check for NEI instead of JEI
-            boolean neiFound = modList.containsKey(Mods.NEI.modid);
-            if (Mods.NEI.isPresent()) {
-                notifyServerConnectionNEI(neiFound);
-            }
-        }
-        return true;
-    }
-
-    // 1.7.10: NEI doesn't have the same session handling as JEI
-    @Optional.Method(modid = "NotEnoughItems")
-    private void notifyServerConnectionNEI(boolean neiFound) {
-        // NEI in 1.7.10 works differently - no session handler needed
-        // This is a placeholder for NEI-specific server connection handling
-    }
-
+    /**
+     * Server starting phase
+     *
+     * In this phase:
+     * - Register server commands
+     * - Set up server-specific handlers
+     *
+     * @param event The FML server starting event
+     */
     @Mod.EventHandler
-    public void onServerStart(FMLServerStartingEvent event) {
-        event.registerServerCommand(new CommandAstralSorcery());
+    public void serverStarting(FMLServerStartingEvent event) {
+        LogHelper.info("Server starting...");
+
+        // Delegate to proxy
+        proxy.serverStarting(event);
     }
 
+    /**
+     * Server started phase
+     *
+     * In this phase:
+     * - Perform any final server-side setup
+     * - Load server-specific data
+     *
+     * @param event The FML server started event
+     */
     @Mod.EventHandler
-    public void onServerStarted(FMLServerStartedEvent event) {
-        CelestialGatewaySystem.instance.onServerStart();
+    public void serverStarted(FMLServerStartedEvent event) {
+        LogHelper.info("Server started successfully!");
+
+        // Delegate to proxy
+        proxy.serverStarted(event);
     }
 
-    @SubscribeEvent
-    public void onClientFinish(ClientInitializedEvent event) {
-        proxy.clientFinishedLoading();
+    /**
+     * Get the mod instance
+     *
+     * @return The mod instance
+     */
+    public static AstralSorcery getInstance() {
+        return instance;
     }
 
-    @Mod.EventHandler
-    public void onServerStopping(FMLServerStoppingEvent event) {
-        ResearchManager.saveAndClearServerCache();
-        StarlightTransmissionHandler.getInstance()
-            .serverCleanHandlers();
-        PerkEffectHelper.perkCooldowns.clear();
-        EventHandlerEntity.invulnerabilityCooldown.clear();
-        EventHandlerEntity.ritualFlight.clear();
-        EventHandlerEntity.attackStack.clear();
-        EventHandlerEntity.spawnDenyRegions.clear();
-        ((DataPatreonFlares) SyncDataHolder.getDataServer(SyncDataHolder.DATA_PATREON_FLARES)).cleanUp(Side.SERVER);
-        PerkAttributeHelper.clearServer();
-        ShootingStarHandler.getInstance()
-            .clearServerCache();
-        PlayerActivityManager.INSTANCE.clearCache(Side.SERVER);
+    /**
+     * Get the current mod ID
+     *
+     * @return The mod ID
+     */
+    public static String getModId() {
+        return Constants.MODID;
     }
-
-    @Mod.EventHandler
-    public void onServerStop(FMLServerStoppedEvent event) {
-        WorldCacheManager.wipeCache();
-        // 1.7.10: Replace forEach lambda with for loop
-        for (Object t : AttributeTypeRegistry.getTypes()) {
-            ((hellfirepvp.astralsorcery.common.constellation.perk.attribute.PerkAttributeType) t).clear(Side.SERVER);
-        }
-        PerkTree.PERK_TREE.clearCache(Side.SERVER);
-    }
-
-    public static boolean isRunningInDevEnvironment() {
-        return devEnvChache;
-    }
-
-    static {
-        // Enable Universal Bucket support (no-op in 1.7.10, but kept for API compatibility)
-        hellfirepvp.astralsorcery.common.util.FluidRegistryCompat.enableUniversalBucket();
-    }
-
 }

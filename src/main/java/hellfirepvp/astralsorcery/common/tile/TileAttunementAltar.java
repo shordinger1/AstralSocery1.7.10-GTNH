@@ -1,1250 +1,342 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * TileAttunementAltar - Attunement altar tile entity
+ *
+ * SKELETON VERSION - Complex effects and attunement logic commented with TODOs
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.tile;
 
-import java.awt.*;
-import java.util.*;
-import java.util.List;
-import java.util.function.Function;
+import java.util.Random;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SoundCategory;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraftforge.common.config.Configuration;
+import net.minecraft.tileentity.TileEntity;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import hellfirepvp.astralsorcery.client.ClientScheduler;
-import hellfirepvp.astralsorcery.client.effect.EffectHandler;
-import hellfirepvp.astralsorcery.client.effect.EffectHelper;
-import hellfirepvp.astralsorcery.client.effect.controller.orbital.OrbitalEffectController;
-import hellfirepvp.astralsorcery.client.effect.controller.orbital.OrbitalPropertiesAttunement;
-import hellfirepvp.astralsorcery.client.effect.fx.EntityFXFacingParticle;
-import hellfirepvp.astralsorcery.client.effect.fx.EntityFXFacingSprite;
-import hellfirepvp.astralsorcery.client.effect.light.EffectLightbeam;
-import hellfirepvp.astralsorcery.client.util.PositionedLoopSound;
-import hellfirepvp.astralsorcery.client.util.SpriteLibrary;
-import hellfirepvp.astralsorcery.client.util.camera.ClientCameraFlightHelper;
-import hellfirepvp.astralsorcery.common.constellation.*;
-import hellfirepvp.astralsorcery.common.constellation.distribution.ConstellationSkyHandler;
-import hellfirepvp.astralsorcery.common.constellation.distribution.WorldSkyHandler;
-import hellfirepvp.astralsorcery.common.constellation.star.StarConnection;
-import hellfirepvp.astralsorcery.common.constellation.star.StarLocation;
-import hellfirepvp.astralsorcery.common.data.config.entry.ConfigEntry;
+import hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry;
+import hellfirepvp.astralsorcery.common.constellation.IConstellation;
 import hellfirepvp.astralsorcery.common.data.research.PlayerProgress;
 import hellfirepvp.astralsorcery.common.data.research.ResearchManager;
-import hellfirepvp.astralsorcery.common.data.research.ResearchProgression;
-import hellfirepvp.astralsorcery.common.entities.EntityFlare;
-import hellfirepvp.astralsorcery.common.event.listener.EventHandlerEntity;
-import hellfirepvp.astralsorcery.common.item.ItemConstellationPaper;
-import hellfirepvp.astralsorcery.common.item.crystal.CrystalProperties;
-import hellfirepvp.astralsorcery.common.item.crystal.base.ItemRockCrystalBase;
-import hellfirepvp.astralsorcery.common.item.crystal.base.ItemTunedCrystalBase;
-import hellfirepvp.astralsorcery.common.lib.AdvancementTriggers;
-import hellfirepvp.astralsorcery.common.lib.BlocksAS;
-import hellfirepvp.astralsorcery.common.lib.MultiBlockArrays;
-import hellfirepvp.astralsorcery.common.lib.Sounds;
-import hellfirepvp.astralsorcery.common.network.PacketChannel;
-import hellfirepvp.astralsorcery.common.network.packet.client.PktAttuneConstellation;
-import hellfirepvp.astralsorcery.common.network.packet.server.PktAttunementAltarState;
-import hellfirepvp.astralsorcery.common.structure.array.PatternBlockArray;
-import hellfirepvp.astralsorcery.common.structure.change.ChangeSubscriber;
-import hellfirepvp.astralsorcery.common.structure.match.StructureMatcherPatternArray;
-import hellfirepvp.astralsorcery.common.tile.base.TileEntityTick;
-import hellfirepvp.astralsorcery.common.util.*;
-import hellfirepvp.astralsorcery.common.util.BlockPos;
-import hellfirepvp.astralsorcery.common.util.ChunkPos;
-import hellfirepvp.astralsorcery.common.util.WrapMathHelper;
-import hellfirepvp.astralsorcery.common.util.data.Tuple;
-import hellfirepvp.astralsorcery.common.util.data.Vector3;
-import hellfirepvp.astralsorcery.common.util.log.LogCategory;
+import hellfirepvp.astralsorcery.common.util.LogHelper;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: TileAttunementAltar
- * Created by HellFirePvP
- * Date: 28.11.2016 / 10:26
+ * TileAttunementAltar - Attunement altar (1.7.10)
+ * <p>
+ * <b>Features:</b>
+ * <ul>
+ * <li>Detects constellation patterns formed by attunement relays</li>
+ * <li>Allows players to attune to Major constellations</li>
+ * <li>Allows crystals to attune to Weak/Minor constellations</li>
+ * <li>Requires night sky and multiblock structure</li>
+ * </ul>
+ * <p>
+ * <b>1.7.10 Simplifications:</b>
+ * <ul>
+ * <li>No client-side camera flights (1.12.2 feature)</li>
+ * <li>No orbital effects (requires complex EffectHandler)</li>
+ * <li>No lightbeam effects (requires EffectHandler.lightbeam)</li>
+ * <li>Simplified packet system</li>
+ * </ul>
+ * <p>
+ * <b>TODO Items (待迁移):</b>
+ * <ul>
+ * <li>Client-side effects - camera flights, orbital effects</li>
+ * <li>Packet system for attunement requests</li>
+ * <li>Sound system integration</li>
+ * <li>Structure matching system</li>
+ * </ul>
  */
-public class TileAttunementAltar extends TileEntityTick implements IMultiblockDependantTile {
+public class TileAttunementAltar extends TileEntity {
 
     private static final Random rand = new Random();
-    private static final Function<ItemStack, Boolean> crystalAcceptor = stack -> {
 
-        if (!(stack.getItem() instanceof ItemRockCrystalBase)) return false;
-        if (stack.stackSize != 1) return false;
+    /** Active constellation detected */
+    private IConstellation activeConstellation = null;
 
-        IWeakConstellation tuned = ItemTunedCrystalBase.getMainConstellation(stack);
-        IMinorConstellation trait = ItemTunedCrystalBase.getTrait(stack);
-        return tuned == null && trait == null;
-    };
-    private static final Function<ItemStack, Boolean> traitAcceptor = stack -> {
+    /** Sees sky flag */
+    private boolean seesSky = false;
 
-        if (!(stack.getItem() instanceof ItemTunedCrystalBase)) return false;
-        if (stack.stackSize != 1) return false;
+    /** Multiblock matches flag */
+    private boolean hasMultiblock = false;
 
-        IWeakConstellation tuned = ItemTunedCrystalBase.getMainConstellation(stack);
-        IMinorConstellation trait = ItemTunedCrystalBase.getTrait(stack);
-        return tuned != null && trait == null;
-    };
+    /** Attunement mode: 0=idle, 1=player, 2=crystal */
+    private int mode = 0;
 
-    private static final int TICKS_PLAYER_ATTUNEMENT = 800;
-    private static final int TICKS_CRYSTAL_ATTUNEMENT = 500;
+    /** Active entity ID for player/crystal being attuned */
+    private int activeEntityId = -1;
 
-    private IConstellation activeFound = null;
-    private ChangeSubscriber<StructureMatcherPatternArray> structureMatch = null;
-    private boolean doesSeeSky = false, hasMultiblock = false;
+    /** Server sync tick */
+    private int syncTick = 0;
 
-    // Attunement related
-    private int mode = 0; // 0 == idle, 1 == att_player, 2 == att_crystal
-    private int serverSyncAttTick = 0;
-    private int entityIdActive = -1;
-    private Entity activeEntity = null; // Unsynced
+    /** 1.7.10: Track ticks existed manually */
+    private int ticksExisted = 0;
 
-    private int playerAttunementWaitTick = -1;
-
-    // Chunk load caching
-    private Map<BlockPos, Boolean> unloadCache = new HashMap<>();
-
-    // Sound & Visuals around the TE
-    private Object activeSound = null;
-    private List<Object> starSprites = new LinkedList<>();
-    private IConstellation highlight = null;
-    private int highlightActive = 0;
-    private Object spriteCrystalAttunement = null;
-    private int spawnedOrbitalsForCrystal = -1;
-
-    // TESR flags
-    public static final int MAX_START_ANIMATION_TICK = 60;
-    public static final int MAX_START_ANIMATION_SPIN = 100;
-    public int activationTick = 0;
-    public int prevActivationTick = 0;
-    public boolean animate = false, tesrLocked = true;
-
-    private boolean cameraFlightActive = false;
-    private Object clientActiveCameraFlight = null;
-
-    @Override
-    protected void onFirstTick() {}
+    public TileAttunementAltar() {}
 
     @Override
     public void updateEntity() {
-        super.updateEntity();
+        // 1.7.10: Increment ticks manually
+        ticksExisted++;
 
-        if (getWorld().isRemote) {
-            renderEffects();
-        } else {
-            if (getTicksExisted() % 10 == 0) {
-                if (activeFound == null) {
+        if (worldObj == null) return;
+
+        if (!worldObj.isRemote) {
+            // Server-side logic
+            if (ticksExisted % 10 == 0) {
+                if (activeConstellation == null) {
                     searchForConstellation();
                 } else {
-                    matchActiveConstellation();
+                    verifyConstellation();
                 }
             }
+
             if ((ticksExisted & 15) == 0) {
                 updateSkyState();
             }
 
-            updateMultiblockState();
-
-            if (activeFound == null && getTicksExisted() % 10 == 0 && hasMultiblock) {
-                searchForConstellation();
+            if (activeConstellation != null && hasMultiblock && isNight()) {
+                checkForAttunements();
             }
+        } else {
+            // Client-side logic
+            // TODO: Add client-side effects when EffectHandler is fully available
+        }
+    }
 
-            if (activeFound != null && hasMultiblock) {
-                if (mode != 0 && activeEntity == null) {
-                    activeEntity = worldObj.getEntityByID(entityIdActive);
-                    if (activeEntity == null) return;
-                }
+    /**
+     * Check if it's currently night
+     * 1.7.10: Simplified check using world time
+     */
+    private boolean isNight() {
+        long time = worldObj.getWorldTime() % 24000L;
+        return time >= 13000L && time <= 23000L; // Night time in 1.7.10
+    }
 
-                if (mode == 0) {
-                    if (ConstellationSkyHandler.getInstance()
-                        .isNight(worldObj)) {
-                        checkForAttunements();
-                    }
-                } else if (mode == 1) {
-                    // No isNight check since well.. we don't wanna kick him from the camera flight
-                    if (!(activeEntity instanceof EntityPlayer) || activeEntity.isDead
-                        || Vector3.atEntityCorner(activeEntity)
-                            .distance(new Vector3(this)) > 4) {
-                        setAttunementState(0, null);
-                    } else {
-                        if (ConfigEntryAttunementAltar.doAttunementTimeout) {
-                            if (playerAttunementWaitTick > 0) {
-                                playerAttunementWaitTick--;
-                            }
-                            if (playerAttunementWaitTick == 0) {
-                                setAttunementState(0, null);
-                                return;
-                            }
-                        }
-
-                        this.serverSyncAttTick++;
-                        if (EventHandlerEntity.invulnerabilityCooldown.contains((EntityPlayer) activeEntity)) {
-                            EventHandlerEntity.invulnerabilityCooldown.setTimeout(10, (EntityPlayer) activeEntity);
-                        } else {
-                            EventHandlerEntity.invulnerabilityCooldown.add(10, (EntityPlayer) activeEntity);
-                        }
-                        markForUpdate();
-                    }
-                } else if (mode == 2) {
-                    // isNight check is sufficient since the constellation persists through a night.
-                    if (activeEntity.isDead || !(activeEntity instanceof EntityItem)
-                        || !(EntityUtils.selectItemStack(crystalAcceptor)
-                            .apply(activeEntity)
-                            || EntityUtils.selectItemStack(traitAcceptor)
-                                .apply(activeEntity))
-                        || !ConstellationSkyHandler.getInstance()
-                            .isNight(worldObj)) {
-                        setAttunementState(0, null);
-                    } else {
-                        // Sync up with the clients so everyone "has the same effects"
-                        // Not exactly great in terms of amount of syncs, but well...
-                        // The things you/accept do for pretty & consistent effects...
-                        serverSyncAttTick++;
-                        if (serverSyncAttTick % 4 == 0) {
-                            markForUpdate();
-                        }
-
-                        Vector3 crystalHoverPos = new Vector3(this).add(0.5, 1.4, 0.5);
-                        activeEntity
-                            .setPosition(crystalHoverPos.getX(), crystalHoverPos.getY(), crystalHoverPos.getZ());
-                        // 1.7.10: setNoDespawn() doesn't exist, item lifespan is managed manually
-                        // ((EntityItem) activeEntity).setNoDespawn();
-
-                        if (serverSyncAttTick >= TICKS_CRYSTAL_ATTUNEMENT) {
-                            ItemStack tunedStack;
-                            if (EntityUtils.selectItemStack(crystalAcceptor)
-                                .apply(activeEntity) && activeFound instanceof IWeakConstellation) {
-                                ItemStack current = ((EntityItem) activeEntity).getEntityItem();
-                                Item tuned = ((ItemRockCrystalBase) current.getItem()).getTunedItemVariant();
-                                tunedStack = new ItemStack(tuned);
-                                ItemTunedCrystalBase
-                                    .applyMainConstellation(tunedStack, (IWeakConstellation) activeFound);
-                                CrystalProperties.applyCrystalProperties(
-                                    tunedStack,
-                                    CrystalProperties.getCrystalProperties(current));
-                            } else if (EntityUtils.selectItemStack(traitAcceptor)
-                                .apply(activeEntity) && activeFound instanceof IMinorConstellation) {
-                                    ItemStack current = ((EntityItem) activeEntity).getEntityItem();
-                                    tunedStack = ItemUtils.copyStackWithSize(current, 1);
-                                    ItemTunedCrystalBase.applyTrait(tunedStack, (IMinorConstellation) activeFound);
-                                } else {
-                                    activeEntity.setDead();
-                                    setAttunementState(0, null);
-                                    return;
-                                }
-
-                            // 1.7.10: getThrower() doesn't exist, using reflection would be complex
-                            // String thrower = ((EntityItem) activeEntity).getThrower();
-                            // if (thrower != null && !thrower.isEmpty()) {
-                            //     EntityPlayer player = worldObj.getPlayerEntityByName(thrower);
-                            //     if (player != null && player instanceof EntityPlayerMP) {
-                            //         AdvancementTriggers.ATTUNE_CRYSTAL.trigger((EntityPlayerMP) player, activeFound);
-                            //     }
-                            // }
-
-                            activeEntity.setDead();
-
-                            ItemUtils.dropItem(
-                                worldObj,
-                                crystalHoverPos.getX(),
-                                crystalHoverPos.getY(),
-                                crystalHoverPos.getZ(),
-                                tunedStack);
-                            setAttunementState(0, null);
-                            EntityFlare.spawnAmbient(
-                                worldObj,
-                                new Vector3(this).add(-3 + rand.nextFloat() * 7, 0.6, -3 + rand.nextFloat() * 7));
-                            EntityFlare.spawnAmbient(
-                                worldObj,
-                                new Vector3(this).add(-3 + rand.nextFloat() * 7, 0.6, -3 + rand.nextFloat() * 7));
-                            SoundHelper.playSoundAround(Sounds.craftFinish, worldObj, new Vector3(this).add(0.5, 0.5, 0.5), 2.5F, 1.6F);
-                        }
-                    }
-                }
+    /**
+     * Search for constellation pattern
+     * TODO: Implement when structure matching system is ready
+     * For now: simplified version just checks registered constellations
+     */
+    private void searchForConstellation() {
+        // TODO: Implement structure matching for attunement relay positions
+        // For now, just pick the first weak constellation as placeholder
+        if (!ConstellationRegistry.getWeakConstellations()
+            .isEmpty()) {
+            IConstellation candidate = ConstellationRegistry.getWeakConstellations()
+                .get(0);
+            if (candidate != null && isNight()) {
+                activeConstellation = candidate;
+                LogHelper.debug(
+                    "TileAttunementAltar at " + xCoord
+                        + ","
+                        + yCoord
+                        + ","
+                        + zCoord
+                        + " found constellation: "
+                        + candidate.getUnlocalizedName());
+                markDirty();
             }
         }
     }
 
-    @Nullable
-    @Override
-    public PatternBlockArray getRequiredStructure() {
-        return (PatternBlockArray) MultiBlockArrays.patternAttunementFrame;
+    /**
+     * Verify active constellation is still present
+     */
+    private void verifyConstellation() {
+        if (activeConstellation == null) return;
+
+        // TODO: Verify constellation pattern still exists
+        // For now, just check if it's night
+        if (!isNight()) {
+            activeConstellation = null;
+            markDirty();
+        }
     }
 
-    @Nonnull
-    @Override
-    public BlockPos getLocationPos() {
-        return this.getPos();
+    /**
+     * Check for entities that can attune
+     */
+    private void checkForAttunements() {
+        if ((ticksExisted & 31) != 0) return; // Only check every 32 ticks
+
+        if (activeConstellation instanceof hellfirepvp.astralsorcery.common.constellation.IMajorConstellation) {
+            checkPlayerAttunement();
+        }
+
+        // TODO: Check for crystal attunement when item system is ready
+        // checkCrystalAttunement();
     }
 
+    /**
+     * Check for player attunement
+     * Updated to allow manual attunement by right-clicking
+     */
+    private void checkPlayerAttunement() {
+        // Find nearby players
+        java.util.List<EntityPlayer> players = worldObj.getEntitiesWithinAABB(
+            EntityPlayer.class,
+            net.minecraft.util.AxisAlignedBB
+                .getBoundingBox(xCoord - 2, yCoord - 1, zCoord - 2, xCoord + 3, yCoord + 3, zCoord + 3));
+
+        for (EntityPlayer player : players) {
+            PlayerProgress progress = ResearchManager.getProgress(player);
+            if (progress == null) continue;
+
+            // Auto-discover constellation for players who haven't discovered it yet
+            if (!progress.hasConstellationDiscovered(activeConstellation)) {
+                ResearchManager.discoverConstellation(activeConstellation, player);
+                LogHelper.info("Player " + player.getCommandSenderName() + " discovered constellation: "
+                    + activeConstellation.getUnlocalizedName());
+            }
+        }
+    }
+
+    /**
+     * Handle player right-click interaction
+     * Allows player to attune to the active constellation
+     */
+    public void onRightClick(EntityPlayer player) {
+        if (worldObj.isRemote) return;
+
+        // Check requirements
+        if (activeConstellation == null) {
+            player.addChatMessage(new net.minecraft.util.ChatComponentText("§cNo constellation is currently active!"));
+            player.addChatMessage(new net.minecraft.util.ChatComponentText("§eWait for nighttime and ensure the altar can see the sky."));
+            return;
+        }
+
+        if (!(activeConstellation instanceof hellfirepvp.astralsorcery.common.constellation.IMajorConstellation)) {
+            player.addChatMessage(new net.minecraft.util.ChatComponentText("§cOnly Major constellations can be attuned!"));
+            return;
+        }
+
+        if (!isNight()) {
+            player.addChatMessage(new net.minecraft.util.ChatComponentText("§cYou can only attune at night!"));
+            return;
+        }
+
+        if (!seesSky) {
+            player.addChatMessage(new net.minecraft.util.ChatComponentText("§cThe altar cannot see the sky!"));
+            return;
+        }
+
+        if (!hasMultiblock) {
+            player.addChatMessage(new net.minecraft.util.ChatComponentText("§cThe altar structure is incomplete!"));
+            return;
+        }
+
+        PlayerProgress progress = ResearchManager.getProgress(player);
+
+        // Check if player has discovered this constellation
+        if (!progress.hasConstellationDiscovered(activeConstellation)) {
+            ResearchManager.discoverConstellation(activeConstellation, player);
+            player.addChatMessage(new net.minecraft.util.ChatComponentText("§aYou discovered the constellation: §6"
+                + activeConstellation.getUnlocalizedName()));
+        }
+
+        // Attempt attunement
+        hellfirepvp.astralsorcery.common.constellation.IMajorConstellation majorConstellation =
+            (hellfirepvp.astralsorcery.common.constellation.IMajorConstellation) activeConstellation;
+
+        boolean success = ResearchManager.setAttunedConstellation(player, majorConstellation);
+
+        if (success) {
+            player.addChatMessage(new net.minecraft.util.ChatComponentText("§aYou have attuned to: §6"
+                + activeConstellation.getUnlocalizedName()));
+            player.addChatMessage(new net.minecraft.util.ChatComponentText("§eYour perk tree has been reset."));
+            player.addChatMessage(new net.minecraft.util.ChatComponentText("§eYou can now use constellation-specific recipes!"));
+
+            LogHelper.info("Player " + player.getCommandSenderName() + " attuned to constellation: "
+                + activeConstellation.getUnlocalizedName());
+        } else {
+            player.addChatMessage(new net.minecraft.util.ChatComponentText("§cFailed to attune! You may already be attuned to this constellation."));
+        }
+    }
+
+    /**
+     * Update sky visibility state
+     */
+    private void updateSkyState() {
+        boolean canSee = worldObj.canBlockSeeTheSky(xCoord, yCoord, zCoord);
+        if (canSee != seesSky) {
+            seesSky = canSee;
+            markDirty();
+        }
+    }
+
+    /**
+     * Get active constellation
+     */
+    public IConstellation getActiveConstellation() {
+        return activeConstellation;
+    }
+
+    /**
+     * Get current attunement mode
+     */
     public int getMode() {
         return mode;
     }
 
-    private void checkForAttunements() {
-        if ((ticksExisted & 31) != 0) return;
-
-        BlockPos bp = getPos();
-        AxisAlignedBB box = AxisAlignedBB.getBoundingBox(bp.getX() - 1, bp.getY() - 1, bp.getZ() - 1,
-                                                          bp.getX() + 2, bp.getY() + 2, bp.getZ() + 2);
-
-        if (activeFound instanceof IMajorConstellation) {
-            Vector3 thisVec = new Vector3(this).add(0.5, 0.5, 0.5);
-            List<EntityPlayerMP> players = worldObj.getEntitiesWithinAABB(EntityPlayerMP.class, box);
-            if (players != null && !players.isEmpty()) {
-                EntityPlayerMP pl = EntityUtils.selectClosest(
-                    players,
-                    (player) -> thisVec.distanceSquared(new Vector3(player.posX, player.posY, player.posZ)));
-                if (pl != null && !MiscUtils.isPlayerFakeMP(pl) && !pl.isSneaking()) {
-                    PlayerProgress prog = ResearchManager.getProgress(pl, Side.SERVER);
-                    if (prog.isValid() && prog.getAttunedConstellation() == null
-                        && prog.getResearchProgression()
-                            .contains(ResearchProgression.ATTUNEMENT)
-                        && prog.getKnownConstellations()
-                            .contains(activeFound.getUnlocalizedName())) {
-
-                        PktAttunementAltarState state = new PktAttunementAltarState(
-                            pl.getEntityId(),
-                            worldObj.provider.dimensionId,
-                            getPos());
-                        PacketChannel.CHANNEL.sendTo(state, pl);
-                        return;
-                    }
-                }
-            }
-        }
-
-        List<EntityItem> unfilteredItems = worldObj.getEntitiesWithinAABB(EntityItem.class, box);
-        if (unfilteredItems.size() == 1) {
-            EntityItem item = unfilteredItems.get(0);
-            if (EntityUtils.selectItemStack(crystalAcceptor)
-                .apply(item) && this.activeFound instanceof IWeakConstellation) {
-                setAttunementState(2, item);
-            } else if (EntityUtils.selectItemStack(traitAcceptor)
-                .apply(item) && this.activeFound instanceof IMinorConstellation) {
-                    setAttunementState(2, item);
-                }
-        }
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public AxisAlignedBB getRenderBoundingBox() {
-        return super.getRenderBoundingBox().expand(3.5, 2, 3.5);
-    }
-
-    protected void updateSkyState() {
-        boolean seesSky = true;
-        BlockPos at = getPos();
-        lbl: for (int xx = -7; xx <= 7; xx++) {
-            for (int zz = -7; zz <= 7; zz++) {
-                BlockPos other = at.add(xx, 0, zz);
-                if (MiscUtils.isChunkLoaded(worldObj, new ChunkPos(other))) {
-                    boolean see = MiscUtils.canSeeSky(this.worldObj, other, true, false);
-                    unloadCache.put(other, see);
-                    if (!see) {
-                        seesSky = false;
-                        break lbl;
-                    }
-                } else if (unloadCache.containsKey(other)) {
-                    if (!unloadCache.get(other)) {
-                        seesSky = false;
-                        break lbl;
-                    }
-                } else {
-                    boolean see = MiscUtils.canSeeSky(this.worldObj, other, true, false);
-                    unloadCache.put(other, see);
-                    if (!see) {
-                        seesSky = false;
-                        break lbl;
-                    }
-                }
-            }
-        }
-        boolean update = doesSeeSky != seesSky;
-        this.doesSeeSky = seesSky;
-        if (update) {
-            markForUpdate();
-        }
-    }
-
-    private void updateMultiblockState() {
-        if (structureMatch == null) {
-            this.structureMatch = PatternMatchHelper.getOrCreateMatcher(getWorld(), getPos(), getRequiredStructure());
-        }
-        boolean found = this.structureMatch.matches(this.worldObj);
-        if (found != this.hasMultiblock) {
-            LogCategory.STRUCTURE_MATCH.info(
-                () -> "Structure match updated: " + this.getClass()
-                    .getName() + " at " + this.getPos() + " (" + this.hasMultiblock + " -> " + found + ")");
-            this.hasMultiblock = found;
-            markForUpdate();
-        }
-    }
-
-    private void matchActiveConstellation() {
-        boolean valid = true;
-        WorldSkyHandler wsh = ConstellationSkyHandler.getInstance()
-            .getWorldHandler(worldObj);
-        if (wsh == null) {
-            valid = false;
-        } else if (!wsh.getActiveConstellations()
-            .contains(activeFound) || wsh.getCurrentDistribution(activeFound, (f) -> f) < 0.65) {
-                valid = false;
-            }
-        List<BlockPos> positions = translateConstellationPositions(activeFound);
-        for (BlockPos pos : positions) {
-            if (pos.equals(getPos())) continue;
-            Block state = worldObj.getBlock(pos.posX, pos.posY, pos.posZ);
-            if (!state.equals(BlocksAS.attunementRelay) && !(pos.subtract(getPos())
-                .equals(BlockPos.ORIGIN) && state.equals(BlocksAS.attunementAltar))) {
-                valid = false;
-            }
-            if (state.equals(BlocksAS.attunementRelay)) {
-                TileAttunementRelay tar = MiscUtils.getTileAt(worldObj, pos, TileAttunementRelay.class, true);
-                if (tar != null) {
-                    ItemStack in = tar.getInventoryHandler()
-                        .getStackInSlot(0);
-                    if (!(in == null || in.stackSize <= 0)) {
-                        ItemUtils.dropItemNaturally(worldObj, pos.getX() + 0.5, pos.getY() + 0.2, pos.getZ() + 0.5, in);
-                        tar.getInventoryHandler()
-                            .setStackInSlot(0, null);
-                    }
-                }
-            }
-        }
-        if (!valid) {
-            activeFound = null;
-            markForUpdate();
-        }
-    }
-
-    private void searchForConstellation() {
-        WorldSkyHandler wsh = ConstellationSkyHandler.getInstance()
-            .getWorldHandler(worldObj);
-        if (wsh == null) return;
-        IConstellation match = null;
-        for (IConstellation attuneable : ConstellationRegistry.getAllConstellations()) {
-            List<BlockPos> positions = translateConstellationPositions(attuneable);
-            boolean valid = true;
-            for (BlockPos pos : positions) {
-                if (pos.equals(getPos())) continue;
-                Block state = worldObj.getBlock(pos.posX, pos.posY, pos.posZ);
-                if (!state.equals(BlocksAS.attunementRelay) && !(pos.subtract(getPos())
-                    .equals(BlockPos.ORIGIN) && state.equals(BlocksAS.attunementAltar))) {
-                    valid = false;
-                }
-            }
-            if (valid) {
-                match = attuneable;
-                break;
-            }
-        }
-        if (match != null) {
-            if (wsh.getActiveConstellations()
-                .contains(match) && wsh.isActive(match)) {
-                activeFound = match;
-                markForUpdate();
-            }
-        }
-    }
-
-    public void markPlayerStartCameraFlight(EntityPlayer pl) {
-        if (mode == 0) {
-            setAttunementState(1, pl);
-            // 1.7.10: setPositionAndUpdate doesn't exist, use setLocationAndAngles
-            BlockPos bp = getPos();
-            pl.setLocationAndAngles(
-                bp.getX() + 0.5,
-                bp.getY() + 1.5,
-                bp.getZ() + 0.5,
-                pl.rotationYaw,
-                pl.rotationPitch);
-            this.playerAttunementWaitTick = TICKS_PLAYER_ATTUNEMENT + 200; // Depends on the camera flight... awkwardly
-                                                                           // enough.. client has a bit more time to
-                                                                           // answer too.
-        }
-    }
-
-    public void askForAttunement(EntityPlayerMP playerEntity, IMajorConstellation cst) {
-        if (mode == 1 && playerAttunementWaitTick > 0 && activeEntity != null && playerEntity.equals(activeEntity)) {
-            PlayerProgress prog = ResearchManager.getProgress(playerEntity, Side.SERVER);
-            if (prog.isValid() && prog.getAttunedConstellation() == null
-                && prog.getResearchProgression()
-                    .contains(ResearchProgression.ATTUNEMENT)
-                && prog.getKnownConstellations()
-                    .contains(cst.getUnlocalizedName())) {
-                ResearchManager.setAttunedConstellation(playerEntity, cst);
-
-                for (int i = 0; i < 6; i++) {
-                    EntityFlare.spawnAmbient(
-                        worldObj,
-                        new Vector3(this).add(-3 + rand.nextFloat() * 7, 0.6, -3 + rand.nextFloat() * 7));
-                }
-            }
-        }
-        setAttunementState(0, null);
-        playerAttunementWaitTick = -1;
-    }
-
-    private void setAttunementState(int mode, Entity trigger) {
-        mode = WrapMathHelper.clamp(mode, 0, 2);
-        this.serverSyncAttTick = 0;
-        this.playerAttunementWaitTick = -1;
-        this.mode = mode;
-        switch (mode) {
-            case 0:
-                this.entityIdActive = -1;
-                this.activeEntity = null;
-                break;
-            case 1:
-            case 2:
-                this.entityIdActive = trigger.getEntityId();
-                this.activeEntity = trigger;
-                break;
-            default:
-                break;
-        }
-        markForUpdate();
-    }
-
-    @SideOnly(Side.CLIENT)
-    public boolean tryStartCameraFlight() {
-        if (cameraFlightActive || !isClientCloseEnough()) {
-            return false;
-        }
-
-        Vector3 offset = new Vector3(this).add(0, 6, 0);
-        ClientCameraFlightHelper.CameraFlightBuilder builder = ClientCameraFlightHelper.builder(
-            offset.clone()
-                .add(4, 0, 4),
-            new Vector3(this).add(0.5, 0.5, 0.5));
-        builder
-            .addCircularPoints(offset, ClientCameraFlightHelper.DynamicRadiusGetter.dyanmicIncrease(5, 0.025), 200, 2);
-        builder
-            .addCircularPoints(offset, ClientCameraFlightHelper.DynamicRadiusGetter.dyanmicIncrease(10, -0.01), 200, 2);
-        builder.setTickDelegate(createFloatDelegate(new Vector3(this).add(0.5F, 1.2F, 0.5F)));
-        builder.setStopDelegate(createAttunementDelegate());
-
-        OrbitalPropertiesAttunement att = new OrbitalPropertiesAttunement(this, true);
-        OrbitalEffectController ctrl = EffectHandler.getInstance()
-            .orbital(att, att, null);
-        ctrl.setOrbitAxis(Vector3.RotAxis.Y_AXIS)
-            .setOrbitRadius(3)
-            .setTicksPerRotation(80)
-            .setOffset(new Vector3(this).add(0.5, 0.5, 0.5));
-
-        ctrl = EffectHandler.getInstance()
-            .orbital(att, att, null);
-        ctrl.setOrbitAxis(Vector3.RotAxis.Y_AXIS)
-            .setOrbitRadius(3)
-            .setTicksPerRotation(80)
-            .setTickOffset(40)
-            .setOffset(new Vector3(this).add(0.5, 0.5, 0.5));
-
-        this.clientActiveCameraFlight = builder.finishAndStart();
-        this.cameraFlightActive = true;
-        return true;
-    }
-
-    @SideOnly(Side.CLIENT)
-    private boolean isClientCloseEnough() {
-        BlockPos bp = getPos();
-        List<EntityPlayer> players = worldObj.getEntitiesWithinAABB(
-            EntityPlayer.class,
-            AxisAlignedBB.getBoundingBox(bp.getX() - 1, bp.getY() - 1, bp.getZ() - 1,
-                                          bp.getX() + 2, bp.getY() + 2, bp.getZ() + 2));
-        return players != null && !players.isEmpty() && players.contains(Minecraft.getMinecraft().thePlayer);
-    }
-
-    private void checkClientEffectIntegrity() {
-        if (clientActiveCameraFlight != null) {
-            checkCameraClient();
-        }
-        if (spawnedOrbitalsForCrystal != entityIdActive) {
-            spawnedOrbitalsForCrystal = -1;
-        }
-    }
-
-    @SideOnly(Side.CLIENT)
-    private void checkCameraClient() {
-        if (mode != 1 || entityIdActive != Minecraft.getMinecraft().thePlayer.getEntityId()) {
-            ((ClientCameraFlightHelper.CameraFlight) clientActiveCameraFlight).forceStop();
-            clientActiveCameraFlight = null;
-        }
-    }
-
-    @SideOnly(Side.CLIENT)
-    private void renderEffects() {
-        if (highlightActive > 0) {
-            highlightActive--;
-        }
-
-        if (activeFound == null) {
-            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-            if (player != null && player.getDistanceSq(getPos().getX() + 0.5, getPos().getY() + 0.5, getPos().getZ() + 0.5) <= 250) {
-                IConstellation held = null;
-                ItemStack mainhand = player.getCurrentEquippedItem();
-                if (!(mainhand == null || mainhand.stackSize <= 0)
-                    && mainhand.getItem() instanceof ItemConstellationPaper) {
-                    IConstellation cst = ItemConstellationPaper.getConstellation(mainhand);
-                    if (cst != null) {
-                        held = cst;
-                    }
-                }
-                // 1.7.10: No off-hand, skip offhand check
-                if (held != null
-                    && ResearchManager.clientProgress.hasConstellationDiscovered(held.getUnlocalizedName())) {
-                    highlightConstellation(held);
-                }
-            }
-        }
-
-        if (mode != 2) {
-            spriteCrystalAttunement = null;
-        }
-
-        if (!hasMultiblock || !doesSeeSky) {
-            starSprites.clear();
-            activeSound = null;
-            animate = false;
-
-            prevActivationTick = activationTick;
-            if (activationTick > 0) {
-                activationTick--;
-            }
-
-            if (clientActiveCameraFlight != null) {
-                ((ClientCameraFlightHelper.CameraFlight) clientActiveCameraFlight).forceStop();
-                clientActiveCameraFlight = null;
-            }
-
-        } else if (activeFound == null || !ConstellationSkyHandler.getInstance()
-            .isNight(worldObj)) {
-                starSprites.clear();
-                activeSound = null;
-                animate = false;
-
-                prevActivationTick = activationTick;
-                if (activationTick > 0) {
-                    activationTick--;
-                }
-                if (clientActiveCameraFlight != null) {
-                    ((ClientCameraFlightHelper.CameraFlight) clientActiveCameraFlight).forceStop();
-                    clientActiveCameraFlight = null;
-                }
-
-                spawnAmbientParticles();
-                if (highlight != null && highlightActive > 0) {
-                    float night = ConstellationSkyHandler.getInstance()
-                        .getCurrentDaytimeDistribution(Minecraft.getMinecraft().theWorld);
-                    List<BlockPos> positions = translateConstellationPositions(highlight);
-                    for (BlockPos pos : positions) {
-                        if (rand.nextBoolean()) continue;
-                        EntityFXFacingParticle p = EffectHelper
-                            .genericFlareParticle(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5)
-                            .gravity(0.01);
-                        p.offset(
-                            rand.nextFloat() * 0.7 * (rand.nextBoolean() ? 1 : -1),
-                            rand.nextFloat() * 0.7 * (rand.nextBoolean() ? 1 : -1),
-                            rand.nextFloat() * 0.7 * (rand.nextBoolean() ? 1 : -1));
-                        p.scale(0.4F + rand.nextFloat() * 0.1F);
-                        p.setAlphaMultiplier(0.5F * night);
-                    }
-                }
-            } else {
-                if (Minecraft.getMinecraft().gameSettings.getSoundLevel(SoundCategory.MASTER) > 0) {
-                    if (activeSound == null || ((PositionedLoopSound) activeSound).hasStoppedPlaying()) {
-                        activeSound = SoundHelper.playSoundLoopClient(
-                            Sounds.attunement,
-                            new Vector3(this).add(0.5, 0.5, 0.5),
-                            0.2F,
-                            0.8F,
-                            () -> isInvalid() || activeFound == null
-                                || !ConstellationSkyHandler.getInstance()
-                                    .isNight(worldObj)
-                                || Minecraft.getMinecraft().gameSettings.getSoundLevel(SoundCategory.MASTER) <= 0);
-                    }
-                }
-
-                if (mode == 1 && clientActiveCameraFlight == null) {
-                    playPlayerAttenuationEffects(serverSyncAttTick);
-                    serverSyncAttTick++;
-                }
-                if (mode == 2 && entityIdActive != -1) {
-                    Entity e = worldObj.getEntityByID(entityIdActive);
-                    if (e != null && !e.isDead
-                        && e instanceof EntityItem
-                        && (EntityUtils.selectItemStack(crystalAcceptor)
-                            .apply(e)
-                            || EntityUtils.selectItemStack(traitAcceptor)
-                                .apply(e))) {
-                        /*
-                         * if(spriteCrystalAttunement == null) {
-                         * EntityFXFacingSprite sprite = EntityFXFacingSprite.fromSpriteSheet(SpriteLibrary.spriteStar2,
-                         * pos.getX(), pos.getY(), pos.getZ(), 2.5F, 2);
-                         * EffectHandler.getInstance().registerFX(sprite);
-                         * spriteCrystalAttunement = sprite;
-                         * sprite.setRefreshFunc(() -> {
-                         * if(isInvalid() || mode != 2 || entityIdActive == -1) return false;
-                         * Entity ent = world.getEntityByID(entityIdActive);
-                         * return ent != null && !ent.isDead && ent instanceof EntityItem &&
-                         * EntityUtils.selectItemStack(crystalAcceptor).applyServer(ent);
-                         * });
-                         * sprite.setPositionUpdateFunction((v) -> {
-                         * if(isInvalid() || mode != 2 || entityIdActive == -1) return v;
-                         * Entity ent = world.getEntityByID(entityIdActive);
-                         * if(ent == null || ent.isDead) return v;
-                         * return new Vector3(ent).addY(0.5);
-                         * });
-                         * }
-                         */
-
-                        Vector3 crystalHoverPos = new Vector3(this).add(0.5, 1.4, 0.5);
-                        e.setPosition(crystalHoverPos.getX(), crystalHoverPos.getY(), crystalHoverPos.getZ());
-                        e.setVelocity(0, 0, 0);
-
-                        playCrystalAttenuationEffects(serverSyncAttTick);
-                        serverSyncAttTick++;
-                    } else {
-                        if (spriteCrystalAttunement != null) {
-                            spriteCrystalAttunement = null;
-                        }
-                    }
-                }
-
-                animate = true;
-                prevActivationTick = activationTick;
-                if (activationTick < MAX_START_ANIMATION_TICK) {
-                    activationTick++;
-                }
-
-                // TODO this stuff, downwards
-                for (Object o : starSprites) {
-                    EntityFXFacingSprite p = (EntityFXFacingSprite) o;
-                    if (p.isRemoved()) {
-                        EffectHandler.getInstance()
-                            .registerFX(p);
-                    }
-                }
-                if (starSprites == null || starSprites.isEmpty()) {
-                    addStarSprites();
-                }
-                if (getTicksExisted() % 53 == 0) {
-                    addConnectionBeams();
-                }
-                spawnAmbientParticles();
-                spawnAmbientActiveParticles();
-            }
-
-    }
-
-    @SideOnly(Side.CLIENT)
-    private ClientCameraFlightHelper.StopDelegate createAttunementDelegate() {
-        return () -> {
-            if (clientActiveCameraFlight != null
-                && ((ClientCameraFlightHelper.CameraFlight) clientActiveCameraFlight).isExpired()
-                && !((ClientCameraFlightHelper.CameraFlight) clientActiveCameraFlight).wasForciblyStopped()) {
-                if (activeFound != null) {
-                    PacketChannel.CHANNEL.sendToServer(
-                        new PktAttuneConstellation(
-                            (IMajorConstellation) activeFound,
-                            worldObj.provider.dimensionId,
-                            getPos()));
-                    SoundHelper.playSoundClientWorld(Sounds.craftFinish, getPos(), 1F, 1.4F);
-                }
-            }
-            this.cameraFlightActive = false;
-            this.clientActiveCameraFlight = null;
-        };
-    }
-
-    @SideOnly(Side.CLIENT)
-    private ClientCameraFlightHelper.TickDelegate createFloatDelegate(Vector3 offsetPos) {
-        return (renderView, focusedEntity) -> {
-            if (focusedEntity == null) return;
-
-            float floatTick = (ClientScheduler.getClientTick() % 40) / 40F;
-            float sin = WrapMathHelper.sin((float) (floatTick * 2 * Math.PI)) / 2F + 0.5F;
-            // 1.7.10: setAlwaysRenderNameTag doesn't exist, commenting out
-            // focusedEntity.setAlwaysRenderNameTag(false);
-            focusedEntity
-                .setPositionAndRotation(offsetPos.getX(), offsetPos.getY() + sin * 0.2D, offsetPos.getZ(), 0F, 0F);
-            focusedEntity
-                .setPositionAndRotation(offsetPos.getX(), offsetPos.getY() + sin * 0.2D, offsetPos.getZ(), 0F, 0F);
-            focusedEntity.rotationYawHead = 0;
-            focusedEntity.prevRotationYawHead = 0;
-            focusedEntity.setVelocity(0, 0, 0);
-
-            playPlayerAttenuationEffects(renderView.ticksExisted);
-        };
-    }
-
-    @SideOnly(Side.CLIENT)
-    private void playPlayerAttenuationEffects(int cameraFlightTick) {
-        if (activeFound == null) return;
-
-        if (cameraFlightTick >= 0 && cameraFlightTick <= 800) {
-            if (cameraFlightTick % 30 == 0) {
-                List<BlockPos> offsets = translateConstellationPositions(activeFound);
-                Color ov = new Color(0x2100FD);
-                float cR = ov.getRed() / 255F;
-                float cG = ov.getGreen() / 255F;
-                float cB = ov.getBlue() / 255F;
-                for (BlockPos effectPos : offsets) {
-                    Vector3 from = new Vector3(effectPos).add(0.5, -0.1, 0.5);
-                    MiscUtils.applyRandomOffset(from, rand, 0.1F);
-                    EffectLightbeam lightbeam = EffectHandler.getInstance()
-                        .lightbeam(
-                            from.clone()
-                                .addY(6),
-                            from,
-                            1.5F);
-                    lightbeam.setAlphaMultiplier(0.8F);
-                    lightbeam.setColorOverlay(cR, cG, cB, 0.2F);
-                    lightbeam.setMaxAge(64);
-                }
-            }
-        }
-        if (cameraFlightTick >= 200) {
-            for (int i = 0; i < 2; i++) {
-                List<BlockPos> offsets = translateConstellationPositions(activeFound);
-                BlockPos pos = offsets.get(rand.nextInt(offsets.size()));
-                Vector3 offset = new Vector3(pos.getX() + 0.5, pos.getY() + 0.1, pos.getZ() + 0.5);
-                Vector3 dir = new Vector3(this).add(0.5, 3, 0.5)
-                    .subtract(offset);
-                EntityFXFacingParticle p = EffectHelper
-                    .genericFlareParticle(offset.getX(), offset.getY(), offset.getZ());
-                p.setColor(Color.WHITE)
-                    .scale(0.3F + rand.nextFloat() * 0.1F)
-                    .gravity(0.004)
-                    .motion(dir.getX() / 40D, dir.getY() / 40D, dir.getZ() / 40D);
-            }
-        }
-        if (cameraFlightTick >= 350) {
-            for (int i = 0; i < 3; i++) {
-                Vector3 from = new Vector3(this).add(0.5, 0.5, 0.5);
-                from.addX(rand.nextFloat() * 6F * (rand.nextBoolean() ? 1 : -1));
-                from.addZ(rand.nextFloat() * 6F * (rand.nextBoolean() ? 1 : -1));
-                Vector3 dir = new Vector3(this).add(0.5, 3, 0.5)
-                    .subtract(from);
-                EntityFXFacingParticle p = EffectHelper.genericFlareParticle(from.getX(), from.getY(), from.getZ());
-                p.setColor(Color.WHITE)
-                    .scale(0.3F + rand.nextFloat() * 0.1F)
-                    .gravity(0.004)
-                    .motion(dir.getX() / 40D, dir.getY() / 40D, dir.getZ() / 40D);
-            }
-        }
-        if (cameraFlightTick >= 500) {
-            for (int i = 0; i < 4; i++) {
-                Vector3 at = new Vector3(this).add(0.5, 0.1, 0.5);
-                at.addX(rand.nextFloat() * 7F * (rand.nextBoolean() ? 1 : -1));
-                at.addZ(rand.nextFloat() * 7F * (rand.nextBoolean() ? 1 : -1));
-                EntityFXFacingParticle p = EffectHelper.genericFlareParticle(at.getX(), at.getY(), at.getZ());
-                p.setAlphaMultiplier(0.7F);
-                if (rand.nextBoolean()) p.setColor(Color.WHITE);
-                p.setMaxAge((int) (30 + rand.nextFloat() * 50));
-                p.gravity(0.05)
-                    .scale(0.3F + rand.nextFloat() * 0.1F);
-            }
-        }
-        if (cameraFlightTick >= 600) {
-            if (cameraFlightTick % 5 == 0) {
-                Vector3 from = new Vector3(this).add(0.5, -0.1, 0.5);
-                MiscUtils.applyRandomOffset(from, rand, 0.3F);
-                EffectLightbeam lightbeam = EffectHandler.getInstance()
-                    .lightbeam(
-                        from.clone()
-                            .addY(8),
-                        from,
-                        2.4F);
-                lightbeam.setAlphaMultiplier(0.8F);
-                lightbeam.setMaxAge(64);
-            }
-        }
-    }
-
-    @SideOnly(Side.CLIENT)
-    private void playCrystalAttenuationEffects(int runTick) {
-        if (activeFound == null) return;
-
-        if (runTick >= 0 && runTick <= TICKS_CRYSTAL_ATTUNEMENT) {
-            if (runTick % 30 == 0) {
-                List<BlockPos> offsets = translateConstellationPositions(activeFound);
-                Color ov = new Color(0x2100FD);
-                float cR = ov.getRed() / 255F;
-                float cG = ov.getGreen() / 255F;
-                float cB = ov.getBlue() / 255F;
-                for (BlockPos effectPos : offsets) {
-                    Vector3 from = new Vector3(effectPos).add(0.5, -0.1, 0.5);
-                    MiscUtils.applyRandomOffset(from, rand, 0.1F);
-                    EffectLightbeam lightbeam = EffectHandler.getInstance()
-                        .lightbeam(
-                            from.clone()
-                                .addY(6),
-                            from,
-                            1.5F);
-                    lightbeam.setAlphaMultiplier(0.8F);
-                    lightbeam.setColorOverlay(cR, cG, cB, 0.2F);
-                    lightbeam.setMaxAge(64);
-                }
-            }
-        }
-
-        if (runTick >= 0) {
-            if (spawnedOrbitalsForCrystal == -1) {
-                spawnedOrbitalsForCrystal = entityIdActive;
-
-                OrbitalPropertiesAttunement attunement = new OrbitalPropertiesAttunement(this, false);
-                attunement.setPersistanceRequests(3);
-                OrbitalEffectController ctrl = EffectHandler.getInstance()
-                    .orbital(attunement, attunement, null);
-                ctrl.setTicksPerRotation(80)
-                    .setOrbitAxis(Vector3.RotAxis.Y_AXIS)
-                    .setOffset(new Vector3(this).add(0.5, 0, 0.5))
-                    .setOrbitRadius(2);
-
-                attunement = new OrbitalPropertiesAttunement(this, false);
-                attunement.setPersistanceRequests(3);
-                ctrl = EffectHandler.getInstance()
-                    .orbital(attunement, attunement, null);
-                ctrl.setTicksPerRotation(80)
-                    .setOrbitAxis(Vector3.RotAxis.Y_AXIS)
-                    .setOffset(new Vector3(this).add(0.5, 0, 0.5))
-                    .setOrbitRadius(2);
-                ctrl.setTickOffset(40);
-
-                attunement = new OrbitalPropertiesAttunement(this, false);
-                attunement.setPersistanceRequests(12);
-                ctrl = EffectHandler.getInstance()
-                    .orbital(attunement, attunement, null);
-                ctrl.setTicksPerRotation(20)
-                    .setOrbitAxis(Vector3.RotAxis.Y_AXIS)
-                    .setOffset(new Vector3(this).add(0.5, 0, 0.5))
-                    .setOrbitRadius(1);
-
-                attunement = new OrbitalPropertiesAttunement(this, false);
-                attunement.setPersistanceRequests(2);
-                ctrl = EffectHandler.getInstance()
-                    .orbital(attunement, attunement, null);
-                ctrl.setTicksPerRotation(120)
-                    .setOrbitAxis(Vector3.RotAxis.Y_AXIS)
-                    .setOffset(new Vector3(this).add(0.5, 0, 0.5))
-                    .setOrbitRadius(3.5);
-                ctrl.setTickOffset(40);
-
-                attunement = new OrbitalPropertiesAttunement(this, false);
-                attunement.setPersistanceRequests(2);
-                ctrl = EffectHandler.getInstance()
-                    .orbital(attunement, attunement, null);
-                ctrl.setTicksPerRotation(120)
-                    .setOrbitAxis(Vector3.RotAxis.Y_AXIS)
-                    .setOffset(new Vector3(this).add(0.5, 0, 0.5))
-                    .setOrbitRadius(3.5);
-                ctrl.setTickOffset(100);
-            }
-        }
-
-        if (runTick >= 200) {
-            for (int i = 0; i < 2; i++) {
-                List<BlockPos> offsets = translateConstellationPositions(activeFound);
-                BlockPos pos = offsets.get(rand.nextInt(offsets.size()));
-                Vector3 offset = new Vector3(pos.getX() + 0.5, pos.getY() + 0.1, pos.getZ() + 0.5);
-                Vector3 dir = new Vector3(this).add(0.5, 1.7, 0.5)
-                    .subtract(offset);
-                EntityFXFacingParticle p = EffectHelper
-                    .genericFlareParticle(offset.getX(), offset.getY(), offset.getZ());
-                p.setColor(Color.WHITE)
-                    .scale(0.3F + rand.nextFloat() * 0.1F)
-                    .gravity(0.004)
-                    .motion(dir.getX() / 40D, dir.getY() / 40D, dir.getZ() / 40D);
-            }
-        }
-
-        if (runTick >= 225) {
-            if (spriteCrystalAttunement == null) {
-                Entity ee = worldObj.getEntityByID(entityIdActive);
-                if (ee != null) {
-                    Vector3 posV = Vector3.atEntityCorner(ee);
-                    EntityFXFacingSprite sprite = EntityFXFacingSprite
-                        .fromSpriteSheet(SpriteLibrary.spriteStar2, posV.getX(), posV.getY(), posV.getZ(), 2.5F, 2);
-                    EffectHandler.getInstance()
-                        .registerFX(sprite);
-                    spriteCrystalAttunement = sprite;
-                    sprite.setRefreshFunc(() -> {
-                        if (isInvalid() || mode != 2 || entityIdActive == -1) return false;
-                        Entity ent = worldObj.getEntityByID(entityIdActive);
-                        return ent != null && !ent.isDead
-                            && ent instanceof EntityItem
-                            && (EntityUtils.selectItemStack(crystalAcceptor)
-                                .apply(ent)
-                                || EntityUtils.selectItemStack(traitAcceptor)
-                                    .apply(ent));
-                    });
-                    sprite.setPositionUpdateFunction((fx, v, m) -> {
-                        if (isInvalid() || mode != 2 || entityIdActive == -1) return v;
-                        Entity ent = worldObj.getEntityByID(entityIdActive);
-                        if (ent == null || ent.isDead) return v;
-                        return Vector3.atEntityCorner(ent)
-                            .addY(ent.height * 2);
-                    });
-                }
-            }
-        }
-
-        if (runTick >= 250) {
-            for (int i = 0; i < 3; i++) {
-                Vector3 from = new Vector3(this).add(0.5, 0.5, 0.5);
-                from.addX(rand.nextFloat() * 6.5F * (rand.nextBoolean() ? 1 : -1));
-                from.addZ(rand.nextFloat() * 6.5F * (rand.nextBoolean() ? 1 : -1));
-                Vector3 dir = new Vector3(this).add(0.5, 1.7, 0.5)
-                    .subtract(from);
-                EntityFXFacingParticle p = EffectHelper.genericFlareParticle(from.getX(), from.getY(), from.getZ());
-                p.setColor(Color.WHITE)
-                    .scale(0.3F + rand.nextFloat() * 0.1F)
-                    .gravity(0.004)
-                    .motion(dir.getX() / 40D, dir.getY() / 40D, dir.getZ() / 40D);
-            }
-        }
-
-        if (runTick >= 350) {
-            if (runTick % 5 == 0) {
-                Vector3 from = new Vector3(this).add(0.5, -0.1, 0.5);
-                MiscUtils.applyRandomOffset(from, rand, 0.3F);
-                EffectLightbeam lightbeam = EffectHandler.getInstance()
-                    .lightbeam(
-                        from.clone()
-                            .addY(8),
-                        from,
-                        2.4F);
-                lightbeam.setAlphaMultiplier(0.8F);
-                lightbeam.setMaxAge(64);
-            }
-        }
-
-        if (runTick >= 400) {
-            for (int i = 0; i < 4; i++) {
-                Vector3 at = new Vector3(this).add(0.5, 0.1, 0.5);
-                at.addX(rand.nextFloat() * 7F * (rand.nextBoolean() ? 1 : -1));
-                at.addZ(rand.nextFloat() * 7F * (rand.nextBoolean() ? 1 : -1));
-                EntityFXFacingParticle p = EffectHelper.genericFlareParticle(at.getX(), at.getY(), at.getZ());
-                p.setAlphaMultiplier(0.7F);
-                if (rand.nextBoolean()) p.setColor(Color.WHITE);
-                p.setMaxAge((int) (30 + rand.nextFloat() * 50));
-                p.gravity(0.05)
-                    .scale(0.3F + rand.nextFloat() * 0.1F);
-            }
-        }
-
-    }
-
-    @SideOnly(Side.CLIENT)
-    private void spawnAmbientActiveParticles() {
-        if (rand.nextInt(3) == 0) {
-            Vector3 at = new Vector3(this).add(0, 0.1, 0);
-            at.add(rand.nextFloat() * 3 - 1, 0, rand.nextFloat() * 3 - 1);
-            EntityFXFacingParticle p = EffectHelper.genericFlareParticle(at.getX(), at.getY(), at.getZ());
-            p.setAlphaMultiplier(0.7F);
-            p.setMaxAge((int) (30 + rand.nextFloat() * 50));
-            p.gravity(0.05)
-                .scale(0.3F + rand.nextFloat() * 0.1F);
-        }
-    }
-
-    @SideOnly(Side.CLIENT)
-    private void spawnAmbientParticles() {
-        if (rand.nextBoolean()) {
-            Vector3 at = new Vector3(this).add(0, 0.01, 0);
-            at.add(rand.nextFloat() * 15 - 7, 0, rand.nextFloat() * 15 - 7);
-            EntityFXFacingParticle p = EffectHelper.genericFlareParticle(at.getX(), at.getY(), at.getZ());
-            p.setAlphaMultiplier(0.7F);
-            p.setColor(Color.WHITE);
-            p.gravity(0.004)
-                .scale(0.3F + rand.nextFloat() * 0.1F);
-        }
-    }
-
-    @SideOnly(Side.CLIENT)
-    private void addConnectionBeams() {
-        List<Tuple<BlockPos, BlockPos>> connectionTuples = translateConnectionPositions(activeFound);
-        Color ov = new Color(0x2100FD);
-        float cR = ov.getRed() / 255F;
-        float cG = ov.getGreen() / 255F;
-        float cB = ov.getBlue() / 255F;
-        float alpha = 0.2F;
-        for (Tuple<BlockPos, BlockPos> connection : connectionTuples) {
-            Vector3 from = new Vector3(connection.key).add(0.5, 0.5, 0.5);
-            Vector3 to = new Vector3(connection.value).add(0.5, 0.5, 0.5);
-            EffectHandler.getInstance()
-                .lightbeam(from, to, 1.1)
-                .setColorOverlay(cR, cG, cB, alpha);
-            EffectHandler.getInstance()
-                .lightbeam(to, from, 1.1)
-                .setColorOverlay(cR, cG, cB, alpha);
-        }
-    }
-
-    @SideOnly(Side.CLIENT)
-    private void addStarSprites() {
-        List<BlockPos> positions = translateConstellationPositions(activeFound);
-        for (BlockPos pos : positions) {
-            EntityFXFacingSprite sprite = EntityFXFacingSprite.fromSpriteSheet(
-                SpriteLibrary.spriteStar1,
-                pos.getX() + 0.5,
-                pos.getY() + 0.55,
-                pos.getZ() + 0.5,
-                1.5F,
-                2);
-            EffectHandler.getInstance()
-                .registerFX(sprite);
-            starSprites.add(sprite);
-            sprite.setRefreshFunc(() -> starSprites.contains(sprite) && !isInvalid());
-        }
-    }
-
-    @SideOnly(Side.CLIENT)
-    public void highlightConstellation(IConstellation highlight) {
-        this.highlight = highlight;
-        this.highlightActive = 4;
-    }
-
-    private List<Tuple<BlockPos, BlockPos>> translateConnectionPositions(IConstellation cst) {
-        List<Tuple<BlockPos, BlockPos>> offsetPositions = new LinkedList<>();
-        for (StarConnection c : cst.getStarConnections()) {
-            StarLocation from = c.from;
-            StarLocation to = c.to;
-            offsetPositions.add(
-                new Tuple<>(
-                    new BlockPos(from.x / 2 - 7, 0, from.y / 2 - 7).add(getPos()),
-                    new BlockPos(to.x / 2 - 7, 0, to.y / 2 - 7).add(getPos())));
-        }
-        return offsetPositions;
-    }
-
-    private List<BlockPos> translateConstellationPositions(IConstellation cst) {
-        List<BlockPos> offsetPositions = new LinkedList<>();
-        for (StarLocation sl : cst.getStars()) {
-            int x = sl.x / 2;
-            int z = sl.y / 2;
-            offsetPositions.add(new BlockPos(x - 7, 0, z - 7).add(getPos()));
-        }
-        return offsetPositions;
-    }
-
-    @Override
-    public void readNetNBT(NBTTagCompound compound) {
-        this.mode = compound.getInteger("modeId");
-        this.entityIdActive = compound.getInteger("entityId");
-        this.serverSyncAttTick = compound.getInteger("sSync");
-
-        checkClientEffectIntegrity();
-    }
-
-    @Override
-    public void writeNetNBT(NBTTagCompound compound) {
-        compound.setInteger("modeId", mode);
-        compound.setInteger("entityId", entityIdActive);
-        compound.setInteger("sSync", serverSyncAttTick);
-    }
-
-    @Override
-    public void readCustomNBT(NBTTagCompound compound) {
-        super.readCustomNBT(compound);
-
-        this.hasMultiblock = compound.getBoolean("mbState");
-        this.doesSeeSky = compound.getBoolean("skState");
-
-        IConstellation prev = activeFound;
-        IConstellation found = IConstellation.readFromNBT(compound);
-        if (found == null) {
-            activeFound = null;
-        } else {
-            activeFound = found;
-        }
-        if (prev == null ? activeFound != null : !prev.equals(activeFound)) {
-            starSprites.clear();
-        }
-    }
-
-    @Override
-    public void writeCustomNBT(NBTTagCompound compound) {
-        super.writeCustomNBT(compound);
-
-        compound.setBoolean("mbState", hasMultiblock);
-        compound.setBoolean("skState", doesSeeSky);
-
-        if (activeFound != null) {
-            activeFound.writeToNBT(compound);
-        }
-    }
-
-    /*
-     * public static class TransmissionReceiverAttunementAltar extends SimpleTransmissionReceiver {
-     * public TransmissionReceiverAttunementAltar(@Nonnull BlockPos thisPos) {
-     * super(thisPos);
-     * }
-     * @Override
-     * public void onStarlightReceive(World world, boolean isChunkLoaded, IWeakConstellation type, double amount) {
-     * if(isChunkLoaded) {
-     * TileAttunementAltar ta = MiscUtils.getTileAt(world, getLocationPos(), TileAttunementAltar.class, false);
-     * if(ta != null) {
-     * ta.receiveStarlight(type, amount);
-     * }
-     * }
-     * }
-     * @Override
-     * public TransmissionClassRegistry.TransmissionProvider getProvider() {
-     * return new AttunementAltarReceiverProvider();
-     * }
-     * }
-     * public static class AttunementAltarReceiverProvider implements TransmissionClassRegistry.TransmissionProvider {
-     * @Override
-     * public TransmissionReceiverAttunementAltar provideEmptyNode() {
-     * return new TransmissionReceiverAttunementAltar(null);
-     * }
-     * @Override
-     * public String getIdentifier() {
-     * return AstralSorcery.MODID + ":TransmissionReceiverAttunementAltar";
-     * }
-     * }
+    /**
+     * Set attunement mode
      */
+    public void setMode(int mode) {
+        this.mode = mode;
+        markDirty();
+    }
 
-    public static class ConfigEntryAttunementAltar extends ConfigEntry {
+    /**
+     * Check if sees sky
+     */
+    public boolean seesSky() {
+        return seesSky;
+    }
 
-        public static final ConfigEntryAttunementAltar instance = new ConfigEntryAttunementAltar();
+    /**
+     * Check if has multiblock
+     */
+    public boolean hasMultiblock() {
+        return hasMultiblock;
+    }
 
-        private static boolean doAttunementTimeout = true;
+    /**
+     * Set multiblock state
+     */
+    public void setHasMultiblock(boolean has) {
+        this.hasMultiblock = has;
+        markDirty();
+    }
 
-        private ConfigEntryAttunementAltar() {
-            super(Section.MACHINERY, "attunement-altar");
+    @Override
+    public void readFromNBT(NBTTagCompound compound) {
+        super.readFromNBT(compound);
+
+        seesSky = compound.getBoolean("seesSky");
+        hasMultiblock = compound.getBoolean("hasMultiblock");
+        mode = compound.getInteger("mode");
+        activeEntityId = compound.getInteger("activeEntityId");
+        syncTick = compound.getInteger("syncTick");
+
+        if (compound.hasKey("activeConstellation")) {
+            String constellationName = compound.getString("activeConstellation");
+            activeConstellation = ConstellationRegistry.getConstellationByName(constellationName);
         }
+    }
 
-        @Override
-        public void loadFromConfig(Configuration cfg) {
-            doAttunementTimeout = cfg.getBoolean(
-                "doAttunementTimeout",
-                getConfigurationSection(),
-                doAttunementTimeout,
-                "Set this to 'false' to disable the timeout waiting for a player to attune. This can solve issues with players having high latency or a bad ingame performance.");
+    @Override
+    public void writeToNBT(NBTTagCompound compound) {
+        super.writeToNBT(compound);
+
+        compound.setBoolean("seesSky", seesSky);
+        compound.setBoolean("hasMultiblock", hasMultiblock);
+        compound.setInteger("mode", mode);
+        compound.setInteger("activeEntityId", activeEntityId);
+        compound.setInteger("syncTick", syncTick);
+
+        if (activeConstellation != null) {
+            compound.setString("activeConstellation", activeConstellation.getUnlocalizedName());
         }
     }
 }

@@ -1,112 +1,120 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Journal Item - Stores constellation papers
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.item;
 
-import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.InventoryBasic;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
 import net.minecraft.world.World;
 
-import hellfirepvp.astralsorcery.AstralSorcery;
-import hellfirepvp.astralsorcery.common.CommonProxy;
-import hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry;
-import hellfirepvp.astralsorcery.common.constellation.IConstellation;
-import hellfirepvp.astralsorcery.common.container.ContainerJournal;
-import hellfirepvp.astralsorcery.common.lib.ItemsAS;
-import hellfirepvp.astralsorcery.common.registry.RegistryItems;
-import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import hellfirepvp.astralsorcery.client.gui.AltarRecipeViewer;
+import hellfirepvp.astralsorcery.common.base.AstralBaseItem;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: ItemJournal
- * Created by HellFirePvP
- * Date: 11.08.2016 / 18:33
+ * Journal Item
+ * <p>
+ * Stores constellation papers and provides GUI to manage them.
+ * <p>
+ * Features:
+ * - 27 slots for constellation papers
+ * - Dual mode GUI (browse/manage)
+ * - Sneak + right click to open
+ * - NBT-based inventory
+ * <p>
+ * TODO:
+ * - Implement GUI system
+ * - Create GuiJournal class
+ * - Create ContainerJournal class
+ * - Implement inventory serialization
+ * - Add sorting system
+ * - Link with constellation system
  */
-public class ItemJournal extends Item {
+public class ItemJournal extends AstralBaseItem {
+
+    private static final String TAG_INVENTORY = "inventory";
+    private static final int INVENTORY_SIZE = 27;
 
     public ItemJournal() {
-        setMaxStackSize(1);
-        setCreativeTab(RegistryItems.creativeTabAstralSorcery);
+        super(1); // Max stack size 1
     }
 
     @Override
-    public ItemStack onItemRightClick(ItemStack stack, World worldIn, EntityPlayer playerIn) {
-        if (worldIn.isRemote && !playerIn.isSneaking()) {
-            AstralSorcery.proxy.openGui(CommonProxy.EnumGuiId.JOURNAL, playerIn, worldIn, 0, 0, 0);
-        } else if (!worldIn.isRemote && playerIn.isSneaking()) {
-            AstralSorcery.proxy.openGui(CommonProxy.EnumGuiId.JOURNAL_STORAGE, playerIn, worldIn, 0, 0, 0);
+    public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
+        if (!player.isSneaking()) {
+            return stack;
         }
-        return playerIn.getCurrentEquippedItem();
+
+        // Phase 4: Open recipe viewer on client side
+        if (world.isRemote) {
+            FMLCommonHandler.instance()
+                .showGuiScreen(new AltarRecipeViewer());
+        }
+
+        return stack;
     }
 
-    @Nullable
-    public static ContainerJournal getContainer(InventoryPlayer playerInv, ItemStack stack, int journalIndex) {
-        if ((stack == null || stack.stackSize <= 0) || !(stack.getItem() instanceof ItemJournal)) return null;
-        return new ContainerJournal(playerInv, stack, journalIndex);
+    /**
+     * Get stored inventory from NBT
+     */
+    public NBTTagList getInventory(ItemStack stack) {
+        NBTTagCompound nbt = stack.getTagCompound();
+        if (nbt != null && nbt.hasKey(TAG_INVENTORY)) {
+            return nbt.getTagList(TAG_INVENTORY, 10); // 10 = NBTTagCompound
+        }
+        return new NBTTagList();
     }
 
-    @Nullable
-    public static IInventory getJournalStorage(ItemStack stack) {
-        InventoryBasic i = new InventoryBasic("Journal", false, 27);
-        ItemStack[] toFill = getStoredConstellationStacks(stack);
-        for (int i1 = 0; i1 < toFill.length; i1++) {
-            ItemStack item = toFill[i1];
-            i.setInventorySlotContents(i1, item);
+    /**
+     * Set stored inventory in NBT
+     */
+    public void setInventory(ItemStack stack, NBTTagList inventory) {
+        NBTTagCompound nbt = stack.getTagCompound();
+        if (nbt == null) {
+            nbt = new NBTTagCompound();
+            stack.setTagCompound(nbt);
         }
-        return i;
+        nbt.setTag(TAG_INVENTORY, inventory);
     }
 
-    public static ItemStack[] getStoredConstellationStacks(ItemStack stack) {
-        List<IConstellation> out = getStoredConstellations(stack);
-        ItemStack[] items = new ItemStack[out.size()];
-        for (int i = 0; i < out.size(); i++) {
-            IConstellation c = out.get(i);
-            ItemStack paper = new ItemStack(ItemsAS.constellationPaper);
-            ItemConstellationPaper.setConstellation(paper, c);
-            items[i] = paper;
-        }
-        return items;
+    /**
+     * Add constellation paper to journal
+     */
+    public boolean addConstellationPaper(ItemStack journal, ItemStack paper) {
+        // TODO: Implement adding paper to inventory
+        return true;
     }
 
-    public static List<IConstellation> getStoredConstellations(ItemStack stack) {
-        NBTTagCompound cmp = NBTHelper.getPersistentData(stack);
-        NBTTagList constellationPapers = cmp.getTagList("constellations", 8);
-        LinkedList<IConstellation> out = new LinkedList<>();
-        for (int i = 0; i < constellationPapers.tagCount(); i++) {
-            IConstellation c = ConstellationRegistry.getConstellationByName(constellationPapers.getStringTagAt(i));
-            if (c != null) {
-                out.add(c);
-            }
-        }
-        out.sort(Comparator.comparing((IConstellation c) -> c.getSimpleName()));
-        return out;
+    /**
+     * Get number of stored papers
+     */
+    public int getPaperCount(ItemStack journal) {
+        NBTTagList inventory = getInventory(journal);
+        return inventory.tagCount();
     }
 
-    public static void setStoredConstellations(ItemStack parentJournal, LinkedList<IConstellation> saveConstellations) {
-        NBTTagCompound cmp = NBTHelper.getPersistentData(parentJournal);
-        NBTTagList list = new NBTTagList();
-        for (IConstellation c : saveConstellations) {
-            list.appendTag(new NBTTagString(c.getUnlocalizedName()));
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced) {
+        int count = getPaperCount(stack);
+        tooltip.add("§7Stored Papers: §e" + count + "§7/§e" + INVENTORY_SIZE);
+
+        if (count > 0) {
+            tooltip.add("§7Sneak + Right-click: §aOpen journal");
+        } else {
+            tooltip.add("§cEmpty journal");
+            tooltip.add("§8Add constellation papers to fill");
         }
-        cmp.setTag("constellations", list);
+
+        // TODO: When GUI is implemented, show detailed contents
     }
 }

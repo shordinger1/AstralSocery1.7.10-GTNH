@@ -9,15 +9,8 @@
 package hellfirepvp.astralsorcery.client.effect;
 
 import java.util.*;
-import java.util.ArrayList;
 
-import javax.annotation.Nullable;
-
-import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
@@ -26,34 +19,7 @@ import org.lwjgl.opengl.GL11;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
-import hellfirepvp.astralsorcery.AstralSorcery;
-import hellfirepvp.astralsorcery.client.data.PersistentDataManager;
-import hellfirepvp.astralsorcery.client.effect.block.EffectTranslucentFallingBlock;
-import hellfirepvp.astralsorcery.client.effect.compound.CompoundObjectEffect;
-import hellfirepvp.astralsorcery.client.effect.controller.InfluenceSizePreview;
-import hellfirepvp.astralsorcery.client.effect.controller.orbital.OrbitalEffectController;
-import hellfirepvp.astralsorcery.client.effect.fx.EntityFXFacingDepthParticle;
 import hellfirepvp.astralsorcery.client.effect.fx.EntityFXFacingParticle;
-import hellfirepvp.astralsorcery.client.effect.light.EffectLightbeam;
-import hellfirepvp.astralsorcery.client.effect.light.EffectLightning;
-import hellfirepvp.astralsorcery.client.effect.texture.TexturePlane;
-import hellfirepvp.astralsorcery.client.effect.texture.TextureSpritePlane;
-import hellfirepvp.astralsorcery.client.event.ClientGatewayHandler;
-import hellfirepvp.astralsorcery.client.render.tile.TESRMapDrawingTable;
-import hellfirepvp.astralsorcery.client.render.tile.TESRPrismLens;
-import hellfirepvp.astralsorcery.client.render.tile.TESRTranslucentBlock;
-import hellfirepvp.astralsorcery.client.util.StructureMatchPreview;
-import hellfirepvp.astralsorcery.client.util.TextureHelper;
-import hellfirepvp.astralsorcery.client.util.UIGateway;
-import hellfirepvp.astralsorcery.client.util.UISextantTarget;
-import hellfirepvp.astralsorcery.client.util.resource.AssetLibrary;
-import hellfirepvp.astralsorcery.client.util.resource.BindableResource;
-import hellfirepvp.astralsorcery.client.util.resource.SpriteSheetResource;
-import hellfirepvp.astralsorcery.common.data.config.Config;
-import hellfirepvp.astralsorcery.common.tile.IMultiblockDependantTile;
-import hellfirepvp.astralsorcery.common.tile.IStructureAreaOfInfluence;
-import hellfirepvp.astralsorcery.common.util.BlockPos;
-import hellfirepvp.astralsorcery.common.util.Counter;
 import hellfirepvp.astralsorcery.common.util.data.Vector3;
 
 /**
@@ -62,6 +28,11 @@ import hellfirepvp.astralsorcery.common.util.data.Vector3;
  * Class: EffectHandler
  * Created by HellFirePvP
  * Date: 12.05.2016 / 17:44
+ *
+ * 1.7.10 Port:
+ * - Manages all particle effects
+ * - Handles effect lifecycle, rendering, and ticking
+ * - Integrated with Forge event system
  */
 public final class EffectHandler {
 
@@ -71,72 +42,14 @@ public final class EffectHandler {
     private static boolean acceptsNewParticles = true, cleanRequested = false;
     private static List<IComplexEffect> toAddBuffer = new LinkedList<>();
 
-    private UIGateway uiGateway = null;
-    private int gatewayUITicks = 0;
-    public boolean renderGateway = true;
-
-    private StructureMatchPreview structurePreview = null;
-    private InfluenceSizePreview influenceSizePreview = null;
-
     public static final Map<IComplexEffect.RenderTarget, Map<Integer, List<IComplexEffect>>> complexEffects = new HashMap<>();
-    public static final List<EntityFXFacingDepthParticle> fastRenderDepthParticles = new LinkedList<>();
     public static final List<EntityFXFacingParticle> fastRenderParticles = new LinkedList<>();
     public static final List<EntityFXFacingParticle> fastRenderGatewayParticles = new LinkedList<>();
-    public static final List<EffectLightning> fastRenderLightnings = new LinkedList<>();
-    public static final Map<CompoundObjectEffect.ObjectGroup, List<CompoundObjectEffect>> objects = new HashMap<>();
 
     private EffectHandler() {}
 
     public static EffectHandler getInstance() {
         return instance;
-    }
-
-    public void requestGatewayUIFor(World world, BlockPos gateway, Vector3 pos, double sphereRadius) {
-        if (uiGateway == null || !uiGateway.getPos()
-            .equals(pos)) {
-            uiGateway = UIGateway.initialize(world, gateway, pos, sphereRadius);
-        }
-        gatewayUITicks = 20;
-    }
-
-    public void requestStructurePreviewFor(IMultiblockDependantTile tile) {
-        if (!(tile instanceof TileEntity)) return;
-        if (structurePreview == null || !structurePreview.isOriginatingFrom(tile)) {
-            structurePreview = new StructureMatchPreview(tile);
-        }
-        structurePreview.resetTimeout();
-    }
-
-    public void requestSizePreviewFor(IStructureAreaOfInfluence tile) {
-        if (!(tile instanceof TileEntity)) return;
-        InfluenceSizePreview prev = new InfluenceSizePreview(tile);
-        this.influenceSizePreview = prev;
-        register(prev);
-    }
-
-    @Nullable
-    public UIGateway getUiGateway() {
-        return uiGateway;
-    }
-
-    @Nullable
-    public IStructureAreaOfInfluence getCurrentActiveAOEView() {
-        return influenceSizePreview == null ? null : influenceSizePreview.getTile();
-    }
-
-    public static int getDebugEffectCount() {
-        final Counter c = new Counter(0);
-        for (Map<Integer, List<IComplexEffect>> effects : complexEffects.values()) {
-            for (List<IComplexEffect> eff : effects.values()) {
-                c.value += eff.size();
-            }
-        }
-        c.value += fastRenderParticles.size();
-        c.value += fastRenderLightnings.size();
-        for (List<CompoundObjectEffect> l : objects.values()) {
-            c.value += l.size();
-        }
-        return c.value;
     }
 
     @SubscribeEvent
@@ -158,83 +71,32 @@ public final class EffectHandler {
         }
     }
 
-    @SubscribeEvent
-    public void onDebugText(RenderGameOverlayEvent.Text event) {
-        if (Minecraft.getMinecraft().gameSettings.showDebugInfo) {
-            event.left.add("");
-            event.left.add(
-                EnumChatFormatting.BLUE + "[AstralSorcery]"
-                    + EnumChatFormatting.RESET
-                    + " Use Local persistent data: "
-                    + PersistentDataManager.INSTANCE.usePersistent());
-            event.left.add(EnumChatFormatting.BLUE + "[AstralSorcery]" + EnumChatFormatting.RESET + " EffectHandler:");
-            event.left.add(
-                EnumChatFormatting.BLUE + "[AstralSorcery]"
-                    + EnumChatFormatting.RESET
-                    + " > Complex effects: "
-                    + getDebugEffectCount());
-        }
-    }
-
     @SubscribeEvent(priority = EventPriority.LOW)
     public void onRender(RenderWorldLastEvent event) {
-        TESRPrismLens.renderColoredPrismsLast();
         float pTicks = event.partialTicks;
         acceptsNewParticles = false;
-        if (structurePreview != null) {
-            structurePreview.renderPreview(pTicks);
-        }
-        UISextantTarget.renderTargets(pTicks);
-        EntityFXFacingParticle.renderFast(pTicks, fastRenderDepthParticles);
-        EntityFXFacingParticle.renderFast(pTicks, fastRenderParticles);
-        EffectLightning.renderFast(pTicks, fastRenderLightnings);
 
+        // Render fast particles (billboard particles)
+        EntityFXFacingParticle.renderFast(pTicks, fastRenderParticles);
+
+        // Render complex effects
         Map<Integer, List<IComplexEffect>> layeredEffects = complexEffects.get(IComplexEffect.RenderTarget.RENDERLOOP);
         for (int i = 0; i <= 2; i++) {
             for (IComplexEffect effect : layeredEffects.get(i)) {
                 effect.render(pTicks);
             }
         }
-        TextureHelper.refreshTextureBindState();
-        TESRTranslucentBlock.renderTranslucentBlocks();
-        TESRMapDrawingTable.renderRemainingGlasses(pTicks);
-        for (CompoundObjectEffect.ObjectGroup og : objects.keySet()) {
-            og.prepareGLContext();
-            for (CompoundObjectEffect effect : objects.get(og)) {
-                effect.render(pTicks);
-            }
-            og.revertGLContext();
-        }
-        if (uiGateway != null) {
-            if (renderGateway) {
-                uiGateway.renderIntoWorld(pTicks);
-            }
-            if (ClientGatewayHandler.focusingEntry != null) {
-                uiGateway.renderGatewayTarget(pTicks);
-            }
-        }
+
+        // Render gateway particles
         EntityFXFacingParticle.renderFast(pTicks, fastRenderGatewayParticles);
+
         acceptsNewParticles = true;
     }
 
     @SubscribeEvent
-    public void onClTick(TickEvent.ClientTickEvent event) {
+    public void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
-
         tick();
-
-        /*
-         * if(Minecraft.getMinecraft().thePlayer == null) return;
-         * if(ClientScheduler.getClientTick() % 10 != 0) return;
-         * ItemStack main = Minecraft.getMinecraft().thePlayer.getCurrentEquippedItem();
-         * if(main != null && main.getItem() instanceof ItemIlluminationWand) {
-         * RayTraceResult res = MiscUtils.rayTraceLook(Minecraft.getMinecraft().thePlayer, 60);
-         * if(res != null && res.typeOfHit == RayTraceResult.Type.BLOCK) {
-         * EffectLightning.buildAndRegisterLightning(new Vector3(res.getBlockPos()).addY(7), new
-         * Vector3(res.getBlockPos()));
-         * }
-         * }
-         */
     }
 
     public EntityComplexFX registerFX(EntityComplexFX entityComplexFX) {
@@ -242,64 +104,9 @@ public final class EffectHandler {
         return entityComplexFX;
     }
 
-    public EffectTranslucentFallingBlock translucentFallingBlock(Vector3 position, Block state) {
-        EffectTranslucentFallingBlock block = new EffectTranslucentFallingBlock(state);
-        block.setPosition(
-            position.clone()
-                .add(-0.5, -0.5, -0.5));
-        register(block);
-        return block;
-    }
-
-    public EffectLightning lightning(Vector3 from, Vector3 to) {
-        return EffectLightning.buildAndRegisterLightning(from, to);
-    }
-
-    public OrbitalEffectController orbital(OrbitalEffectController.OrbitPointEffect pointEffect,
-        @Nullable OrbitalEffectController.OrbitPersistence persistence,
-        @Nullable OrbitalEffectController.OrbitTickModifier tickModifier) {
-        OrbitalEffectController ctrl = new OrbitalEffectController(pointEffect, persistence, tickModifier);
-        register(ctrl);
-        return ctrl;
-    }
-
-    public TextureSpritePlane textureSpritePlane(SpriteSheetResource sheetResource, Vector3 rotationAxis) {
-        TextureSpritePlane plane = new TextureSpritePlane(sheetResource, rotationAxis);
-        register(plane);
-        return plane;
-    }
-
-    public TexturePlane texturePlane(BindableResource texture, Vector3 rotationAxis) {
-        TexturePlane plane = new TexturePlane(texture, rotationAxis);
-        register(plane);
-        return plane;
-    }
-
-    public EffectLightbeam lightbeam(Vector3 from, Vector3 to, double beamRadSize) {
-        EffectLightbeam beam = new EffectLightbeam(from, to, beamRadSize);
-        register(beam);
-        return beam;
-    }
-
-    public EffectLightbeam lightbeam(Vector3 from, Vector3 to, double fromBeamSize, double toBeamSize) {
-        EffectLightbeam beam = new EffectLightbeam(from, to, fromBeamSize, toBeamSize);
-        register(beam);
-        return beam;
-    }
-
     private void register(final IComplexEffect effect) {
-        if (AssetLibrary.reloading || effect == null
-            || Minecraft.getMinecraft()
-                .isGamePaused())
-            return;
-
-        // instead of getEffeciveSide - neither is pretty, but this at least prevents async editing.
-        if (!Thread.currentThread()
-            .getName()
-            .contains("Client thread")) {
-            AstralSorcery.proxy.scheduleClientside(() -> register(effect));
-            return;
-        }
+        if (effect == null || Minecraft.getMinecraft()
+            .isGamePaused()) return;
 
         if (acceptsNewParticles) {
             registerUnsafe(effect);
@@ -311,19 +118,10 @@ public final class EffectHandler {
     private void registerUnsafe(IComplexEffect effect) {
         if (!mayAcceptParticle(effect)) return;
 
-        if (effect instanceof EffectLightning) {
-            fastRenderLightnings.add((EffectLightning) effect);
-        } else if (effect instanceof EntityFXFacingParticle.Gateway) {
+        if (effect instanceof EntityFXFacingParticle.Gateway) {
             fastRenderGatewayParticles.add((EntityFXFacingParticle) effect);
-        } else if (effect instanceof EntityFXFacingDepthParticle) {
-            fastRenderDepthParticles.add((EntityFXFacingDepthParticle) effect);
         } else if (effect instanceof EntityFXFacingParticle) {
             fastRenderParticles.add((EntityFXFacingParticle) effect);
-        } else if (effect instanceof CompoundObjectEffect) {
-            CompoundObjectEffect.ObjectGroup group = ((CompoundObjectEffect) effect).getGroup();
-            if (!objects.containsKey(group)) objects.put(group, new LinkedList<>());
-            objects.get(group)
-                .add((CompoundObjectEffect) effect);
         } else {
             complexEffects.get(effect.getRenderTarget())
                 .get(effect.getLayer())
@@ -338,46 +136,23 @@ public final class EffectHandler {
                 for (int i = 0; i <= 2; i++) {
                     List<IComplexEffect> effects = complexEffects.get(t)
                         .get(i);
-                    for (IComplexEffect effect : effects) {
-                        effect.flagAsRemoved();
-                    }
+                    effects.forEach(IComplexEffect::flagAsRemoved);
                     effects.clear();
                 }
             }
             fastRenderParticles.clear();
-            fastRenderLightnings.clear();
-            objects.clear();
+            fastRenderGatewayParticles.clear();
             toAddBuffer.clear();
-            uiGateway = null;
-            structurePreview = null;
-            influenceSizePreview = null;
-            gatewayUITicks = 0;
             cleanRequested = false;
-        }
-
-        if (influenceSizePreview != null && influenceSizePreview.isRemoved()) {
-            influenceSizePreview = null;
         }
 
         if (Minecraft.getMinecraft().thePlayer == null) {
             return;
         }
 
-        if (structurePreview != null) {
-            structurePreview.tick();
-            if (structurePreview.shouldBeRemoved()) {
-                structurePreview = null;
-            }
-        }
-
-        if (gatewayUITicks > 0) {
-            gatewayUITicks--;
-            if (gatewayUITicks <= 0) {
-                uiGateway = null;
-            }
-        }
-
         acceptsNewParticles = false;
+
+        // Tick complex effects
         for (IComplexEffect.RenderTarget target : complexEffects.keySet()) {
             Map<Integer, List<IComplexEffect>> layeredEffects = complexEffects.get(target);
             for (int i = 0; i <= 2; i++) {
@@ -394,6 +169,7 @@ public final class EffectHandler {
             }
         }
 
+        // Tick fast particles
         Vector3 playerPos = Vector3.atEntityCorner(Minecraft.getMinecraft().thePlayer);
         for (EntityFXFacingParticle effect : new ArrayList<>(fastRenderParticles)) {
             if (effect == null) {
@@ -402,23 +178,13 @@ public final class EffectHandler {
             }
             effect.tick();
             if (effect.canRemove() || (effect.isDistanceRemovable() && effect.getPosition()
-                .distanceSquared(playerPos) >= Config.maxEffectRenderDistanceSq)) {
+                .distanceSquared(playerPos) >= 256 * 256)) {
                 effect.flagAsRemoved();
                 fastRenderParticles.remove(effect);
             }
         }
-        for (EntityFXFacingParticle effect : new ArrayList<>(fastRenderDepthParticles)) {
-            if (effect == null) {
-                fastRenderDepthParticles.remove(null);
-                continue;
-            }
-            effect.tick();
-            if (effect.canRemove() || (effect.isDistanceRemovable() && effect.getPosition()
-                .distanceSquared(playerPos) >= Config.maxEffectRenderDistanceSq)) {
-                effect.flagAsRemoved();
-                fastRenderDepthParticles.remove(effect);
-            }
-        }
+
+        // Tick gateway particles
         for (EntityFXFacingParticle effect : new ArrayList<>(fastRenderGatewayParticles)) {
             if (effect == null) {
                 fastRenderGatewayParticles.remove(null);
@@ -426,46 +192,15 @@ public final class EffectHandler {
             }
             effect.tick();
             if (effect.canRemove() || (effect.isDistanceRemovable() && effect.getPosition()
-                .distanceSquared(playerPos) >= Config.maxEffectRenderDistanceSq)) {
+                .distanceSquared(playerPos) >= 256 * 256)) {
                 effect.flagAsRemoved();
                 fastRenderGatewayParticles.remove(effect);
             }
         }
-        for (EffectLightning effect : new ArrayList<>(fastRenderLightnings)) {
-            if (effect == null) {
-                fastRenderLightnings.remove(null);
-                continue;
-            }
-            effect.tick();
-            if (effect.canRemove()) {
-                effect.flagAsRemoved();
-                fastRenderLightnings.remove(effect);
-            }
-        }
-        Iterator<CompoundObjectEffect.ObjectGroup> itGroups = objects.keySet()
-            .iterator();
-        while (itGroups.hasNext()) {
-            CompoundObjectEffect.ObjectGroup group = itGroups.next();
-            List<CompoundObjectEffect> effects = objects.get(group);
-            if (effects == null || effects.isEmpty()) {
-                itGroups.remove();
-                continue;
-            }
-            Iterator<CompoundObjectEffect> itObjects = effects.iterator();
-            while (itObjects.hasNext()) {
-                CompoundObjectEffect effect = itObjects.next();
-                if (effect == null) {
-                    itObjects.remove();
-                    continue;
-                }
-                effect.tick();
-                if (effect.canRemove()) {
-                    effect.flagAsRemoved();
-                    itObjects.remove();
-                }
-            }
-        }
+
         acceptsNewParticles = true;
+
+        // Add buffered effects
         List<IComplexEffect> effects = new LinkedList<>(toAddBuffer);
         toAddBuffer.clear();
         for (IComplexEffect eff : effects) {
@@ -473,15 +208,34 @@ public final class EffectHandler {
         }
     }
 
+    /**
+     * Check if particle should be accepted based on settings
+     */
     public static boolean mayAcceptParticle(IComplexEffect effect) {
-        int cfg = Config.particleAmount;
-        if (cfg > 1 && !Minecraft.isFancyGraphicsEnabled()) {
-            cfg = 1;
-        }
+        // TODO: Implement particle amount config setting
+        int cfg = 2; // Default to all particles
         if (effect instanceof IComplexEffect.PreventRemoval || cfg == 2) return true;
         return cfg == 1 && STATIC_EFFECT_RAND.nextInt(3) == 0;
     }
 
+    /**
+     * Get the current effect count for debugging
+     */
+    public static int getDebugEffectCount() {
+        int count = 0;
+        for (Map<Integer, List<IComplexEffect>> effects : complexEffects.values()) {
+            for (List<IComplexEffect> eff : effects.values()) {
+                count += eff.size();
+            }
+        }
+        count += fastRenderParticles.size();
+        count += fastRenderGatewayParticles.size();
+        return count;
+    }
+
+    /**
+     * Initialize the effect handler
+     */
     static {
         for (IComplexEffect.RenderTarget target : IComplexEffect.RenderTarget.values()) {
             Map<Integer, List<IComplexEffect>> layeredEffects = new HashMap<>();
@@ -492,7 +246,11 @@ public final class EffectHandler {
         }
     }
 
+    /**
+     * Clean up all effects
+     */
     public static void cleanUp() {
         cleanRequested = true;
     }
+
 }

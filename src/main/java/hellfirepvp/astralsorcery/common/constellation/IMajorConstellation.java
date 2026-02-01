@@ -14,6 +14,8 @@ package hellfirepvp.astralsorcery.common.constellation;
  * Class: IMajorConstellation
  * Created by HellFirePvP
  * Date: 16.11.2016 / 23:08
+ *
+ * 1.7.10 Migration: No changes needed
  */
 public interface IMajorConstellation extends IWeakConstellation {
 

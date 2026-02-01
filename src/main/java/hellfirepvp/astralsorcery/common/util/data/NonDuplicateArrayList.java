@@ -1,9 +1,7 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * NonDuplicateArrayList - ArrayList that prevents duplicate entries
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.util.data;
@@ -12,18 +10,29 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
-import com.google.common.collect.Lists;
-
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: NonDuplicateArrayList
- * Created by HellFirePvP
- * Date: 24.11.2018 / 11:56
+ * NonDuplicateArrayList - ArrayList wrapper that prevents duplicates (1.7.10)
+ * <p>
+ * <b>Features:</b>
+ * <ul>
+ * <li>Wraps an ArrayList</li>
+ * <li>Prevents duplicate entries on add()</li>
+ * <li>Implements Collection interface</li>
+ * </ul>
+ * <p>
+ * <b>Usage:</b>
+ * 
+ * <pre>
+ * NonDuplicateArrayList&lt;String&gt; list = new NonDuplicateArrayList&lt;&gt;();
+ * list.add("test"); // Adds "test"
+ * list.add("test"); // Does nothing - already present
+ * </pre>
+ *
+ * @param <E> The element type
  */
 public class NonDuplicateArrayList<E> implements Collection<E> {
 
-    private ArrayList<E> managed = Lists.newArrayList();
+    private ArrayList<E> managed = new ArrayList<>();
 
     @Override
     public int size() {
@@ -32,7 +41,7 @@ public class NonDuplicateArrayList<E> implements Collection<E> {
 
     @Override
     public boolean isEmpty() {
-        return (managed == null || managed.size() <= 0);
+        return managed.isEmpty();
     }
 
     @Override
@@ -57,6 +66,7 @@ public class NonDuplicateArrayList<E> implements Collection<E> {
 
     @Override
     public boolean add(E e) {
+        // Only add if not already present
         return !managed.contains(e) && managed.add(e);
     }
 

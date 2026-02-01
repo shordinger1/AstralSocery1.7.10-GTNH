@@ -14,6 +14,8 @@ package hellfirepvp.astralsorcery.common.constellation.star;
  * Class: StarConnection
  * Created by HellFirePvP
  * Date: 06.02.2016 01:58
+ *
+ * 1.7.10 Migration: No API changes needed
  */
 public class StarConnection {
 
@@ -37,5 +39,10 @@ public class StarConnection {
         int result = from.hashCode();
         result = 31 * result + to.hashCode();
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "StarConnection{from=" + from + ", to=" + to + "}";
     }
 }

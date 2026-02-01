@@ -1,9 +1,7 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Perk attribute helper - Manages player attribute maps
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.constellation.perk;
@@ -12,53 +10,101 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.annotation.Nonnull;
-
 import net.minecraft.entity.player.EntityPlayer;
 
 import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+import hellfirepvp.astralsorcery.common.util.LogHelper;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: PerkAttributeHelper
- * Created by HellFirePvP
- * Date: 08.07.2018 / 11:00
+ * Perk attribute helper - Manages player attribute maps (1.7.10)
+ * <p>
+ * <b>Features:</b>
+ * <ul>
+ * <li>Manages client and server attribute maps</li>
+ * <li>Creates attribute maps on demand</li>
+ * <li>Cleans up maps when player logs out</li>
+ * </ul>
+ * <p>
+ * <b>1.7.10 API Notes:</b>
+ * <ul>
+ * <li>Uses UUID for player identification</li>
+ * <li>Separate maps for client and server side</li>
+ * </ul>
  */
 public class PerkAttributeHelper {
 
-    private static Map<UUID, PlayerAttributeMap> playerPerkAttributes = new HashMap<>();
-    private static Map<UUID, PlayerAttributeMap> playerPerkAttributesClient = new HashMap<>();
+    private static final Map<UUID, PlayerAttributeMap> clientMaps = new HashMap<>();
+    private static final Map<UUID, PlayerAttributeMap> serverMaps = new HashMap<>();
 
-    private PerkAttributeHelper() {}
-
-    @Nonnull
+    /**
+     * Get or create attribute map for player
+     *
+     * @param player The player
+     * @param side   The side (CLIENT or SERVER)
+     * @return The player's attribute map
+     */
     public static PlayerAttributeMap getOrCreateMap(EntityPlayer player, Side side) {
-        if (side == Side.CLIENT) {
-            if (!playerPerkAttributesClient.containsKey(player.getUniqueID())) {
-                playerPerkAttributesClient.put(player.getUniqueID(), new PlayerAttributeMap(side));
-            }
-            return playerPerkAttributesClient.get(player.getUniqueID());
-        } else {
-            if (!playerPerkAttributes.containsKey(player.getUniqueID())) {
-                playerPerkAttributes.put(player.getUniqueID(), new PlayerAttributeMap(side));
-            }
-            return playerPerkAttributes.get(player.getUniqueID());
+        UUID uuid = player.getUniqueID();
+        Map<UUID, PlayerAttributeMap> maps = side.isClient() ? clientMaps : serverMaps;
+
+        PlayerAttributeMap map = maps.get(uuid);
+        if (map == null) {
+            map = new PlayerAttributeMap(side);
+            maps.put(uuid, map);
+            LogHelper.debug("Created new attribute map for " + player.getCommandSenderName() + " on " + side);
+        }
+        return map;
+    }
+
+    /**
+     * Get attribute map for player (doesn't create if missing)
+     *
+     * @param player The player
+     * @param side   The side (CLIENT or SERVER)
+     * @return The player's attribute map, or null if not found
+     */
+    public static PlayerAttributeMap getMap(EntityPlayer player, Side side) {
+        UUID uuid = player.getUniqueID();
+        Map<UUID, PlayerAttributeMap> maps = side.isClient() ? clientMaps : serverMaps;
+        return maps.get(uuid);
+    }
+
+    /**
+     * Remove attribute map for player
+     *
+     * @param player The player
+     * @param side   The side (CLIENT or SERVER)
+     */
+    public static void removeMap(EntityPlayer player, Side side) {
+        UUID uuid = player.getUniqueID();
+        Map<UUID, PlayerAttributeMap> maps = side.isClient() ? clientMaps : serverMaps;
+        PlayerAttributeMap removed = maps.remove(uuid);
+        if (removed != null) {
+            LogHelper.debug("Removed attribute map for " + player.getCommandSenderName() + " on " + side);
         }
     }
 
-    public static PlayerAttributeMap getMockInstance(Side side) {
-        return new PlayerAttributeMap(side);
+    /**
+     * Clear all attribute maps on a side
+     *
+     * @param side The side to clear
+     */
+    public static void clearAll(Side side) {
+        Map<UUID, PlayerAttributeMap> maps = side.isClient() ? clientMaps : serverMaps;
+        int count = maps.size();
+        maps.clear();
+        LogHelper.debug("Cleared " + count + " attribute maps on " + side);
     }
 
-    @SideOnly(Side.CLIENT)
-    public static void clearClient() {
-        playerPerkAttributesClient.clear();
-    }
-
-    public static void clearServer() {
-        playerPerkAttributes.clear();
+    /**
+     * Get the number of active maps on a side
+     *
+     * @param side The side
+     * @return Number of active maps
+     */
+    public static int getMapCount(Side side) {
+        Map<UUID, PlayerAttributeMap> maps = side.isClient() ? clientMaps : serverMaps;
+        return maps.size();
     }
 
 }

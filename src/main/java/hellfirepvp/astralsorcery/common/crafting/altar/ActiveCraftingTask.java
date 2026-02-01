@@ -1,188 +1,323 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * ActiveCraftingTask - Active crafting task for altar recipes
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.crafting.altar;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Function;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import hellfirepvp.astralsorcery.AstralSorcery;
-import hellfirepvp.astralsorcery.common.crafting.ICraftingProgress;
-import hellfirepvp.astralsorcery.common.crafting.altar.recipes.TraitRecipe;
 import hellfirepvp.astralsorcery.common.tile.TileAltar;
-import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
+import hellfirepvp.astralsorcery.common.util.LogHelper;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: ActiveCraftingTask
- * Created by HellFirePvP
- * Date: 22.09.2016 / 12:18
+ * Active crafting task for altar recipes
+ * <p>
+ * Tracks the progress of an active crafting operation on an altar.
+ * Handles recipe matching, starlight requirements, and crafting completion.
+ * <p>
+ * <b>1.7.10 Implementation:</b>
+ * <ul>
+ * <li>Simplified state tracking</li>
+ * <li>Basic constellation checking</li>
+ * <li>Player owner tracking</li>
+ * </ul>
  */
 public class ActiveCraftingTask {
 
-    private Map<Integer, Object> clientEffectContainer = new HashMap<>();
+    public enum CraftingState {
+        IDLE, // Not crafting
+        RUNNING, // Actively crafting
+        PAUSED, // Waiting for starlight
+        COMPLETE // Finished
+    }
 
-    private final AbstractAltarRecipe recipeToCraft;
-    private final UUID playerCraftingUUID;
-    private int ticksCrafting = 0;
-    private int totalCraftingTime;
+    private final ASAltarRecipe recipe;
+    private final UUID playerUUID;
+    private final int craftingTicks;
+    private final int craftingDivisor;
 
+    private int currentTick;
     private CraftingState state;
-    private NBTTagCompound craftingData = new NBTTagCompound();
+    private UUID taskId;
 
-    private ActiveCraftingTask(AbstractAltarRecipe recipeToCraft, UUID playerCraftingUUID) {
-        this(recipeToCraft, 1, playerCraftingUUID);
+    /**
+     * Create a new active crafting task
+     *
+     * @param recipe          The recipe being crafted
+     * @param craftingDivisor Speed divisor based on altar level
+     * @param playerUUID      The player who started crafting
+     */
+    public ActiveCraftingTask(ASAltarRecipe recipe, int craftingDivisor, UUID playerUUID) {
+        this.recipe = recipe;
+        this.playerUUID = playerUUID;
+        this.craftingDivisor = craftingDivisor;
+        this.craftingTicks = recipe.getCraftingTime() / craftingDivisor;
+        this.currentTick = 0;
+        this.state = CraftingState.RUNNING;
+        this.taskId = UUID.randomUUID();
     }
 
-    public ActiveCraftingTask(AbstractAltarRecipe recipeToCraft, int durationDivisor, UUID playerCraftingUUID) {
-        Objects.requireNonNull(recipeToCraft);
-
-        this.recipeToCraft = recipeToCraft;
-        this.playerCraftingUUID = playerCraftingUUID;
-        this.state = CraftingState.ACTIVE;
-        this.totalCraftingTime = recipeToCraft.craftingTickTime() / durationDivisor;
-    }
-
-    private void attemptRecoverEffects(@Nullable ActiveCraftingTask previous) {
-        if (previous != null && previous.recipeToCraft.getUniqueRecipeId() == this.recipeToCraft.getUniqueRecipeId()) {
-            this.clientEffectContainer.putAll(previous.clientEffectContainer);
+    /**
+     * Update the crafting task
+     * Called every tick while crafting
+     *
+     * @param altar The altar
+     * @return true if crafting should continue, false if should abort
+     */
+    public boolean update(TileAltar altar) {
+        if (state == CraftingState.COMPLETE) {
+            return false; // Already complete
         }
+
+        if (state == CraftingState.PAUSED) {
+            // Check if starlight requirements are now met
+            if (altar.getStarlightStored() >= recipe.getStarlightRequired()) {
+                state = CraftingState.RUNNING;
+                LogHelper.debug(
+                    "Crafting resumed for recipe: " + recipe.getOutput()
+                        .getDisplayName());
+            } else {
+                return true; // Still paused
+            }
+        }
+
+        // Check starlight requirement
+        if (altar.getStarlightStored() < recipe.getStarlightRequired()) {
+            state = CraftingState.PAUSED;
+            return true; // Pause but don't abort
+        }
+
+        // Increment crafting progress
+        currentTick++;
+
+        // Check if complete
+        if (currentTick >= craftingTicks) {
+            state = CraftingState.COMPLETE;
+            LogHelper.info(
+                "Crafting complete: " + recipe.getOutput()
+                    .getDisplayName());
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if the recipe still matches
+     *
+     * @param altar The altar
+     * @return true if recipe matches
+     */
+    public boolean doesRecipeMatch(TileAltar altar) {
+        ItemStack[] inventory = new ItemStack[altar.getInventorySize()];
+        for (int i = 0; i < inventory.length; i++) {
+            inventory[i] = altar.getInventory()
+                .getStackInSlot(i);
+        }
+
+        return recipe.matches(inventory);
+    }
+
+    /**
+     * Complete the crafting
+     *
+     * @param altar The altar
+     * @return The output item stack
+     */
+    public ItemStack complete(TileAltar altar) {
+        ItemStack output = recipe.getOutput()
+            .copy();
+
+        // Consume input items
+        for (int i = 0; i < altar.getInventorySize(); i++) {
+            ItemStack stack = altar.getInventory()
+                .getStackInSlot(i);
+            if (stack != null && stack.stackSize > 0) {
+                altar.getInventory()
+                    .extractItem(i, 1, false);
+            }
+        }
+
+        // Consume starlight
+        int starlightConsumed = recipe.getStarlightRequired();
+        if (!altar.consumeStarlight(starlightConsumed)) {
+            LogHelper.warn("Failed to consume " + starlightConsumed + " starlight for crafting!");
+        }
+
+        LogHelper
+            .debug("Recipe completed: " + output.getDisplayName() + " - Consumed " + starlightConsumed + " starlight");
+
+        return output;
+    }
+
+    /**
+     * Serialize to NBT
+     */
+    public NBTTagCompound serialize() {
+        NBTTagCompound nbt = new NBTTagCompound();
+
+        // Serialize recipe
+        NBTTagCompound recipeNbt = new NBTTagCompound();
+        recipeNbt.setString(
+            "recipeId",
+            recipe.getRecipeId()
+                .toString());
+        nbt.setTag("recipe", recipeNbt);
+
+        // Serialize other data
+        // 1.7.10: setUniqueId() doesn't exist, use setLong for UUID parts
+        nbt.setLong("playerUUID_most", playerUUID.getMostSignificantBits());
+        nbt.setLong("playerUUID_least", playerUUID.getLeastSignificantBits());
+        nbt.setInteger("craftingTicks", craftingTicks);
+        nbt.setInteger("craftingDivisor", craftingDivisor);
+        nbt.setInteger("currentTick", currentTick);
+        nbt.setInteger("state", state.ordinal());
+        nbt.setLong("taskId_most", taskId.getMostSignificantBits());
+        nbt.setLong("taskId_least", taskId.getLeastSignificantBits());
+
+        return nbt;
+    }
+
+    /**
+     * Deserialize from NBT
+     *
+     * @param nbt   The NBT compound to read from
+     * @param altar The altar (for recipe matching)
+     * @return The deserialized task, or null if recipe not found
+     */
+    public static ActiveCraftingTask deserialize(NBTTagCompound nbt, TileAltar altar) {
+        try {
+            // Read player UUID
+            long playerMost = nbt.getLong("playerUUID_most");
+            long playerLeast = nbt.getLong("playerUUID_least");
+            UUID playerUUID = new UUID(playerMost, playerLeast);
+
+            // Read crafting parameters
+            int craftingTicks = nbt.getInteger("craftingTicks");
+            int craftingDivisor = nbt.getInteger("craftingDivisor");
+            int currentTick = nbt.getInteger("currentTick");
+            int stateOrdinal = nbt.getInteger("state");
+
+            // Read task ID
+            long taskIdMost = nbt.getLong("taskId_most");
+            long taskIdLeast = nbt.getLong("taskId_least");
+
+            // Find matching recipe from altar's current inventory
+            // This is necessary because we can't store full recipe in NBT easily
+            ASAltarRecipe recipe = findMatchingRecipe(altar);
+            if (recipe == null) {
+                LogHelper.warn("Could not find matching recipe for deserialized crafting task");
+                return null;
+            }
+
+            // Create new task with deserialized data
+            ActiveCraftingTask task = new ActiveCraftingTask(recipe, craftingDivisor, playerUUID);
+            task.currentTick = currentTick;
+            task.state = CraftingState.values()[stateOrdinal];
+            task.taskId = new UUID(taskIdMost, taskIdLeast);
+
+            LogHelper.debug("Deserialized crafting task: " + task.taskId);
+            return task;
+
+        } catch (Exception e) {
+            LogHelper.error("Failed to deserialize ActiveCraftingTask: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Find a matching recipe for the altar's current inventory
+     */
+    private static ASAltarRecipe findMatchingRecipe(TileAltar altar) {
+        if (altar == null) {
+            return null;
+        }
+
+        // Get current inventory
+        ItemStack[] inventory = new ItemStack[altar.getInventorySize()];
+        for (int i = 0; i < inventory.length; i++) {
+            inventory[i] = altar.getInventory()
+                .getStackInSlot(i);
+        }
+
+        // Try to find matching recipe
+        return AltarRecipeRegistry.findRecipe(inventory, altar.getAltarLevel());
+    }
+
+    // Getters
+    public ASAltarRecipe getRecipe() {
+        return recipe;
+    }
+
+    public UUID getPlayerUUID() {
+        return playerUUID;
+    }
+
+    public int getCraftingTicks() {
+        return craftingTicks;
+    }
+
+    public int getCurrentTick() {
+        return currentTick;
+    }
+
+    public float getProgress() {
+        return craftingTicks > 0 ? (float) currentTick / (float) craftingTicks : 0.0F;
     }
 
     public CraftingState getState() {
         return state;
     }
 
-    public NBTTagCompound getCraftingData() {
-        return craftingData;
+    public UUID getTaskId() {
+        return taskId;
     }
 
-    public void setState(CraftingState state) {
-        this.state = state;
-    }
-
-    public boolean shouldPersist(TileAltar ta) {
-        return recipeToCraft instanceof TraitRecipe || ta.getAltarLevel()
-            .ordinal() >= TileAltar.AltarLevel.TRAIT_CRAFT.ordinal();
-    }
-
-    public UUID getPlayerCraftingUUID() {
-        return playerCraftingUUID;
-    }
-
-    @Nullable
-    public EntityPlayer tryGetCraftingPlayerServer() {
-        // 1.7.10: Iterate through playerEntityList to find player by UUID
-        for (Object playerObj : FMLCommonHandler.instance()
-            .getMinecraftServerInstance()
-            .getConfigurationManager().playerEntityList) {
-            if (playerObj instanceof EntityPlayer) {
-                EntityPlayer player = (EntityPlayer) playerObj;
-                if (player.getUniqueID()
-                    .equals(playerCraftingUUID)) {
-                    return player;
-                }
-            }
+    /**
+     * Check if this task should persist (not abort)
+     * <p>
+     * A task should persist if:
+     * - The recipe still matches the altar's inventory
+     * - The altar still has enough starlight (or is paused)
+     * - The task is not already complete
+     *
+     * @param altar The altar
+     * @return true if task should persist, false if should abort
+     */
+    public boolean shouldPersist(TileAltar altar) {
+        if (altar == null) {
+            return false;
         }
-        return null;
-    }
 
-    @SideOnly(Side.CLIENT)
-    public <T> T getEffectContained(int index, Function<Integer, T> provider) {
-        if (!clientEffectContainer.containsKey(index)) {
-            clientEffectContainer.put(index, provider.apply(index));
+        // Always persist if complete (let it be handled elsewhere)
+        if (state == CraftingState.COMPLETE) {
+            return true;
         }
-        return (T) clientEffectContainer.get(index);
-    }
 
-    // True if the recipe progressed, false if it's stuck
-    public boolean tick(TileAltar altar) {
-        if (recipeToCraft instanceof ICraftingProgress) {
-            if (!((ICraftingProgress) recipeToCraft)
-                .tryProcess(altar, this, craftingData, ticksCrafting, totalCraftingTime)) {
+        // Check if recipe still matches
+        if (!doesRecipeMatch(altar)) {
+            LogHelper.debug("Crafting task aborted: recipe no longer matches");
+            return false;
+        }
+
+        // Check if starlight requirement is met or we're paused
+        int starlightStored = altar.getStarlightStored();
+        int starlightRequired = recipe.getStarlightRequired();
+
+        if (starlightStored < starlightRequired * 0.5) {
+            // Less than 50% of required starlight
+            // Only persist if we're already paused (give it a chance to recover)
+            if (state != CraftingState.PAUSED) {
+                LogHelper.debug("Crafting task aborted: insufficient starlight");
                 return false;
             }
         }
-        ticksCrafting++;
+
         return true;
     }
-
-    public int getTicksCrafting() {
-        return ticksCrafting;
-    }
-
-    public int getTotalCraftingTime() {
-        return totalCraftingTime;
-    }
-
-    public AbstractAltarRecipe getRecipeToCraft() {
-        return recipeToCraft;
-    }
-
-    public boolean isFinished() {
-        return ticksCrafting >= totalCraftingTime;
-    }
-
-    @Nullable
-    public static ActiveCraftingTask deserialize(NBTTagCompound compound, @Nullable ActiveCraftingTask previous) {
-        int recipeId = compound.getInteger("recipeId");
-        AbstractAltarRecipe recipe = AltarRecipeRegistry.getRecipe(recipeId);
-        if (recipe == null) {
-            AstralSorcery.log.info("Recipe with unknown/invalid ID found: " + recipeId);
-            return null;
-        } else {
-            UUID uuidCraft = NBTHelper.getUniqueId(compound, "crafterUUID");
-            int tick = compound.getInteger("recipeTick");
-            int total = compound.getInteger("totalCraftingTime");
-            CraftingState state = CraftingState.values()[compound.getInteger("craftingState")];
-            ActiveCraftingTask task = new ActiveCraftingTask(recipe, uuidCraft);
-            task.ticksCrafting = tick;
-            task.totalCraftingTime = total;
-            task.setState(state);
-            task.craftingData = compound.getCompoundTag("craftingData");
-            task.attemptRecoverEffects(previous);
-            return task;
-        }
-    }
-
-    @Nonnull
-    public NBTTagCompound serialize() {
-        NBTTagCompound compound = new NBTTagCompound();
-        compound.setInteger("recipeId", getRecipeToCraft().getUniqueRecipeId());
-        compound.setInteger("recipeTick", getTicksCrafting());
-        compound.setInteger("totalCraftingTime", getTotalCraftingTime());
-        NBTHelper.setUniqueId(compound, "crafterUUID", getPlayerCraftingUUID());
-        compound.setInteger("craftingState", getState().ordinal());
-        compound.setTag("craftingData", craftingData);
-        return compound;
-    }
-
-    public static enum CraftingState {
-
-        ACTIVE, // All valid, continuing to craft.
-
-        WAITING, // Potentially waiting for user interaction. Recipe itself is fully valid.
-
-        PAUSED // Something of the recipe is not valid, waiting with continuation; nothing user-related.
-
-    }
-
 }

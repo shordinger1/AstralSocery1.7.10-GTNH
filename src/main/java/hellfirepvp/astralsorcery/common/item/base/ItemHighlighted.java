@@ -1,28 +1,57 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Highlighted item interface - Items with custom highlight colors
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.item.base;
 
-import java.awt.*;
+import java.awt.Color;
 
 import net.minecraft.item.ItemStack;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: ItemHighlighted
- * Created by HellFirePvP
- * Date: 01.08.2016 / 19:42
+ * ItemHighlighted - Highlighted item interface (1.7.10)
+ * <p>
+ * <b>Features:</b>
+ * <ul>
+ * <li>Interface for items that have custom highlight colors</li>
+ * <li>Used by EntityItemHighlighted for rendering</li>
+ * <li>Default color is white if not overridden</li>
+ * </ul>
+ * <p>
+ * <b>1.7.10 API Changes from 1.12.2:</b>
+ * <ul>
+ * <li>Removed default method - Java 7 doesn't support interface default methods</li>
+ * <li>Implementing classes must provide their own getHighlightColor() implementation</li>
+ * <li>For default white color, implement as: <code>return Color.WHITE;</code></li>
+ * </ul>
+ * <p>
+ * <b>Usage Example:</b>
+ * 
+ * <pre>
+ * public class MyCrystalItem extends Item implements ItemHighlighted {
+ *
+ *     &#64;Override
+ *     public Color getHighlightColor(ItemStack stack) {
+ *         // Return custom color based on stack NBT or properties
+ *         return Color.CYAN;
+ *     }
+ *
+ *     // For default white color:
+ *     // return Color.WHITE;
+ * }
+ * </pre>
  */
 public interface ItemHighlighted {
 
-    default public Color getHightlightColor(ItemStack stack) {
-        return Color.WHITE;
-    }
+    /**
+     * Get the highlight color for this item
+     * 1.7.10: Not a default method - implementing classes must override
+     *
+     * @param stack The item stack to get color for
+     * @return The highlight color (default: Color.WHITE)
+     */
+    public Color getHighlightColor(ItemStack stack);
 
 }

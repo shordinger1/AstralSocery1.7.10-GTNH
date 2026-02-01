@@ -1,330 +1,201 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
- ******************************************************************************/
+ * AltarRecipeRegistry - Altar recipe registry
+ *
+ * 1.7.10: GT-style recipe system
+ * - RecipeMap-based recipe storage
+ * - No Crafttweaker integration
+ * - Simplified recipe lookup
+ *******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.crafting.altar;
 
 import java.util.*;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
 
-import com.google.common.collect.Lists;
-
-import hellfirepvp.astralsorcery.common.crafting.ISpecialCraftingEffects;
-import hellfirepvp.astralsorcery.common.crafting.altar.recipes.AttunementRecipe;
-import hellfirepvp.astralsorcery.common.crafting.altar.recipes.ConstellationRecipe;
-import hellfirepvp.astralsorcery.common.crafting.altar.recipes.DiscoveryRecipe;
-import hellfirepvp.astralsorcery.common.crafting.altar.recipes.TraitRecipe;
-import hellfirepvp.astralsorcery.common.crafting.helper.AccessibleRecipeAdapater;
-import hellfirepvp.astralsorcery.common.crafting.helper.CraftingAccessManager;
 import hellfirepvp.astralsorcery.common.tile.TileAltar;
-import hellfirepvp.astralsorcery.common.util.ItemComparator;
+import hellfirepvp.astralsorcery.common.util.LogHelper;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: AltarRecipeRegistry
- * Created by HellFirePvP
- * Date: 22.09.2016 / 13:13
+ * Registry for altar recipes
+ * <p>
+ * Manages all altar recipes and provides lookup functionality.
+ * <p>
+ * <b>1.7.10 Implementation:</b>
+ * <ul>
+ * <li>No Crafttweaker integration</li>
+ * <li>Uses ASRecipeMap for storage</li>
+ * <li>Simple recipe lookup by input/output</li>
+ * <li>No advancement instances</li>
+ * <li>NEI-compatible recipe structure</li>
+ * </ul>
  */
 public class AltarRecipeRegistry {
 
-    private static Map<ItemStack, ISpecialCraftingEffects> effectRecoveryMap = new HashMap<>();
+    private static boolean initialized = false;
 
-    public static Map<TileAltar.AltarLevel, List<AbstractAltarRecipe>> mtRecipes = new HashMap<>();
-    public static Map<TileAltar.AltarLevel, List<AbstractAltarRecipe>> recipes = new HashMap<>();
-    private static AbstractAltarRecipe[] compiledRecipeArray = null;
+    /**
+     * Recipe lookup by altar level
+     */
+    private static final Map<TileAltar.AltarLevel, ASRecipeMap> recipeMaps = new HashMap<>();
 
-    private static Map<TileAltar.AltarLevel, List<AbstractAltarRecipe>> localFallbackCache = new HashMap<>();
+    /**
+     * All registered recipes (for NEI display)
+     */
+    private static final List<ASAltarRecipe> allRecipes = new ArrayList<>();
 
-    // NEVER call this. this should only get called once at post init to compile all recipes for fast access.
-    // After this is called, changes to recipe registry might break stuff.
-    public static void compileRecipes() {
-        compiledRecipeArray = null;
-
-        int totalNeeded = 0;
-        for (TileAltar.AltarLevel level : recipes.keySet()) {
-            totalNeeded += recipes.get(level)
-                .size();
-        }
-        for (TileAltar.AltarLevel level : mtRecipes.keySet()) {
-            totalNeeded += mtRecipes.get(level)
-                .size();
+    /**
+     * Initialize recipe registry with default recipe maps
+     * This is called during mod initialization
+     */
+    public static void init() {
+        if (initialized) {
+            return;
         }
 
-        int i = 0;
-        compiledRecipeArray = new AbstractAltarRecipe[totalNeeded];
-        for (TileAltar.AltarLevel l : TileAltar.AltarLevel.values()) {
-            List<AbstractAltarRecipe> recipeList = recipes.get(l);
-            for (AbstractAltarRecipe rec : recipeList) {
-                compiledRecipeArray[i] = rec;
-                rec.updateUniqueId(i);
-                i++;
-            }
-            recipeList = mtRecipes.get(l);
-            for (AbstractAltarRecipe rec : recipeList) {
-                compiledRecipeArray[i] = rec;
-                rec.updateUniqueId(i);
-                i++;
-            }
-        }
+        LogHelper.info("Initializing AltarRecipeRegistry...");
+
+        // Register recipe maps for each altar level
+        registerRecipeMap(ASRecipeMaps.DISCOVERY_RECIPES);
+        registerRecipeMap(ASRecipeMaps.ATTUNEMENT_RECIPES);
+        registerRecipeMap(ASRecipeMaps.CONSTELLATION_RECIPES);
+        registerRecipeMap(ASRecipeMaps.TRAIT_RECIPES);
+        registerRecipeMap(ASRecipeMaps.BRILLIANCE_RECIPES);
+
+        initialized = true;
+        LogHelper.info("AltarRecipeRegistry initialized with " + recipeMaps.size() + " recipe maps");
     }
 
-    public static void cacheLocalRecipes() {
-        if (localFallbackCache.isEmpty()) {
-            for (TileAltar.AltarLevel al : TileAltar.AltarLevel.values()) {
-                localFallbackCache.put(al, new LinkedList<>());
-                localFallbackCache.get(al)
-                    .addAll(recipes.get(al));
-            }
+    /**
+     * Register a recipe map
+     */
+    private static void registerRecipeMap(ASRecipeMap recipeMap) {
+        recipeMaps.put(recipeMap.getAltarLevel(), recipeMap);
+    }
+
+    /**
+     * Add a recipe to the registry
+     *
+     * @param recipe The recipe to add
+     * @return true if added successfully
+     */
+    public static boolean addRecipe(ASAltarRecipe recipe) {
+        if (!initialized) {
+            LogHelper.warn("Attempted to add recipe before initialization: " + recipe);
+            return false;
         }
-    }
 
-    public static void loadFromFallback() {
-        if (!localFallbackCache.isEmpty()) {
-            for (TileAltar.AltarLevel al : TileAltar.AltarLevel.values()) {
-                recipes.get(al)
-                    .addAll(localFallbackCache.get(al));
-            }
+        ASRecipeMap recipeMap = recipeMaps.get(recipe.getAltarLevel());
+        if (recipeMap == null) {
+            LogHelper.warn("No recipe map found for altar level: " + recipe.getAltarLevel());
+            return false;
         }
+
+        boolean added = recipeMap.addRecipe(recipe);
+        if (added) {
+            allRecipes.add(recipe);
+            LogHelper.info(
+                "Added recipe: " + recipe.getOutput()
+                    .getDisplayName() + " for altar level: " + recipe.getAltarLevel());
+        }
+        return added;
     }
 
-    @Nullable
-    public static AbstractAltarRecipe getRecipe(int id) {
-        if (id < 0 || id >= compiledRecipeArray.length) return null;
-        return compiledRecipeArray[id];
-    }
-
-    @Nullable
-    public static AbstractAltarRecipe getRecipeSlow(@Nullable ResourceLocation id) {
-        if (id == null) {
+    /**
+     * Find a recipe matching the given inputs for the specified altar level
+     *
+     * @param inputs     The input items
+     * @param altarLevel The altar level
+     * @return The matching recipe, or null if none found
+     */
+    public static ASAltarRecipe findRecipe(ItemStack[] inputs, TileAltar.AltarLevel altarLevel) {
+        if (!initialized) {
             return null;
         }
-        for (Collection<AbstractAltarRecipe> recipeList : recipes.values()) {
-            for (AbstractAltarRecipe recipe : recipeList) {
-                if (recipe.getNativeRecipe()
-                    .getRegistryName()
-                    .equals(id)) {
-                    return recipe;
-                }
-            }
-        }
-        for (Collection<AbstractAltarRecipe> recipeList : mtRecipes.values()) {
-            for (AbstractAltarRecipe recipe : recipeList) {
-                if (recipe.getNativeRecipe()
-                    .getRegistryName()
-                    .equals(id)) {
-                    return recipe;
-                }
-            }
-        }
-        return null;
-    }
 
-    public static List<AbstractAltarRecipe> getAltarRecipesByOutput(ItemStack output, TileAltar.AltarLevel altarLevel) {
-        List<AbstractAltarRecipe> list = new LinkedList<>();
-        for (AbstractAltarRecipe recipe : recipes.get(altarLevel)) {
-            ItemStack out = recipe.getOutputForMatching();
-            if (!(out == null || out.stackSize <= 0)
-                && ItemComparator.compare(out, output, ItemComparator.Clause.Sets.ITEMSTACK_STRICT)) {
-                list.add(recipe);
-            }
-        }
-        for (AbstractAltarRecipe recipe : mtRecipes.get(altarLevel)) {
-            ItemStack out = recipe.getOutputForMatching();
-            if (!(out == null || out.stackSize <= 0)
-                && ItemComparator.compare(out, output, ItemComparator.Clause.Sets.ITEMSTACK_STRICT)) {
-                list.add(recipe);
-            }
-        }
-        return list;
-    }
-
-    /*
-     * Returns the Recipe that was removed if successful.
-     */
-    @Nullable
-    @Deprecated
-    public static AbstractAltarRecipe removeFindRecipeByOutputAndLevel(ItemStack output,
-        TileAltar.AltarLevel altarLevel) {
-        Iterator<AbstractAltarRecipe> iterator = recipes.get(altarLevel)
-            .iterator();
-        while (iterator.hasNext()) {
-            AbstractAltarRecipe rec = iterator.next();
-            ItemStack out = rec.getOutputForMatching();
-            if (!(out == null || out.stackSize <= 0) && ItemComparator.compare(
-                rec.getOutputForMatching(),
-                output,
-                ItemComparator.Clause.ITEM,
-                ItemComparator.Clause.META_STRICT)) {
-                iterator.remove();
-                return rec;
-            }
-        }
-        return null;
-    }
-
-    /*
-     * Returns the Recipe that was removed if successful.
-     */
-    @Nullable
-    public static AbstractAltarRecipe removeRecipeFromCache(@Nullable AbstractAltarRecipe recipe) {
-        if (recipe == null) {
+        ASRecipeMap recipeMap = recipeMaps.get(altarLevel);
+        if (recipeMap == null) {
             return null;
         }
-        for (TileAltar.AltarLevel al : recipes.keySet()) {
-            Iterator<AbstractAltarRecipe> iterator = recipes.get(al)
-                .iterator();
-            while (iterator.hasNext()) {
-                AbstractAltarRecipe regRecipe = iterator.next();
-                if (regRecipe.getNativeRecipe()
-                    .getRegistryName()
-                    .equals(
-                        recipe.getNativeRecipe()
-                            .getRegistryName())) {
-                    iterator.remove();
-                    return regRecipe;
-                }
-            }
+
+        return recipeMap.findRecipe(inputs);
+    }
+
+    /**
+     * Find all recipes that produce the given output
+     *
+     * @param output The output item
+     * @return List of matching recipes
+     */
+    public static List<ASAltarRecipe> findRecipesByOutput(ItemStack output) {
+        if (!initialized) {
+            return Collections.emptyList();
         }
-        return null;
-    }
 
-    public static TraitRecipe registerTraitRecipe(AccessibleRecipeAdapater recipe) {
-        TraitRecipe tr = new TraitRecipe(recipe);
-        registerAltarRecipe(tr);
-        return tr;
-    }
-
-    public static ConstellationRecipe registerConstellationRecipe(AccessibleRecipeAdapater recipe) {
-        ConstellationRecipe dr = new ConstellationRecipe(recipe);
-        registerAltarRecipe(dr);
-        return dr;
-    }
-
-    public static AttunementRecipe registerAttenuationRecipe(AccessibleRecipeAdapater recipe) {
-        AttunementRecipe dr = new AttunementRecipe(recipe);
-        registerAltarRecipe(dr);
-        return dr;
-    }
-
-    public static DiscoveryRecipe registerDiscoveryRecipe(AccessibleRecipeAdapater recipe) {
-        DiscoveryRecipe dr = new DiscoveryRecipe(recipe);
-        registerAltarRecipe(dr);
-        return dr;
-    }
-
-    public static <T extends AbstractAltarRecipe> T registerAltarRecipe(T recipe) {
-        TileAltar.AltarLevel level = recipe.getNeededLevel();
-        recipes.get(level)
-            .add(recipe);
-        if (recipe instanceof ISpecialCraftingEffects) {
-            registerSpecialEffects(recipe);
+        List<ASAltarRecipe> results = new ArrayList<>();
+        for (ASRecipeMap recipeMap : recipeMaps.values()) {
+            results.addAll(recipeMap.findRecipesByOutput(output));
         }
-        if (CraftingAccessManager.hasCompletedSetup()) {
-            CraftingAccessManager.compile();
-        }
-        return recipe;
+        return results;
     }
 
-    private static void registerSpecialEffects(AbstractAltarRecipe ar) {
-        ItemStack out = ar.getOutputForMatching();
-        if ((out == null || out.stackSize <= 0)) return; // Well....
+    /**
+     * Get all recipes for a specific altar level
+     *
+     * @param altarLevel The altar level
+     * @return List of recipes
+     */
+    public static List<ASAltarRecipe> getRecipesForLevel(TileAltar.AltarLevel altarLevel) {
+        if (!initialized) {
+            System.out.println("[ASRecipeRegistry] Not initialized!");
+            return Collections.emptyList();
+        }
 
-        boolean has = false;
-        for (ItemStack i : effectRecoveryMap.keySet()) {
-            if (ItemComparator.compare(out, i, ItemComparator.Clause.ITEM, ItemComparator.Clause.META_STRICT)) {
-                has = true;
-            }
+        ASRecipeMap recipeMap = recipeMaps.get(altarLevel);
+        if (recipeMap == null) {
+            System.out.println("[ASRecipeRegistry] No recipe map for level: " + altarLevel);
+            return Collections.emptyList();
         }
-        if (!has) {
-            effectRecoveryMap.put(out, (ISpecialCraftingEffects) ar);
-        }
+
+        List<ASAltarRecipe> recipes = recipeMap.getAllRecipes();
+        System.out.println("[ASRecipeRegistry] Returning " + recipes.size() + " recipes for level: " + altarLevel);
+        return recipes;
     }
 
-    // null === false
-    @Nullable
-    public static ISpecialCraftingEffects shouldHaveSpecialEffects(AbstractAltarRecipe ar) {
-        if (ar == null || ar instanceof ISpecialCraftingEffects) return null;
-        ItemStack match = ar.getOutputForMatching();
-        if ((match == null || match.stackSize <= 0)) return null;
-        for (Map.Entry<ItemStack, ISpecialCraftingEffects> effectEntry : effectRecoveryMap.entrySet()) {
-            if (effectEntry.getValue()
-                .needsStrictMatching()
-                    ? ItemComparator.compare(match, effectEntry.getKey(), ItemComparator.Clause.Sets.ITEMSTACK_STRICT)
-                    : ItemComparator.compare(
-                        match,
-                        effectEntry.getKey(),
-                        ItemComparator.Clause.ITEM,
-                        ItemComparator.Clause.META_STRICT)) {
-                return effectEntry.getValue();
-            }
-        }
-        return null;
+    /**
+     * Get all recipes
+     *
+     * @return Unmodifiable list of all recipes
+     */
+    public static List<ASAltarRecipe> getAllRecipes() {
+        return Collections.unmodifiableList(allRecipes);
     }
 
-    public static Collection<AbstractAltarRecipe> getRecipesForLevel(TileAltar.AltarLevel al) {
-        List<AbstractAltarRecipe> cache = Lists.newLinkedList();
-        cache.addAll(recipes.get(al));
-        cache.addAll(mtRecipes.get(al));
-        return cache;
+    /**
+     * Get recipe map for a specific altar level
+     *
+     * @param altarLevel The altar level
+     * @return The recipe map, or null if not found
+     */
+    public static ASRecipeMap getRecipeMap(TileAltar.AltarLevel altarLevel) {
+        return recipeMaps.get(altarLevel);
     }
 
-    @Nullable
-    public static AbstractAltarRecipe findMatchingRecipe(TileAltar ta, boolean ignoreStarlightRequirement) {
-        TileAltar.AltarLevel lowestAllowed = ta.matchDownMultiblocks(TileAltar.AltarLevel.DISCOVERY);
-        if (lowestAllowed == null) {
-            lowestAllowed = TileAltar.AltarLevel.DISCOVERY;
-        }
-        for (int i = lowestAllowed.ordinal(); i >= 0; i--) {
-            TileAltar.AltarLevel lvl = TileAltar.AltarLevel.values()[i];
-            List<AbstractAltarRecipe> validRecipes = recipes.get(lvl);
-            if (validRecipes != null) {
-                for (AbstractAltarRecipe rec : validRecipes) {
-                    if (ta.doesRecipeMatch(rec, ignoreStarlightRequirement)) {
-                        return rec;
-                    }
-                }
-            }
-            validRecipes = mtRecipes.get(lvl);
-            if (validRecipes != null) {
-                for (AbstractAltarRecipe rec : validRecipes) {
-                    if (ta.doesRecipeMatch(rec, ignoreStarlightRequirement)) {
-                        return rec;
-                    }
-                }
-            }
-        }
-        return null;
-        /*
-         * List<TileAltar.AltarLevel> levels = new ArrayList<>();
-         * List<AbstractAltarRecipe> validRecipes = new LinkedList<>();
-         * for (int i = 0; i < level.ordinal() + 1; i++) {
-         * levels.add(TileAltar.AltarLevel.values()[i]);
-         * }
-         * for (TileAltar.AltarLevel valid : levels) {
-         * validRecipes.addAll(recipes.get(valid));
-         * }
-         * for (AbstractAltarRecipe recipe : validRecipes) {
-         * if(recipe.matches(ta)) {
-         * return recipe;
-         * }
-         * }
-         */
+    /**
+     * Check if registry is initialized
+     */
+    public static boolean isInitialized() {
+        return initialized;
     }
 
-    static {
-        for (TileAltar.AltarLevel al : TileAltar.AltarLevel.values()) {
-            recipes.put(al, new LinkedList<>());
-            mtRecipes.put(al, new LinkedList<>());
-        }
+    /**
+     * Reset the registry (for testing/debugging)
+     */
+    public static void reset() {
+        initialized = false;
+        recipeMaps.clear();
+        allRecipes.clear();
     }
-
 }

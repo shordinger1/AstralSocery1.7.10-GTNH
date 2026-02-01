@@ -1,54 +1,42 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Rose Branch Bow - Bow made from infused wood
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.item.tool;
 
-import java.util.List;
-
-import javax.annotation.Nullable;
-
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemBow;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import hellfirepvp.astralsorcery.common.item.base.IOBJItem;
-import hellfirepvp.astralsorcery.common.registry.RegistryItems;
+import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: ItemRoseBranchBow
- * Created by HellFirePvP
- * Date: 22.01.2017 / 15:03
+ * Rose Branch Bow
+ * <p>
+ * A bow crafted from infused rose branches.
+ * <p>
+ * Features:
+ * - Uses infused wood as material
+ * - Custom OBJ model (TODO)
+ * - Standard bow functionality
+ * <p>
+ * TODO:
+ * - Implement OBJ model rendering
+ * - Implement custom arrow behavior
+ * - Implement enchantment bonuses
  */
-public class ItemRoseBranchBow extends ItemBow implements IOBJItem {
+public class ItemRoseBranchBow extends ItemBow {
 
     public ItemRoseBranchBow() {
         super();
-        setCreativeTab(RegistryItems.creativeTabAstralSorcery);
+        setMaxDamage(384); // Between wood (59) and bow (384)
+        setCreativeTab(CreativeTabsAS.ASTRAL_SORCERY_TAB);
+
+        // 1.7.10: Bow properties
+        // No sub-items, no metadata variants
     }
 
-    @Override
-    public void getSubItems(Item item, CreativeTabs tab, List list) {}
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public boolean hasOBJAsSubmodelDefinition() {
-        return true;
-    }
-
-    @Nullable
-    @Override
-    @SideOnly(Side.CLIENT)
-    public String[] getOBJModelNames() {
-        return new String[] { "ItemRoseBranchBow" };
-    }
-
+    // NOTE: Original version had OBJ model support
+    // In 1.7.10, we use standard item rendering
+    // TODO: Implement custom model renderer if needed
 }

@@ -1,164 +1,110 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Research progression - Research progression steps
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.data.research;
 
 import java.util.*;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import com.google.common.collect.Lists;
-
-import hellfirepvp.astralsorcery.AstralSorcery;
-
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: ResearchProgression
- * Created by HellFirePvP
- * Date: 10.08.2016 / 13:38
+ * Research progression - Research progression steps (1.7.10)
+ * <p>
+ * <b>Progression Steps:</b>
+ * <ul>
+ * <li>DISCOVERY - Initial discovery</li>
+ * <li>BASIC_CRAFT - Basic altar crafting</li>
+ * <li>ATTUNEMENT - Constellation attunement</li>
+ * <li>CONSTELLATION - Constellation crafting</li>
+ * <li>RADIANCE - Trait crafting</li>
+ * <li>BRILLIANCE - Brilliance tier</li>
+ * </ul>
  */
 public enum ResearchProgression {
 
     DISCOVERY(0, ProgressionTier.DISCOVERY),
-    BASIC_CRAFT(1, ProgressionTier.BASIC_CRAFT, DISCOVERY),
-    ATTUNEMENT(2, ProgressionTier.ATTUNEMENT, BASIC_CRAFT),
-    CONSTELLATION(3, ProgressionTier.CONSTELLATION_CRAFT, ATTUNEMENT),
-    RADIANCE(4, ProgressionTier.TRAIT_CRAFT, CONSTELLATION),
-    BRILLIANCE(5, ProgressionTier.BRILLIANCE, RADIANCE);
+    BASIC_CRAFT(1, ProgressionTier.DISCOVERY),
+    ATTUNEMENT(2, ProgressionTier.ATTUNEMENT),
+    CONSTELLATION(3, ProgressionTier.CONSTELLATION_CRAFT),
+    RADIANCE(4, ProgressionTier.TRAIT_CRAFT),
+    BRILLIANCE(5, ProgressionTier.BRILLIANCE);
 
     private final int progressId;
-    private List<ResearchProgression> preConditions = new LinkedList<>();
-    private List<ResearchNode> researchNodes = new LinkedList<>();
     private final ProgressionTier requiredProgress;
-    private final String unlocName;
 
-    private static final Map<Integer, ResearchProgression> BY_ID = new HashMap<>();
-    private static final Map<String, ResearchProgression> BY_NAME = new HashMap<>();
+    private static final Map<Integer, ResearchProgression> ID_MAP = new HashMap<>();
+    private static final Map<ProgressionTier, List<ResearchProgression>> TIER_MAP = new HashMap<>();
 
-    private ResearchProgression(int id, ProgressionTier requiredProgress, ResearchProgression... preConditions) {
-        this(id, requiredProgress, Arrays.asList(preConditions));
-    }
-
-    private ResearchProgression(int id, ProgressionTier requiredProgress, List<ResearchProgression> preConditions) {
-        this.preConditions.addAll(preConditions);
-        this.requiredProgress = requiredProgress;
-        this.progressId = id;
-        this.unlocName = AstralSorcery.MODID + ".journal.cluster." + name().toLowerCase() + ".name";
-    }
-
-    void addResearchToGroup(ResearchNode res) {
-        for (ResearchNode node : researchNodes) {
-            if (node.renderPosX == res.renderPosX && node.renderPosZ == res.renderPosZ) {
-                throw new IllegalArgumentException(
-                    "Tried to register 2 Research Nodes at the same position at x=" + res.renderPosX
-                        + ", z="
-                        + res.renderPosZ
-                        + "! "
-                        + "Present: "
-                        + node.getUnLocalizedName()
-                        + " - Tried to set: "
-                        + res.getUnLocalizedName());
-            }
+    static {
+        for (ResearchProgression prog : values()) {
+            ID_MAP.put(prog.progressId, prog);
+            TIER_MAP.computeIfAbsent(prog.requiredProgress, k -> new ArrayList<>())
+                .add(prog);
         }
-        this.researchNodes.add(res);
     }
 
-    public List<ResearchNode> getResearchNodes() {
-        return researchNodes;
+    ResearchProgression(int progressId, ProgressionTier requiredProgress) {
+        this.progressId = progressId;
+        this.requiredProgress = requiredProgress;
     }
 
-    public Registry getRegistry() {
-        return new Registry(this);
-    }
-
-    /*
-     * public boolean tryStepTo(EntityPlayer player, boolean force) {
-     * return (force || canStepTo(player)) && ResearchManager.forceUnsafeResearchStep(player, this);
-     * }
-     * public boolean canStepTo(EntityPlayer player) {
-     * PlayerProgress progress = ResearchManager.getProgress(player);
-     * if(progress == null) return false;
-     * List<ResearchProgression> playerResearchProgression = progress.getResearchProgression();
-     * ProgressionTier playerTier = progress.getTierReached();
-     * return playerTier.isThisLaterOrEqual(requiredProgress) && playerResearchProgression.containsAll(preConditions);
-     * }
+    /**
+     * Get progression ID
      */
-
-    public ProgressionTier getRequiredProgress() {
-        return requiredProgress;
-    }
-
-    public List<ResearchProgression> getPreConditions() {
-        return Collections.unmodifiableList(preConditions);
-    }
-
-    public String getUnlocalizedName() {
-        return unlocName;
-    }
-
     public int getProgressId() {
         return progressId;
     }
 
+    /**
+     * Get required progress tier
+     */
+    public ProgressionTier getRequiredProgress() {
+        return requiredProgress;
+    }
+
+    /**
+     * Get preconditions (research steps that must be completed first)
+     */
+    public Collection<ResearchProgression> getPreConditions() {
+        List<ResearchProgression> pre = new ArrayList<>();
+        for (ResearchProgression prog : values()) {
+            if (prog.requiredProgress.ordinal() < this.requiredProgress.ordinal()) {
+                pre.add(prog);
+            }
+        }
+        return pre;
+    }
+
+    /**
+     * Get progression by ID
+     */
     public static ResearchProgression getById(int id) {
-        return BY_ID.get(id);
+        return ID_MAP.get(id);
     }
 
+    /**
+     * Get all progressions for a tier
+     */
+    public static List<ResearchProgression> getForTier(ProgressionTier tier) {
+        return TIER_MAP.getOrDefault(tier, new ArrayList<>());
+    }
+
+    /**
+     * Get progression by enum name (for commands)
+     *
+     * @param name The enum name
+     * @return The progression, or null if not found
+     */
     public static ResearchProgression getByEnumName(String name) {
-        return BY_NAME.get(name);
-    }
-
-    @Nullable
-    public static ResearchNode findNode(String name) {
-        for (ResearchProgression prog : values()) {
-            for (ResearchNode node : prog.getResearchNodes()) {
-                if (node.getSimpleName()
-                    .equals(name)) {
-                    return node;
-                }
-            }
+        if (name == null || name.isEmpty()) {
+            return null;
         }
-        return null;
-    }
-
-    @Nonnull
-    public static Collection<ResearchProgression> findProgression(ResearchNode n) {
-        Collection<ResearchProgression> progressions = Lists.newArrayList();
-        for (ResearchProgression prog : values()) {
-            if (prog.getResearchNodes()
-                .contains(n)) {
-                progressions.add(prog);
-            }
+        try {
+            return valueOf(name.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
         }
-        return progressions;
-    }
-
-    static {
-        for (ResearchProgression progress : values()) {
-            BY_ID.put(progress.progressId, progress);
-            BY_NAME.put(progress.name(), progress);
-        }
-    }
-
-    public static class Registry {
-
-        private final ResearchProgression prog;
-
-        public Registry(ResearchProgression prog) {
-            this.prog = prog;
-        }
-
-        public void register(ResearchNode node) {
-            prog.addResearchToGroup(node);
-        }
-
     }
 
 }

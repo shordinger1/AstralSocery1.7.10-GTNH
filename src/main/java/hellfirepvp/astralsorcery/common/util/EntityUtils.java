@@ -1,9 +1,7 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * EntityUtils - Entity utility methods
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.util;
@@ -13,7 +11,6 @@ import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
@@ -21,62 +18,73 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
-import net.minecraftforge.event.ForgeEventFactory;
 
-import com.google.common.base.Predicate;
-
-import cpw.mods.fml.common.eventhandler.Event;
 import hellfirepvp.astralsorcery.common.util.data.Vector3;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: EntityUtils
- * Created by HellFirePvP
- * Date: 14.09.2016 / 20:10
+ * EntityUtils - Entity utilities (1.7.10)
+ * <p>
+ * <b>Features:</b>
+ * <ul>
+ * <li>Entity spawning utilities</li>
+ * <li>Entity collision and space checks</li>
+ * <li>Vortex motion calculations</li>
+ * <li>Entity selection predicates</li>
+ * </ul>
+ * <p>
+ * <b>1.7.10 API Changes from 1.12.2:</b>
+ * <ul>
+ * <li>BlockPos → int x, y, z</li>
+ * <li>EntityList.createEntityByIDFromName() → EntityList.createEntityByName()</li>
+ * <li>ItemStack.isEmpty() → stack == null || stack.stackSize <= 0</li>
+ * <li>Entity.getEntityBoundingBox() → entity.boundingBox (field access)</li>
+ * <li>LootTable system → Removed (not available in 1.7.10)</li>
+ * </ul>
  */
 public class EntityUtils {
 
-    // 1.7.10: Removed getLootTableMethod - not applicable
-
-    public static boolean canEntitySpawnHere(World world, BlockPos at, ResourceLocation entityKey,
+    /**
+     * Check if entity can spawn at location
+     * 1.7.10: Use int coordinates instead of BlockPos
+     */
+    public static boolean canEntitySpawnHere(World world, int x, int y, int z, String entityKey,
         boolean respectConditions, @Nullable Function<Entity, Void> preCheckEntity) {
-        Entity entity = EntityList.createEntityByName(entityKey.toString(), world);
+        Entity entity = EntityList.createEntityByName(entityKey, world);
         if (entity == null) {
             return false;
         }
-        entity.setLocationAndAngles(
-            at.getX() + 0.5,
-            at.getY() + 0.5,
-            at.getZ() + 0.5,
-            world.rand.nextFloat() * 360.0F,
-            0.0F);
+        entity.setLocationAndAngles(x + 0.5, y + 0.5, z + 0.5, world.rand.nextFloat() * 360.0F, 0.0F);
         if (preCheckEntity != null) {
             preCheckEntity.apply(entity);
         }
         if (respectConditions) {
             if (entity instanceof EntityLiving) {
-                Event.Result canSpawn = ForgeEventFactory
-                    .canEntitySpawn((EntityLiving) entity, world, at.getX() + 0.5F, at.getY() + 0.5F, at.getZ() + 0.5F);
-                if (canSpawn != Event.Result.ALLOW
-                    && (canSpawn != Event.Result.DEFAULT || !((EntityLiving) entity).getCanSpawnHere())) {
+                EntityLiving living = (EntityLiving) entity;
+                if (!living.getCanSpawnHere()) {
                     return false;
                 }
+                // 1.7.10: isNotColliding() doesn't exist, check collision manually
             }
         }
         return doesEntityHaveSpace(world, entity);
     }
 
+    /**
+     * Check if entity has space to exist
+     * 1.7.10: Different API for collision checks
+     */
     public static boolean doesEntityHaveSpace(World world, Entity entity) {
-        AxisAlignedBB box = entity.getBoundingBox();
-        return !world.isAABBInMaterial(box, Material.water) && !world.isAABBInMaterial(box, Material.lava)
-            && world.getCollidingBoundingBoxes(entity, box)
-                .isEmpty()
-            && world.checkNoEntityCollision(box, entity);
+        // 1.7.10: Use field access for bounding box
+        AxisAlignedBB box = entity.boundingBox;
+        return !world.isAnyLiquid(box) && !world.checkBlockCollision(box)
+            && world.getEntitiesWithinAABBExcludingEntity(entity, box)
+                .isEmpty();
     }
 
+    /**
+     * Apply vortex motion towards target
+     */
     public static void applyVortexMotion(Function<Void, Vector3> getPositionFunction,
         Function<Vector3, Object> addMotionFunction, Vector3 to, double vortexRange, double multiplier) {
         Vector3 pos = getPositionFunction.apply(null);
@@ -94,69 +102,71 @@ public class EntityUtils {
         }
     }
 
-    public static Predicate<? super Entity> selectEntities(Class<? extends Entity>... entities) {
-        return new Predicate<Entity>() {
-
-            @Override
-            public boolean apply(Entity entity) {
-                if (entity == null || entity.isDead) return false;
-                Class<? extends Entity> clazz = entity.getClass();
-                for (Class<? extends Entity> test : entities) {
-                    if (test.isAssignableFrom(clazz)) return true;
-                }
-                return false;
+    /**
+     * Select entities by class
+     */
+    public static java.util.function.Predicate<? super Entity> selectEntities(Class<? extends Entity>... entities) {
+        return (java.util.function.Predicate<Entity>) entity -> {
+            if (entity == null || entity.isDead) return false;
+            Class<? extends Entity> clazz = entity.getClass();
+            for (Class<? extends Entity> test : entities) {
+                if (test.isAssignableFrom(clazz)) return true;
             }
+            return false;
         };
     }
 
-    public static Predicate<? super Entity> selectItemClassInstaceof(Class<?> itemClass) {
-        return new Predicate<Entity>() {
-
-            @Override
-            public boolean apply(Entity entity) {
-                if (entity == null || entity.isDead) return false;
-                if (!(entity instanceof EntityItem)) return false;
-                ItemStack i = ((EntityItem) entity).getEntityItem();
-                if ((i == null || i.stackSize <= 0)) return false;
-                return itemClass.isAssignableFrom(
-                    i.getItem()
-                        .getClass());
-            }
+    /**
+     * Select entities by item class
+     * 1.7.10: Check stackSize for isEmpty
+     */
+    public static java.util.function.Predicate<? super Entity> selectItemClassInstaceof(Class<?> itemClass) {
+        return (java.util.function.Predicate<Entity>) entity -> {
+            if (entity == null || entity.isDead) return false;
+            if (!(entity instanceof EntityItem)) return false;
+            ItemStack i = ((EntityItem) entity).getEntityItem();
+            if (i == null || i.stackSize <= 0) return false;
+            return itemClass.isAssignableFrom(
+                i.getItem()
+                    .getClass());
         };
     }
 
-    public static Predicate<? super Entity> selectItem(Item item) {
-        return new Predicate<Entity>() {
-
-            @Override
-            public boolean apply(Entity entity) {
-                if (entity == null || entity.isDead) return false;
-                if (!(entity instanceof EntityItem)) return false;
-                ItemStack i = ((EntityItem) entity).getEntityItem();
-                if ((i == null || i.stackSize <= 0)) return false;
-                return i.getItem()
-                    .equals(item);
-            }
+    /**
+     * Select entities by item
+     * 1.7.10: Check stackSize for isEmpty
+     */
+    public static java.util.function.Predicate<? super Entity> selectItem(Item item) {
+        return (java.util.function.Predicate<Entity>) entity -> {
+            if (entity == null || entity.isDead) return false;
+            if (!(entity instanceof EntityItem)) return false;
+            ItemStack i = ((EntityItem) entity).getEntityItem();
+            if (i == null || i.stackSize <= 0) return false;
+            return i.getItem()
+                .equals(item);
         };
     }
 
-    public static Predicate<? super Entity> selectItemStack(final Function<ItemStack, Boolean> acceptor) {
-        return new Predicate<Entity>() {
-
-            @Override
-            public boolean apply(Entity entity) {
-                if (entity == null || entity.isDead) return false;
-                if (!(entity instanceof EntityItem)) return false;
-                ItemStack i = ((EntityItem) entity).getEntityItem();
-                if ((i == null || i.stackSize <= 0)) return false;
-                return acceptor.apply(i);
-            }
+    /**
+     * Select entities by item stack acceptor
+     * 1.7.10: Check stackSize for isEmpty
+     */
+    public static java.util.function.Predicate<? super Entity> selectItemStack(Function<ItemStack, Boolean> acceptor) {
+        return entity -> {
+            if (entity == null || entity.isDead) return false;
+            if (!(entity instanceof EntityItem)) return false;
+            ItemStack i = ((EntityItem) entity).getEntityItem();
+            if (i == null || i.stackSize <= 0) return false;
+            return acceptor.apply(i);
         };
     }
 
+    /**
+     * Select closest element from collection
+     */
     @Nullable
     public static <T> T selectClosest(Collection<T> elements, Function<T, Double> dstFunc) {
-        if (elements == null || elements.isEmpty()) return null;
+        if (elements.isEmpty()) return null;
 
         double dstClosest = Double.MAX_VALUE;
         T closestElement = null;
@@ -169,14 +179,5 @@ public class EntityUtils {
         }
         return closestElement;
     }
-
-    // 1.7.10: LootTable API doesn't exist - returns Object to avoid compilation errors
-    @Nullable
-    public static Object getLootTable(EntityLiving entity) {
-        // 1.7.10: Loot table system is very different, not accessible via this API
-        return null;
-    }
-
-    // 1.7.10: Removed getLootTableMethod initialization - not applicable
 
 }

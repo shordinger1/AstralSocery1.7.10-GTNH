@@ -27,6 +27,11 @@ import hellfirepvp.astralsorcery.common.data.research.PlayerProgress;
  * Class: IConstellation
  * Created by HellFirePvP
  * Date: 16.11.2016 / 23:04
+ *
+ * 1.7.10 Migration:
+ * - Removed javax.annotation.Nullable (1.7.10 doesn't have it)
+ * - Simplified NBT methods
+ * - Removed GameStages/CraftTweaker integration
  */
 public interface IConstellation {
 
@@ -78,6 +83,10 @@ public interface IConstellation {
         return weak;
     }
 
+    /**
+     * Check if this constellation can be discovered by the player
+     * 1.7.10: Simplified version without GameStages
+     */
     boolean canDiscover(EntityPlayer player, PlayerProgress progress);
 
     default public void writeToNBT(NBTTagCompound compound) {

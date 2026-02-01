@@ -1,109 +1,132 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Starlight Infuser - Starlight infusion device
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.block;
 
-import net.minecraft.block.Block;
+import java.util.ArrayList;
+import java.util.Random;
+
+import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
-import hellfirepvp.astralsorcery.common.block.network.BlockStarlightNetwork;
-import hellfirepvp.astralsorcery.common.registry.RegistryItems;
-import hellfirepvp.astralsorcery.common.structure.BlockStructureObserver;
-import hellfirepvp.astralsorcery.common.tile.TileStarlightInfuser;
-import hellfirepvp.astralsorcery.common.util.ItemUtils;
-import hellfirepvp.astralsorcery.common.util.MiscUtils;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import hellfirepvp.astralsorcery.client.util.TextureRegister;
+import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: BlockStarlightInfuser
- * Created by HellFirePvP
- * Date: 11.12.2016 / 17:05
+ * BlockStarlightInfuser - Starlight infuser (1.7.10)
+ * <p>
+ * <b>Features:</b>
+ * <ul>
+ * <li>Infuses items with starlight</li>
+ * <li>Has TileEntity (TileStarlightInfuser)</li>
+ * <li>GUI for infusion</li>
+ * <li>Part of item enhancement system</li>
+ * </ul>
+ * <p>
+ * <b>1.7.10 API Notes:</b>
+ * <ul>
+ * <li>BlockContainer with TileEntity</li>
+ * </ul>
  */
-public class BlockStarlightInfuser extends BlockStarlightNetwork implements BlockStructureObserver {
+public class BlockStarlightInfuser extends BlockContainer {
 
-    private static final AxisAlignedBB box = AxisAlignedBB.getBoundingBox(0D, 0D, 0D, 1D, 12D / 16D, 1D);
+    @SideOnly(Side.CLIENT)
+    private IIcon iconInfuser;
 
     public BlockStarlightInfuser() {
         super(Material.rock);
-        setHardness(1.0F);
-        setResistance(10.0F);
+        setHardness(3.0F);
+        setResistance(15.0F);
+        setStepSound(soundTypeStone);
         setHarvestLevel("pickaxe", 1);
-        setStepSound(Block.soundTypePiston);
-        setCreativeTab(RegistryItems.creativeTabAstralSorcery);
-    }
-
-    @Override
-    public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z) {
-        this.setBlockBounds(0F, 0F, 0F, 1F, 12F / 16F, 1F);
-    }
-
-    @Override
-    public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
-        return box;
-    }
-
-    @Override
-    public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
-        return box;
-    }
-
-    @Override
-    public boolean onBlockActivated(World worldIn, int x, int y, int z, EntityPlayer playerIn, int side, float hitX,
-        float hitY, float hitZ) {
-        if (!worldIn.isRemote) {
-            TileStarlightInfuser infuser = MiscUtils.getTileAt(worldIn, x, y, z, TileStarlightInfuser.class);
-            if (infuser != null) {
-                ItemStack held = playerIn.getCurrentEquippedItem();
-                infuser.onInteract(playerIn, held);
-            }
-        }
-        return true;
+        setCreativeTab(CreativeTabsAS.ASTRAL_SORCERY_TAB);
     }
 
     @Override
     public boolean isOpaqueCube() {
-        return false;
+        return false; // Custom model
     }
 
     @Override
     public boolean renderAsNormalBlock() {
+        return false; // Custom rendering
+    }
+
+    /**
+     * Set block bounds based on state
+     * <p>
+     * Infuser has height of 12 pixels (0.75 blocks) instead of full 1.0
+     */
+    @Override
+    public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z) {
+        // Height is 12/16 instead of full 1.0
+        this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 0.75F, 1.0F);
+    }
+
+    /**
+     * Get collision bounding box
+     * <p>
+     * Infuser has reduced height (12 pixels)
+     */
+    @Override
+    public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
+        return AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 0.75, z + 1);
+    }
+
+    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX,
+        float hitY, float hitZ) {
+        // TODO: Open infuser GUI
         return false;
+
+    }
+
+    public Item getItemDropped(int meta, Random rand, int fortune) {
+        return Item.getItemFromBlock(this);
+
+    }
+
+    public int quantityDropped(Random rand) {
+        return 1;
+
+    }
+
+    public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune) {
+        ArrayList<ItemStack> drops = new ArrayList<ItemStack>();
+        drops.add(new ItemStack(this, 1, 0));
+        return drops;
+
+    }
+
+    public TileEntity createNewTileEntity(World world, int meta) {
+        return new hellfirepvp.astralsorcery.common.tile.TileStarlightInfuser();
+    }
+
+    // ========== Texture Registration ==========
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void registerBlockIcons(IIconRegister reg) {
+        // Load texture from models/starlight_infuser/ directory
+        iconInfuser = TextureRegister.registerModelIcon(reg, "starlight_infuser/starlight_infuser");
     }
 
     @Override
-    public void breakBlock(World worldIn, int x, int y, int z, Block block, int meta) {
-        if (!worldIn.isRemote) {
-            TileStarlightInfuser infuser = MiscUtils.getTileAt(worldIn, x, y, z, TileStarlightInfuser.class);
-            if (infuser != null) {
-                ItemStack input = infuser.getInputStack();
-                if (input != null && input.stackSize > 0) {
-                    ItemUtils.dropItemNaturally(worldIn, x + 0.5, y + 1, z + 0.5, input);
-                }
-            }
-        }
-
-        super.breakBlock(worldIn, x, y, z, block, meta);
-    }
-
-    @Override
-    public TileEntity createNewTileEntity(World worldIn, int meta) {
-        return new TileStarlightInfuser();
-    }
-
-    @Override
-    public int getRenderType() {
-        return -1; // Custom model renderer
+    @SideOnly(Side.CLIENT)
+    public IIcon getIcon(int side, int meta) {
+        return iconInfuser;
     }
 }

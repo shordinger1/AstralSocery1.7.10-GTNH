@@ -16,6 +16,8 @@ import java.awt.*;
  * Class: StarLocation
  * Created by HellFirePvP
  * Date: 06.02.2016 01:57
+ *
+ * 1.7.10 Migration: No API changes needed
  */
 public class StarLocation {
 
@@ -47,5 +49,10 @@ public class StarLocation {
         int result = x;
         result = 31 * result + y;
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "StarLocation{x=" + x + ", y=" + y + "}";
     }
 }
