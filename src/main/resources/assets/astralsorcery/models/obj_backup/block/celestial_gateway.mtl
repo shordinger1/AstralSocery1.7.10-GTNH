@@ -1,0 +1,11 @@
+# MTL file for celestial_gateway.obj
+# Converted from 1.12.2 JSON model
+
+newmtl platform
+map_Kd astralsorcery:textures/models/celestialgateway/platform.png
+
+newmtl orb_inner
+map_Kd astralsorcery:textures/models/celestialgateway/orb_inner.png
+
+newmtl orb_outer
+map_Kd astralsorcery:textures/models/celestialgateway/orb_outer.png
