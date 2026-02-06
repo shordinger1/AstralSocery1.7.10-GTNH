@@ -95,51 +95,26 @@ public class RegistryRender {
         int failCount = 0;
 
         // Register Altar TESR
-        String tileName = "TileAltar";
-        String className = "hellfirepvp.astralsorcery.common.tile.TileAltar";
-        String tesrName = "hellfirepvp.astralsorcery.client.renderer.tile.TESRAltar";
-        try {
-            LogHelper.debug("Attempting to register TESR for: " + tileName);
-            Class<? extends TileEntity> tileAltar = (Class<? extends TileEntity>) Class.forName(className);
-            Class<?> tesrClass = Class.forName(tesrName);
-            TileEntitySpecialRenderer tesr = (TileEntitySpecialRenderer) tesrClass.newInstance();
-            registerTileEntityRenderer(tileAltar, tesr);
-            successCount++;
-            LogHelper.info("✓ Successfully registered TESR for: " + tileName);
-        } catch (ClassNotFoundException e) {
-            failCount++;
-            LogHelper.error("✗ Failed to register TESR for " + tileName + " - Class not found: " + e.getMessage(), e);
-            LogHelper.debug("  Looking for TileEntity: " + className);
-            LogHelper.debug("  Looking for TESR: " + tesrName);
-        } catch (InstantiationException e) {
-            failCount++;
-            LogHelper.error("✗ Failed to instantiate TESR for " + tileName + " - Instantiation: " + e.getMessage(), e);
-        } catch (IllegalAccessException e) {
-            failCount++;
-            LogHelper.error(
-                "✗ Failed to access TESR constructor for " + tileName + " - Illegal access: " + e.getMessage(),
-                e);
-        } catch (Exception e) {
-            failCount++;
-            LogHelper.error(
-                "✗ Unexpected error registering TESR for " + tileName
-                    + " - "
-                    + e.getClass()
-                        .getSimpleName()
-                    + ": "
-                    + e.getMessage(),
-                e);
-        }
+        // DISABLED: Handled by AstralRenderLoader.registerCraftingAltarRenderer()
+        // which properly passes all 4 tier models to TESRCraftingAltar constructor
+        LogHelper.info("⊘ Skipping TileAltar TESR registration (handled by AstralRenderLoader)");
 
-        // Register Chalice TESR
-        // DISABLED: Handled by AstralRenderLoader.registerChaliceRenderer()
+        // NOTE: TileRitualPedestal TESR is registered by AstralRenderLoader.registerRitualPedestalRenderer()
+        // which properly passes model and texture to TESRRitualPedestal constructor
+
+        // NOTE: TileCollectorCrystal TESR is registered by AstralRenderLoader.registerCollectorCrystalRenderer()
+        // which properly passes model and texture to TESRCollectorCrystal constructor
+
+        // NOTE: TileChalice TESR is registered by AstralRenderLoader.registerChaliceRenderer()
         // which properly passes model and texture to TESRChalice constructor
-        LogHelper.info("⊘ Skipping TileChalice TESR registration (handled by AstralRenderLoader)");
+
+        // NOTE: TileObservatory TESR is registered by AstralRenderLoader.registerObservatoryRenderer()
+        // which properly passes dual textures to TESRObservatory constructor
 
         // Register Well TESR
-        tileName = "TileWell";
-        className = "hellfirepvp.astralsorcery.common.tile.TileWell";
-        tesrName = "hellfirepvp.astralsorcery.client.renderer.tile.TESRWell";
+        String tileName = "TileWell";
+        String className = "hellfirepvp.astralsorcery.common.tile.TileWell";
+        String tesrName = "hellfirepvp.astralsorcery.client.renderer.tile.TESRWell";
         try {
             LogHelper.debug("Attempting to register TESR for: " + tileName);
             Class<? extends TileEntity> tileWell = (Class<? extends TileEntity>) Class.forName(className);
@@ -334,6 +309,56 @@ public class RegistryRender {
                     + e.getMessage(),
                 e);
         }
+
+        // Register TranslucentBlock TESR (from 1.12.2 - TileTranslucent)
+        tileName = "TileTranslucent";
+        className = "hellfirepvp.astralsorcery.common.tile.TileTranslucent";
+        tesrName = "hellfirepvp.astralsorcery.client.renderer.tile.TESRTranslucentBlock";
+        try {
+            LogHelper.debug("Attempting to register TESR for: " + tileName);
+            Class<? extends TileEntity> tileTranslucent = (Class<? extends TileEntity>) Class.forName(className);
+            Class<?> tesrClass = Class.forName(tesrName);
+            TileEntitySpecialRenderer tesr = (TileEntitySpecialRenderer) tesrClass.newInstance();
+            registerTileEntityRenderer(tileTranslucent, tesr);
+            successCount++;
+            LogHelper.info("✓ Successfully registered TESR for: " + tileName);
+        } catch (ClassNotFoundException e) {
+            failCount++;
+            LogHelper.error("✗ Failed to register TESR for " + tileName + " - Class not found: " + e.getMessage(), e);
+            LogHelper.debug("  Looking for TileEntity: " + className);
+            LogHelper.debug("  Looking for TESR: " + tesrName);
+        } catch (InstantiationException e) {
+            failCount++;
+            LogHelper.error("✗ Failed to instantiate TESR for " + tileName + " - Instantiation: " + e.getMessage(), e);
+        } catch (IllegalAccessException e) {
+            failCount++;
+            LogHelper.error(
+                "✗ Failed to access TESR constructor for " + tileName + " - Illegal access: " + e.getMessage(),
+                e);
+        } catch (Exception e) {
+            failCount++;
+            LogHelper.error(
+                "✗ Unexpected error registering TESR for " + tileName
+                    + " - "
+                    + e.getClass()
+                        .getSimpleName()
+                    + ": "
+                    + e.getMessage(),
+                e);
+        }
+
+        // NOTE: TileCrystalLens TESR is registered by AstralRenderLoader.registerCrystalLensTESR()
+        // which properly passes model and texture to TESRCrystalLens constructor
+
+        // NOTE: TileStarlightInfuser TESR is registered by AstralRenderLoader.registerStarlightInfuserRenderer()
+        // which properly passes model and texture to TESRStarlightInfuser constructor
+
+        // MISSING TESRs from 1.12.2 (not yet implemented in 1.7.10):
+        // - TileFakeTree.class → TESRFakeTree (1.12.2 original, no 1.7.10 equivalent)
+        // - TileCrystalPrismLens.class → TESRPrismLens (1.12.2 original, no 1.7.10 equivalent)
+        // - TileMapDrawingTable.class → TESRMapDrawingTable (1.12.2 original, no 1.7.10 equivalent)
+        //
+        // These TESRs need to be created and registered when their TileEntity classes are implemented.
 
         LogHelper.info(
             "TileEntity renderer registration complete: " + successCount + " succeeded, " + failCount + " failed");
@@ -670,7 +695,9 @@ public class RegistryRender {
                 e);
         }
 
-        // Register EntityIlluminationSpark → RenderEntityIlluminationSpark
+        // Register EntityIlluminationSpark → RenderEntityNoOp (1.12.2 original)
+        // NOTE: Original 1.12.2 uses RenderEntityNoOp.Factory() for EntityIlluminationSpark
+        // This is intentional - the entity has no visual representation
         entityName = "EntityIlluminationSpark";
         entityClassName = "hellfirepvp.astralsorcery.common.entity.EntityIlluminationSpark";
         rendererClassName = "hellfirepvp.astralsorcery.client.renderer.entity.RenderEntityIlluminationSpark";
@@ -756,7 +783,9 @@ public class RegistryRender {
                 e);
         }
 
-        // Register EntityNocturnalSpark → RenderEntityNocturnalSpark
+        // Register EntityNocturnalSpark → RenderEntityNoOp (1.12.2 original)
+        // NOTE: Original 1.12.2 uses RenderEntityNoOp.Factory() for EntityNocturnalSpark
+        // This is intentional - the entity has no visual representation
         entityName = "EntityNocturnalSpark";
         entityClassName = "hellfirepvp.astralsorcery.common.entity.EntityNocturnalSpark";
         rendererClassName = "hellfirepvp.astralsorcery.client.renderer.entity.RenderEntityNocturnalSpark";

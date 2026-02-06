@@ -51,11 +51,32 @@ public class BlockWorldIlluminator extends BlockContainer {
 
     }
 
+    /**
+     * On block activated - open GUI or toggle illuminator
+     * 1.7.10: Removed EnumHand (off-hand is 1.9+ feature)
+     */
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX,
         float hitY, float hitZ) {
-        // TODO: Open illuminator GUI or toggle
-        return false;
+        if (world.isRemote) {
+            return true;
+        }
 
+        hellfirepvp.astralsorcery.common.tile.TileWorldIlluminator illuminator =
+            (hellfirepvp.astralsorcery.common.tile.TileWorldIlluminator) world.getTileEntity(x, y, z);
+
+        if (illuminator != null) {
+            // Sneak + right-click: Toggle illuminator
+            if (player.isSneaking()) {
+                illuminator.setPlayerPlaced();
+                hellfirepvp.astralsorcery.common.util.LogHelper.info("[BlockWorldIlluminator] Toggled illuminator at " + x + "," + y + "," + z);
+            } else {
+                // Normal right-click: Open GUI
+                TileEntityGuiFactory.INSTANCE.open(player, illuminator);
+            }
+            return true;
+        }
+
+        return false;
     }
 
     public Item getItemDropped(int meta, Random rand, int fortune) {

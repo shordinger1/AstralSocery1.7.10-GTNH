@@ -97,19 +97,60 @@ public class BlockBore extends BlockContainer {
     }
 
     /**
-     * On block activated - place bore head
-     * <p>
-     * TODO: Implement when BlockBoreHead is available
+     * On block activated - place bore head below
+     * 1.7.10: Simplified from 1.12.2 version
+     * Removed: EnumHand parameter (off-hand is 1.9+)
+     * Removed: BlockStructureObserver interface (custom multiblock system)
      */
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX,
         float hitY, float hitZ) {
-        // TODO: When BlockBoreHead is implemented:
-        // 1. Check if block below is replaceable
-        // 2. Check if player is holding bore head item
-        // 3. Place bore head block below
-        // 4. Consume bore head item (if not creative)
-        return false;
+        // Check if block below is replaceable (air or replaceable)
+        int belowY = y - 1;
+        if (belowY >= 0) {
+            net.minecraft.block.Block blockBelow = world.getBlock(x, belowY, z);
+            if (blockBelow == null || blockBelow.isAir(world, x, belowY, z) ||
+                blockBelow.getMaterial().isReplaceable()) {
 
+                // Check if player is holding a bore head item
+                net.minecraft.item.ItemStack held = player.inventory.mainInventory[player.inventory.currentItem];
+                if (held != null && held.stackSize > 0) {
+                    net.minecraft.item.Item heldItem = held.getItem();
+
+                    // Check if held item is an ItemBlock and its block is BlockBoreHead
+                    // REMOVED: ((ItemBlock) heldItem).getBlock() - 1.7.10 ItemBlock doesn't have this method
+                    // Instead, check if the held item's Item is the same as BlockBoreHead's Item
+                    if (heldItem instanceof net.minecraft.item.ItemBlock) {
+                        net.minecraft.item.ItemBlock itemBlock = (net.minecraft.item.ItemBlock) heldItem;
+                        // In 1.7.10, need to check against the registered Item for BlockBoreHead
+                        // Using field_150939_a which is the block field (obfuscated name for 'block' field)
+                        // Or compare against ItemsAS.boreHead item if available
+                        net.minecraft.block.Block heldBlock = itemBlock.field_150939_a;
+                        if (heldBlock instanceof BlockBoreHead) {
+                            if (!world.isRemote) {
+                                // Place bore head block below
+                                int meta = held.getItemDamage();
+                                // 1.7.10: Use setBlock() with metadata
+                                world.setBlock(x, belowY, z, heldBlock, meta, 3);
+
+                                // Play sound
+                                world.playSoundEffect(x + 0.5, belowY + 0.5, z + 0.5, "step.wood", 1F, 1F);
+
+                                // Consume item if not in creative mode
+                                if (!player.capabilities.isCreativeMode) {
+                                    held.stackSize--;
+                                    if (held.stackSize <= 0) {
+                                        player.inventory.mainInventory[player.inventory.currentItem] = null;
+                                    }
+                                }
+                            }
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

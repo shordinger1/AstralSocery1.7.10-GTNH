@@ -98,7 +98,7 @@ public abstract class SkyRenderer {
      * @param starCount Number of stars to render
      * @param partialTicks Partial ticks for flickering
      */
-    protected void renderStars(int starCount, float partialTicks) {
+    public void renderStars(int starCount, float partialTicks) {
         if (mc.theWorld == null) return;
 
         // Set random seed based on world seed and day

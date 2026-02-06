@@ -1,40 +1,56 @@
 /*******************************************************************************
- * HellFirePvP / Astral Sorcery 2019
+ * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * All rights reserved.
- * The source code is available on github: https://github.com/HellFirePvP/AstralSorcery
- * For further details, see the License file there.
+ * Grindstone TileEntity - Grinds items into dust
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.tile;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
-import org.jetbrains.annotations.Nullable;
-
+import hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipe;
+import hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipeRegistry;
 import hellfirepvp.astralsorcery.common.tile.base.TileEntitySynchronized;
 import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
 
 /**
- * This class is part of the Astral Sorcery Mod
- * The complete source code for this mod can be found on github.
- * Class: TileGrindstone
- * Created by HellFirePvP
- * Date: 10.11.2016 / 22:28
+ * TileGrindstone - Grindstone machine (1.7.10)
+ * <p>
+ * <b>Features:</b>
+ * <ul>
+ * <li>Stores item being ground</li>
+ * <li>Plays wheel animation when grinding</li>
+ * <li>Integrates with recipe system</li>
+ * <li>Supports sword sharpening</li>
+ * </ul>
+ * <p>
+ * <b>1.7.10 API Notes:</b>
+ * <ul>
+ * <li>updateEntity() instead of update()</li>
+ * <li>ItemStack.EMPTY → null</li>
+ * <li>stackSize instead of getCount()</li>
+ * </ul>
  */
 public class TileGrindstone extends TileEntitySynchronized {
 
     public static final int TICKS_WHEEL_ROTATION = 20;
 
+    /** Item currently being ground */
     private ItemStack grindingItem = null;
+
+    /** Animation ticks */
     public int tickWheelAnimation = 0, prevTickWheelAnimation = 0;
-    private boolean repeat = false; // Used for repeat after effect went off..~
+
+    /** Repeat flag for animation */
+    private boolean repeat = false;
 
     @Override
     public void updateEntity() {
+        // Client-side animation
         if (worldObj.isRemote) {
             if (tickWheelAnimation > 0) {
                 prevTickWheelAnimation = tickWheelAnimation;
@@ -51,37 +67,76 @@ public class TileGrindstone extends TileEntitySynchronized {
         }
     }
 
+    /**
+     * Play wheel effect (animation)
+     * TODO: Implement network packet system for client sync
+     */
     public void playWheelEffect() {
         // TODO: Re-enable after network packet system is migrated
-        // PktPlayEffect effect = new PktPlayEffect(PktPlayEffect.EffectType.GRINDSTONE_WHEEL, getPos());
-        // if(world.isRemote) {
-        // playWheelAnimation(effect);
-        // } else {
-        // PacketChannel.CHANNEL.sendToAllAround(effect, PacketChannel.pointFromPos(world, getPos(), 32));
-        // }
+        // For now, just set animation directly on server
+        if (!worldObj.isRemote) {
+            this.tickWheelAnimation = TICKS_WHEEL_ROTATION;
+            this.prevTickWheelAnimation = TICKS_WHEEL_ROTATION + 1;
+            markForUpdate();
+        }
     }
 
-    // TODO: Re-enable after network packet system is migrated
-    // @SideOnly(Side.CLIENT)
-    // public static void playWheelAnimation(PktPlayEffect pktPlayEffect) {
-    // TileGrindstone tgr = MiscUtils.getTileAt(Minecraft.getMinecraft().world, pktPlayEffect.pos, TileGrindstone.class,
-    // false);
-    // if(tgr != null) {
-    // if(tgr.tickWheelAnimation == 0) {
-    // tgr.tickWheelAnimation = TICKS_WHEEL_ROTATION;
-    // } else if(tgr.tickWheelAnimation * 2 <= TICKS_WHEEL_ROTATION) {
-    // tgr.repeat = true;
-    // }
-    // }
-    // }
-
-    public void setGrindingItem(@Nonnull ItemStack stack) {
+    /**
+     * Set the item being ground
+     *
+     * @param stack Item to grind (null to clear)
+     */
+    public void setGrindingItem(@Nullable ItemStack stack) {
         this.grindingItem = stack;
+        markDirty();
         markForUpdate();
     }
 
-    public @Nullable ItemStack getGrindingItem() {
-        return grindingItem != null ? grindingItem : (null); // Return empty item stack as 1.7.10 equivalent
+    /**
+     * Get the item being ground
+     *
+     * @return Item being ground (null if empty)
+     */
+    @Nullable
+    public ItemStack getGrindingItem() {
+        return grindingItem;
+    }
+
+    /**
+     * Check if there's an item being ground
+     *
+     * @return true if has item
+     */
+    public boolean hasItem() {
+        return grindingItem != null && grindingItem.stackSize > 0;
+    }
+
+    /**
+     * Try to grind the current item
+     *
+     * @return Grinding result, or null if no item
+     */
+    @Nullable
+    public GrindstoneRecipe.GrindResult tryGrind() {
+        if (!hasItem()) {
+            return null;
+        }
+
+        GrindstoneRecipe recipe = GrindstoneRecipeRegistry.findMatchingRecipe(grindingItem);
+        if (recipe != null) {
+            return recipe.grind(grindingItem);
+        }
+
+        // Check for sword sharpening
+        if (SwordSharpenHelper.canBeSharpened(grindingItem)) {
+            if (worldObj.rand.nextInt(40) == 0) {
+                SwordSharpenHelper.setSwordSharpened(grindingItem);
+                playWheelEffect();
+            }
+            return GrindstoneRecipe.GrindResult.success();
+        }
+
+        return null;
     }
 
     @Override
@@ -104,6 +159,69 @@ public class TileGrindstone extends TileEntitySynchronized {
             NBTHelper.setAsSubTag(compound, "item", this.grindingItem::writeToNBT);
         } else {
             compound.setTag("item", new NBTTagCompound());
+        }
+    }
+
+    /**
+     * SwordSharpenHelper - Helper for sword sharpening on grindstone
+     */
+    public static class SwordSharpenHelper {
+
+        /**
+         * Check if an item can be sharpened
+         *
+         * @param stack Item to check
+         * @return true if can be sharpened
+         */
+        public static boolean canBeSharpened(ItemStack stack) {
+            if (stack == null) {
+                return false;
+            }
+
+            // Check if it's a sword
+            if (!(stack.getItem() instanceof net.minecraft.item.ItemSword)) {
+                return false;
+            }
+
+            // Check if already sharpened
+            if (isSwordSharpened(stack)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        /**
+         * Check if a sword is already sharpened
+         *
+         * @param stack Sword to check
+         * @return true if sharpened
+         */
+        public static boolean isSwordSharpened(ItemStack stack) {
+            if (stack == null || !stack.hasTagCompound()) {
+                return false;
+            }
+
+            NBTTagCompound compound = stack.getTagCompound();
+            return compound.getBoolean("astralsorcery.sharpened");
+        }
+
+        /**
+         * Mark a sword as sharpened
+         *
+         * @param stack Sword to sharpen
+         */
+        public static void setSwordSharpened(ItemStack stack) {
+            if (stack == null) {
+                return;
+            }
+
+            if (!stack.hasTagCompound()) {
+                stack.setTagCompound(new NBTTagCompound());
+            }
+
+            NBTTagCompound compound = stack.getTagCompound();
+            compound.setBoolean("astralsorcery.sharpened", true);
         }
     }
 

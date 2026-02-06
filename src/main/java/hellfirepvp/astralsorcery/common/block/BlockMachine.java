@@ -9,6 +9,7 @@ package hellfirepvp.astralsorcery.common.block;
 import java.util.List;
 import java.util.Random;
 
+import com.cleanroommc.modularui.factory.TileEntityGuiFactory;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
@@ -42,15 +43,16 @@ import hellfirepvp.astralsorcery.common.util.IconHelper;
  * - Special block break effects
  * <p>
  * Uses:
- * - Telescope: View stars at any time
- * - Grindstone: Grind items into dust
+ * - Telescope: View stars at any time (opens GUI)
+ * - Grindstone: Grind items into dust (right-click interaction)
  * <p>
- * TODO:
- * - Implement TileTelescope
- * - Implement TileGrindstone
- * - Implement machine functionality
- * - Implement custom rendering
- * - Implement particle effects
+ * 1.7.10 API Notes:
+ * - Removed: PlayerInteractEvent.RightClickBlock event (1.8+ feature)
+ *   Grindstone interaction now handled in onBlockActivated()
+ * - Removed: EnumHand parameter (off-hand is 1.9+ feature)
+ *   Only main hand is considered in 1.7.10
+ * - Removed: IBlockState (1.8+ feature)
+ *   Uses metadata directly instead
  */
 public class BlockMachine extends BlockContainer {
 
@@ -134,42 +136,151 @@ public class BlockMachine extends BlockContainer {
         int meta = stack.getItemDamage();
         world.setBlockMetadataWithNotify(x, y, z, meta, 2);
 
-        // TODO: Initialize specific TileEntity based on type
-        // switch (meta) {
-        // case META_TELESCOPE:
-        // // Initialize telescope
-        // break;
-        // case META_GRINDSTONE:
-        // // Initialize grindstone
-        // break;
-        // }
+        // 1.7.10: Removed BlockStructural placement above telescope
+        // In 1.12.2, telescope placed a structural block above it
+        // In 1.7.10, we skip this to simplify the implementation
+    }
+
+    /**
+     * Break block - drop grindstone item
+     * 1.7.10: Removed IBlockState parameter (uses metadata directly)
+     */
+    @Override
+    public void breakBlock(World world, int x, int y, int z, net.minecraft.block.Block blockBroken, int meta) {
+        // Drop grindstone item if present
+        if (meta == META_GRINDSTONE) {
+            TileEntity te = world.getTileEntity(x, y, z);
+            if (te instanceof hellfirepvp.astralsorcery.common.tile.TileGrindstone) {
+                hellfirepvp.astralsorcery.common.tile.TileGrindstone tgr =
+                    (hellfirepvp.astralsorcery.common.tile.TileGrindstone) te;
+                ItemStack grind = tgr.getGrindingItem();
+
+                if (grind != null && grind.stackSize > 0) {
+                    // Drop item
+                    dropBlockAsItem(world, x, y, z, grind);
+                }
+            }
+        }
+
+        super.breakBlock(world, x, y, z, blockBroken, meta);
     }
 
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX,
         float hitY, float hitZ) {
         // Open GUI based on machine type
-        if (world.isRemote) {
+        int meta = world.getBlockMetadata(x, y, z);
+
+        if (meta == META_TELESCOPE) {
+            // Open telescope GUI using ModularUI
+            if (world.isRemote) {
+                return true;
+            }
+            TileEntity te = world.getTileEntity(x, y, z);
+            if (te instanceof hellfirepvp.astralsorcery.common.tile.TileTelescope) {
+                TileEntityGuiFactory.INSTANCE.open(player, te);
+            }
+            return true;
+        } else if (meta == META_GRINDSTONE) {
+            // Grindstone interaction
+            // 1.7.10: Removed EnumHand (off-hand is 1.9+ feature)
+            // Only main hand interaction is supported
+            TileEntity te = world.getTileEntity(x, y, z);
+            if (!(te instanceof hellfirepvp.astralsorcery.common.tile.TileGrindstone)) {
+                return false;
+            }
+
+            hellfirepvp.astralsorcery.common.tile.TileGrindstone tgr =
+                (hellfirepvp.astralsorcery.common.tile.TileGrindstone) te;
+
+            if (!world.isRemote) {
+                // Server-side logic
+                ItemStack grind = tgr.getGrindingItem();
+
+                if (grind != null && grind.stackSize > 0) {
+                    // Item is currently in grindstone
+                    if (player.isSneaking()) {
+                        // Sneak + Right-click: Remove item
+                        player.inventory.mainInventory[player.inventory.currentItem] = grind;
+                        tgr.setGrindingItem(null);
+                        world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.pop", 0.5F, 1.0F);
+                    } else {
+                        // Right-click: Try to grind
+                        hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipe.GrindResult result =
+                            tgr.tryGrind();
+
+                        if (result != null) {
+                            switch (result.getType()) {
+                                case SUCCESS:
+                                    // Update item
+                                    tgr.markDirty();
+                                    break;
+                                case ITEMCHANGE:
+                                    // Change to new item
+                                    tgr.setGrindingItem(result.getStack());
+                                    break;
+                                case FAIL_BREAK_ITEM:
+                                    // Item broke
+                                    tgr.setGrindingItem(null);
+                                    world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.break", 0.5F, 1.0F);
+                                    break;
+                                case FAIL_SILENT:
+                                default:
+                                    // Do nothing
+                                    break;
+                            }
+                            tgr.playWheelEffect();
+                        }
+                    }
+                } else {
+                    // No item in grindstone
+                    ItemStack held = player.inventory.mainInventory[player.inventory.currentItem];
+
+                    if (held != null && held.stackSize > 0) {
+                        hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipe recipe =
+                            hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipeRegistry.findMatchingRecipe(held);
+
+                        if (recipe != null || hellfirepvp.astralsorcery.common.tile.TileGrindstone.SwordSharpenHelper.canBeSharpened(held)) {
+                            // Place item in grindstone
+                            ItemStack toSet = held.copy();
+                            toSet.stackSize = 1;
+                            tgr.setGrindingItem(toSet);
+                            held.stackSize--;
+
+                            if (held.stackSize <= 0) {
+                                player.inventory.mainInventory[player.inventory.currentItem] = null;
+                            }
+
+                            world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.pop", 0.5F, 1.0F);
+                        } else if (player.isSneaking()) {
+                            // Sneak + Right-click with invalid item: Pass through
+                            return false;
+                        }
+                    }
+                }
+            } else {
+                // Client-side: Play particles if grinding
+                ItemStack grind = tgr.getGrindingItem();
+                if (grind != null && grind.stackSize > 0) {
+                    hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipe recipe =
+                        hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipeRegistry.findMatchingRecipe(grind);
+
+                    if (recipe != null || hellfirepvp.astralsorcery.common.tile.TileGrindstone.SwordSharpenHelper.canBeSharpened(grind)) {
+                        // Spawn critical particles
+                        for (int j = 0; j < 8; j++) {
+                            world.spawnParticle("crit",
+                                x + 0.5 + (world.rand.nextBoolean() ? 1 : -1) * world.rand.nextFloat() * 0.3,
+                                y + 0.8 + (world.rand.nextBoolean() ? 1 : -1) * world.rand.nextFloat() * 0.3,
+                                z + 0.4 + (world.rand.nextBoolean() ? 1 : -1) * world.rand.nextFloat() * 0.3,
+                                0, 0, 0);
+                        }
+                    }
+                }
+            }
+
             return true;
         }
 
-        int meta = world.getBlockMetadata(x, y, z);
-
-        // TODO: Open GUI for each machine type
-        // switch (meta) {
-        // case META_TELESCOPE:
-        // // Open telescope GUI
-        // break;
-        // case META_GRINDSTONE:
-        // // Open grindstone GUI
-        // break;
-        // }
-
-        player.addChatMessage(
-            new net.minecraft.util.ChatComponentText(
-                "§6[Astral Sorcery] §rMachine GUI not yet implemented! Type: " + getMachineName(meta)));
-
         return true;
-
     }
 
     @Override
@@ -178,9 +289,7 @@ public class BlockMachine extends BlockContainer {
             case META_GRINDSTONE:
                 return new hellfirepvp.astralsorcery.common.tile.TileGrindstone();
             case META_TELESCOPE:
-                // TODO: Implement TileTelescope
-                // return new hellfirepvp.astralsorcery.common.tile.TileTelescope();
-                return new hellfirepvp.astralsorcery.common.tile.TileGrindstone(); // Placeholder
+                return new hellfirepvp.astralsorcery.common.tile.TileTelescope();
             default:
                 return new hellfirepvp.astralsorcery.common.tile.TileGrindstone();
         }

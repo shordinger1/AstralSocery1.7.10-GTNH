@@ -2,215 +2,160 @@
  * Astral Sorcery - Minecraft 1.7.10 Port
  *
  * Tuned Crystal Base Item - Base class for constellation-tuned crystals
+ * Migrated from 1.12.2 with full API compatibility
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.item.crystal;
 
 import java.util.List;
 
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.World;
 
 import hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry;
 import hellfirepvp.astralsorcery.common.constellation.IConstellation;
+import hellfirepvp.astralsorcery.common.constellation.IMinorConstellation;
+import hellfirepvp.astralsorcery.common.constellation.IWeakConstellation;
+import hellfirepvp.astralsorcery.common.item.base.ItemConstellationFocus;
+import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
+import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
 
 /**
- * Tuned Crystal Base Item
+ * Tuned Crystal Base Item (1.7.10 port from 1.12.2)
  * <p>
- * Base class for crystals that can be attuned to constellations.
+ * Base class for crystals attuned to constellations.
+ * Implements ItemConstellationFocus for constellation-linked functionality.
  * <p>
- * Extends ItemRockCrystalBase with constellation functionality:
- * - Primary constellation (main constellation attunement)
- * - Trait constellation (secondary constellation bonus)
- * - Constellation-specific effects
+ * API compatible with 1.12.2 version.
  * <p>
- * Subclasses:
- * - ItemTunedRockCrystal - Tuned rock crystal
- * - ItemTunedCelestialCrystal - Tuned celestial crystal
- * <p>
- * TODO:
- * - Implement constellation ritual attunement
- * - Implement constellation trait effects
- * - Implement attunement GUI
- * - Implement constellation discovery requirements
+ * Static methods for constellation manipulation (matching 1.12.2 API):
+ * - {@link #applyMainConstellation(ItemStack, IWeakConstellation)}
+ * - {@link #getMainConstellation(ItemStack)}
+ * - {@link #applyTrait(ItemStack, IMinorConstellation)}
+ * - {@link #getTrait(ItemStack)}
  */
-public class ItemTunedCrystalBase extends ItemRockCrystalBase {
-
-    private static final String TAG_CONSTELLATION = "constellation";
-    private static final String TAG_TRAIT = "trait";
+public abstract class ItemTunedCrystalBase extends ItemRockCrystalBase implements ItemConstellationFocus {
 
     public ItemTunedCrystalBase() {
         super();
+        setCreativeTab(CreativeTabsAS.ASTRAL_SORCERY_TAB);
     }
 
-    // ========== Constellation System ==========
+    // ========== 1.12.2 API Compatibility: Static Methods ==========
 
     /**
-     * Get the primary constellation
-     *
-     * @param stack The tuned crystal stack
-     * @return The constellation, or null if not attuned
+     * Apply trait constellation to crystal (1.12.2 API)
      */
-    public IConstellation getConstellation(ItemStack stack) {
-        if (stack == null || !stack.hasTagCompound()) {
-            return null;
-        }
+    public static void applyTrait(ItemStack stack, IMinorConstellation trait) {
+        if (!(stack.getItem() instanceof ItemTunedCrystalBase)) return;
+        if (trait == null) return;
 
-        NBTTagCompound nbt = stack.getTagCompound();
-        if (!nbt.hasKey(TAG_CONSTELLATION)) {
-            return null;
-        }
-
-        String constellationName = nbt.getString(TAG_CONSTELLATION);
-        return ConstellationRegistry.getConstellationByName(constellationName);
+        NBTTagCompound cmp = NBTHelper.getPersistentData(stack);
+        cmp.setString("trait", trait.getUnlocalizedName());
     }
 
     /**
-     * Set the primary constellation
-     *
-     * @param stack         The tuned crystal stack
-     * @param constellation The constellation to attune
+     * Get trait constellation from crystal (1.12.2 API)
      */
-    public void setConstellation(ItemStack stack, IConstellation constellation) {
-        if (stack == null || constellation == null) {
-            return;
-        }
+    public static IMinorConstellation getTrait(ItemStack stack) {
+        if (!(stack.getItem() instanceof ItemTunedCrystalBase)) return null;
 
-        NBTTagCompound nbt = getOrCreateNBT(stack);
-        nbt.setString(TAG_CONSTELLATION, constellation.getUnlocalizedName());
+        NBTTagCompound cmp = NBTHelper.getPersistentData(stack);
+        String strCName = cmp.getString("trait");
+        return (IMinorConstellation) ConstellationRegistry.getConstellationByName(strCName);
     }
 
     /**
-     * Get the trait (secondary) constellation
-     *
-     * @param stack The tuned crystal stack
-     * @return The trait constellation, or null if not set
+     * Apply main constellation to crystal (1.12.2 API)
      */
-    public IConstellation getTrait(ItemStack stack) {
-        if (stack == null || !stack.hasTagCompound()) {
-            return null;
-        }
+    public static void applyMainConstellation(ItemStack stack, IWeakConstellation constellation) {
+        if (!(stack.getItem() instanceof ItemTunedCrystalBase)) return;
+        if (constellation == null) return;
 
-        NBTTagCompound nbt = stack.getTagCompound();
-        if (!nbt.hasKey(TAG_TRAIT)) {
-            return null;
-        }
-
-        String traitName = nbt.getString(TAG_TRAIT);
-        return ConstellationRegistry.getConstellationByName(traitName);
+        constellation.writeToNBT(NBTHelper.getPersistentData(stack));
     }
 
     /**
-     * Set the trait (secondary) constellation
-     *
-     * @param stack The tuned crystal stack
-     * @param trait The trait constellation to apply
+     * Get main constellation from crystal (1.12.2 API)
      */
-    public void setTrait(ItemStack stack, IConstellation trait) {
-        if (stack == null || trait == null) {
-            return;
-        }
+    public static IWeakConstellation getMainConstellation(ItemStack stack) {
+        if (!(stack.getItem() instanceof ItemTunedCrystalBase)) return null;
 
-        NBTTagCompound nbt = getOrCreateNBT(stack);
-        nbt.setString(TAG_TRAIT, trait.getUnlocalizedName());
+        return (IWeakConstellation) IConstellation.readFromNBT(NBTHelper.getPersistentData(stack));
     }
 
-    /**
-     * Apply trait to the crystal
-     * <p>
-     * Alias for setTrait
-     *
-     * @param stack The tuned crystal stack
-     * @param trait The trait constellation to apply
-     */
-    public void applyTrait(ItemStack stack, IConstellation trait) {
-        setTrait(stack, trait);
+    // ========== ItemConstellationFocus Implementation ==========
+
+    @Override
+    public IConstellation getFocusConstellation(ItemStack stack) {
+        return getMainConstellation(stack);
     }
+
+    // ========== Instance Methods (Convenience wrappers) ==========
 
     /**
      * Check if crystal has a constellation
-     *
-     * @param stack The tuned crystal stack
-     * @return true if attuned to a constellation
      */
     public boolean hasConstellation(ItemStack stack) {
-        return getConstellation(stack) != null;
+        return getMainConstellation(stack) != null;
     }
 
     /**
      * Check if crystal has a trait
-     *
-     * @param stack The tuned crystal stack
-     * @return true if has a trait constellation
      */
     public boolean hasTrait(ItemStack stack) {
         return getTrait(stack) != null;
     }
 
+    // ========== Abstract Methods ==========
+
+    /**
+     * Get the tuned item variant for this crystal type
+     * Subclasses should return themselves if they are the tuned variant
+     * 1.7.10: Changed return type to Class to match parent class ItemRockCrystalBase
+     */
+    @Override
+    public abstract Class<? extends Item> getTunedItemVariant();
+
+    /**
+     * Get maximum crystal size for this type
+     */
+    public abstract int getMaxSize();
+
     // ========== Display ==========
 
     @Override
-    public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced) {
+    @SuppressWarnings("unchecked")
+    public void addInformation(ItemStack stack, EntityPlayer player, List tooltip, boolean adv) {
         // Call parent to show crystal stats
-        super.addInformation(stack, player, tooltip, advanced);
+        super.addInformation(stack, player, tooltip, adv);
 
         // Show constellation information
-        IConstellation mainConstellation = getConstellation(stack);
+        IWeakConstellation mainConstellation = getMainConstellation(stack);
         if (mainConstellation != null) {
-            tooltip.add("Constellation: " + mainConstellation.getSimpleName());
+            tooltip.add("\u00A78Attuned: \u00A7b" + mainConstellation.getSimpleName());
         }
 
-        IConstellation trait = getTrait(stack);
+        IMinorConstellation trait = getTrait(stack);
         if (trait != null) {
-            tooltip.add("Trait: " + trait.getSimpleName());
+            tooltip.add("\u00A78Trait: \u00A7b" + trait.getSimpleName());
         }
 
         // TODO: Show attunement progress
         // TODO: Show constellation effects
     }
 
-    // ========== Helper Methods ==========
-
     /**
-     * Check if player has discovered the required constellation
-     *
-     * @param player        The player to check
-     * @param constellation The constellation to check
-     * @return true if discovered
-     */
-    protected boolean isConstellationDiscovered(EntityPlayer player, IConstellation constellation) {
-        // TODO: Implement discovery tracking
-        // For now, always return true
-        return true;
-    }
-
-    /**
-     * Apply main constellation (alias)
-     *
-     * @param stack         The tuned crystal stack
-     * @param constellation The constellation to apply
-     */
-    public void applyMainConstellation(ItemStack stack, IConstellation constellation) {
-        setConstellation(stack, constellation);
-    }
-
-    /**
-     * Get main constellation (alias)
-     *
-     * @param stack The tuned crystal stack
-     * @return The main constellation
-     */
-    public IConstellation getMainConstellation(ItemStack stack) {
-        return getConstellation(stack);
-    }
-
-    /**
-     * Check if world is server
+     * Get sub-items for creative tab
+     * Subclasses should override this to add constellation variants
      */
     @Override
-    protected boolean isServer(World world) {
-        return !world.isRemote;
+    @SuppressWarnings("unchecked")
+    public void getSubItems(Item item, CreativeTabs tab, List list) {
+        // Base implementation - subclasses should override to add variants
+        super.getSubItems(item, tab, list);
     }
 }

@@ -12,6 +12,12 @@ import java.util.Map;
 
 import org.lwjgl.opengl.GL11;
 
+import hellfirepvp.astralsorcery.common.constellation.IConstellation;
+import hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry;
+import hellfirepvp.astralsorcery.common.constellation.star.StarConnection;
+import hellfirepvp.astralsorcery.common.constellation.star.StarLocation;
+import hellfirepvp.astralsorcery.common.data.research.PlayerProgress;
+
 /**
  * Renderer for constellations in GUI views
  * <p>
@@ -41,9 +47,26 @@ public class ConstellationRenderer extends SkyRenderer {
      * @param partialTicks Partial ticks
      */
     public void renderConstellation(String constellationName, int offsetX, int offsetY, float scale, float partialTicks) {
+        renderConstellation(constellationName, offsetX, offsetY, scale, partialTicks, null, true);
+    }
+
+    /**
+     * Render a constellation at the specified position with discovery state
+     *
+     * @param constellationName The constellation to render
+     * @param offsetX X offset within view
+     * @param offsetY Y offset within view
+     * @param scale Scale multiplier
+     * @param partialTicks Partial ticks
+     * @param playerProgress Player progress (null to ignore discovery state)
+     * @param checkDiscovery Whether to check discovery state
+     */
+    public void renderConstellation(String constellationName, int offsetX, int offsetY, float scale,
+                                     float partialTicks, PlayerProgress playerProgress,
+                                     boolean checkDiscovery) {
         // Lookup constellation from registry
-        hellfirepvp.astralsorcery.common.constellation.IConstellation constellation =
-            hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry.getConstellationByName(constellationName);
+        IConstellation constellation =
+            ConstellationRegistry.getConstellationByName(constellationName);
 
         if (constellation == null) {
             // Fallback to placeholder if constellation not found
@@ -51,18 +74,25 @@ public class ConstellationRenderer extends SkyRenderer {
             return;
         }
 
+        // Check discovery state
+        boolean discovered = !checkDiscovery || playerProgress == null ||
+                           playerProgress.hasConstellationDiscovered(constellation);
+
         // Set constellation color
         setConstellationColor(constellation.getConstellationColor());
 
         // Calculate base brightness with flicker
         float baseBrightness = canSeeSky() ? 1.0F : 0.5F;
         float flicker = calculateFlicker(partialTicks, constellationName.hashCode() % 20);
-        float brightness = baseBrightness * flicker;
+
+        // Undiscovered constellations are dimmer
+        float brightness = baseBrightness * flicker * (discovered ? 1.0F : 0.4F);
 
         // Render connections first (so stars appear on top)
-        for (hellfirepvp.astralsorcery.common.constellation.star.StarConnection conn : constellation.getStarConnections()) {
-            hellfirepvp.astralsorcery.common.constellation.star.StarLocation s1 = conn.from;
-            hellfirepvp.astralsorcery.common.constellation.star.StarLocation s2 = conn.to;
+        for (StarConnection conn : constellation.getStarConnections()) {
+            // StarConnection has public 'from' and 'to' fields
+            StarLocation s1 = conn.from;
+            StarLocation s2 = conn.to;
 
             if (s1 != null && s2 != null) {
                 // Map 31x31 grid coordinates to GUI coordinates
@@ -76,12 +106,23 @@ public class ConstellationRenderer extends SkyRenderer {
         }
 
         // Render stars
-        for (hellfirepvp.astralsorcery.common.constellation.star.StarLocation star : constellation.getStars()) {
+        for (StarLocation star : constellation.getStars()) {
             float x = mapGridToScreen(star.x, scale) + offsetX;
             float y = mapGridToScreen(star.y, scale) + offsetY;
             int starSize = (int) (6 * scale);
 
             renderStar((int) x, (int) y, starSize, brightness);
+        }
+
+        // Store constellation info for click detection
+        if (checkDiscovery && playerProgress != null) {
+            ConstellationDisplayInfo info = new ConstellationDisplayInfo(
+                offsetX + (int) (50 * scale),
+                offsetY + (int) (50 * scale),
+                scale,
+                constellation
+            );
+            cachedPositions.put(constellationName, info);
         }
     }
 
@@ -195,7 +236,7 @@ public class ConstellationRenderer extends SkyRenderer {
      * @param partialTicks Partial ticks for animation
      */
     public void renderVisibleConstellations(float partialTicks) {
-        java.util.List<hellfirepvp.astralsorcery.common.constellation.IConstellation> visibleConstellations =
+        java.util.List<IConstellation> visibleConstellations =
             hellfirepvp.astralsorcery.common.constellation.distribution.ConstellationSkyHandler.getInstance()
                 .getVisibleConstellations(mc.theWorld);
 
@@ -207,7 +248,7 @@ public class ConstellationRenderer extends SkyRenderer {
         int count = visibleConstellations.size();
         if (count == 1) {
             // Single constellation: center it
-            hellfirepvp.astralsorcery.common.constellation.IConstellation c = visibleConstellations.get(0);
+            IConstellation c = visibleConstellations.get(0);
             renderConstellation(c.getUnlocalizedName(), viewWidth / 2, viewHeight / 2, 1.5F, partialTicks);
         } else {
             // Multiple constellations: arrange in grid
@@ -218,7 +259,7 @@ public class ConstellationRenderer extends SkyRenderer {
             float cellHeight = viewHeight / rows;
 
             for (int i = 0; i < count && i < 4; i++) { // Limit to 4 constellations max
-                hellfirepvp.astralsorcery.common.constellation.IConstellation c = visibleConstellations.get(i);
+                IConstellation c = visibleConstellations.get(i);
                 int col = i % cols;
                 int row = i / cols;
 
@@ -237,7 +278,7 @@ public class ConstellationRenderer extends SkyRenderer {
      * @param constellation The constellation to render
      * @param partialTicks Partial ticks
      */
-    public void renderConstellationCentered(hellfirepvp.astralsorcery.common.constellation.IConstellation constellation,
+    public void renderConstellationCentered(IConstellation constellation,
                                               float partialTicks) {
         if (constellation == null) return;
 
@@ -252,7 +293,7 @@ public class ConstellationRenderer extends SkyRenderer {
      * @param scales List of scales for each constellation
      * @param partialTicks Partial ticks
      */
-    public void renderConstellations(java.util.List<hellfirepvp.astralsorcery.common.constellation.IConstellation> constellations,
+    public void renderConstellations(java.util.List<IConstellation> constellations,
                                       java.util.List<java.awt.Point> positions,
                                       java.util.List<Float> scales,
                                       float partialTicks) {
@@ -261,7 +302,7 @@ public class ConstellationRenderer extends SkyRenderer {
         int count = Math.min(constellations.size(), Math.min(positions.size(), scales.size()));
 
         for (int i = 0; i < count; i++) {
-            hellfirepvp.astralsorcery.common.constellation.IConstellation c = constellations.get(i);
+            IConstellation c = constellations.get(i);
             java.awt.Point pos = positions.get(i);
             float scale = scales.get(i);
 
@@ -301,6 +342,55 @@ public class ConstellationRenderer extends SkyRenderer {
     }
 
     /**
+     * Check if a click position hits any constellation
+     * Returns the constellation that was clicked, or null
+     *
+     * @param clickX X position of click
+     * @param clickY Y position of click
+     * @return Clicked constellation, or null
+     */
+    public IConstellation getClickedConstellation(float clickX, float clickY) {
+        for (ConstellationDisplayInfo info : cachedPositions.values()) {
+            float dx = clickX - info.displayX;
+            float dy = clickY - info.displayY;
+            float hitRadius = 60.0F * info.scale; // Hit radius scales with constellation
+
+            if (dx * dx + dy * dy < hitRadius * hitRadius) {
+                return info.constellation;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Check if a specific constellation is clicked
+     *
+     * @param constellation The constellation to check
+     * @param clickX X position of click
+     * @param clickY Y position of click
+     * @return true if clicked
+     */
+    public boolean isClickOnConstellation(IConstellation constellation,
+                                           float clickX, float clickY) {
+        ConstellationDisplayInfo info = cachedPositions.get(constellation.getUnlocalizedName());
+        if (info == null) return false;
+
+        float dx = clickX - info.displayX;
+        float dy = clickY - info.displayY;
+        float hitRadius = 60.0F * info.scale;
+
+        return (dx * dx + dy * dy < hitRadius * hitRadius);
+    }
+
+    /**
+     * Clear cached constellation positions
+     * Call this when starting a new render frame
+     */
+    public void clearCache() {
+        cachedPositions.clear();
+    }
+
+    /**
      * Display info for a constellation in the view
      */
     public static class ConstellationDisplayInfo {
@@ -308,12 +398,15 @@ public class ConstellationRenderer extends SkyRenderer {
         public final float displayY;
         public final float scale;
         public final long lastUpdate;
+        public final IConstellation constellation;
 
-        public ConstellationDisplayInfo(float x, float y, float scale) {
+        public ConstellationDisplayInfo(float x, float y, float scale,
+                                      IConstellation constellation) {
             this.displayX = x;
             this.displayY = y;
             this.scale = scale;
             this.lastUpdate = System.currentTimeMillis();
+            this.constellation = constellation;
         }
     }
 

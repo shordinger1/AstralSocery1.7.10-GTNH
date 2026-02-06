@@ -42,3 +42,4 @@ layout.json
 /gradle/
 /gtnhShared/
 .run
+*.md

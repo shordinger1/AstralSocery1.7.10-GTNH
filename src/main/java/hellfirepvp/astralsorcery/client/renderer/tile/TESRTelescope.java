@@ -35,15 +35,13 @@ public class TESRTelescope extends TileEntitySpecialRenderer {
         this.model = model;
         this.texture = texture;
 
-        if (model != null) {
-            try {
-                // Register this TESR for BlockMachine (which includes Telescope)
-                ClientRegistry.bindTileEntitySpecialRenderer(TileGrindstone.class, this);
-                LogHelper.info("[TESRTelescope] Registered telescope TESR");
-            } catch (Exception e) {
-                LogHelper.error("[TESRTelescope] Failed to register", e);
-            }
-        }
+        // NOTE: TESR is NOT registered here to avoid conflicts with TESRGrindstone
+        // TESRGrindstone handles both Grindstone and Telescope rendering by checking block metadata
+        // This class exists for reference and potential future separation
+        // Original 1.12.2 had separate TESR registrations:
+        // - TileGrindstone.class → TESRGrindstone
+        // - TileTelescope.class → TESRTelescope
+        // In 1.7.10, BlockMachine uses TileGrindstone for both variants, handled by TESRGrindstone
     }
 
     @Override

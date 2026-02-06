@@ -37,6 +37,7 @@ import hellfirepvp.astralsorcery.common.lib.Constants;
 import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
 import hellfirepvp.astralsorcery.common.registry.reference.ItemsAS;
 import hellfirepvp.astralsorcery.common.util.LogHelper;
+import hellfirepvp.astralsorcery.common.util.RegistrationValidator;
 import hellfirepvp.astralsorcery.common.util.ResourceChecker;
 
 /**
@@ -153,6 +154,9 @@ public class RegistryItems {
 
         // Log registered items
         LogHelper.info("Registered " + ITEMS_TO_REGISTER.size() + " items");
+
+        // Validate registrations and generate detailed logs
+        RegistrationValidator.validateRegistrations();
 
         LogHelper.exit("RegistryItems.preInit");
     }

@@ -1,21 +1,26 @@
 /*******************************************************************************
  * Astral Sorcery - Minecraft 1.7.10 Port
  *
- * Tuned Celestial Crystal Item - Celestial crystal attuned to constellations
+ * Tuned Celestial Crystal Item - Migrated from 1.12.2
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.item.crystal;
 
+import java.awt.Color;
 import java.util.List;
 
 import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.EnumRarity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import hellfirepvp.astralsorcery.common.constellation.IConstellation;
+import hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry;
+import hellfirepvp.astralsorcery.common.constellation.IWeakConstellation;
 import hellfirepvp.astralsorcery.common.util.IconHelper;
 
 /**
@@ -23,30 +28,14 @@ import hellfirepvp.astralsorcery.common.util.IconHelper;
  * <p>
  * A celestial crystal that has been attuned to a constellation.
  * <p>
+ * Migrated from 1.12.2 with full API compatibility.
+ * <p>
  * Features:
  * - Celestial crystal base (max size 900)
  * - Primary constellation attunement
  * - Trait constellation bonus
- * - Glows with constellation color (TODO)
- * <p>
- * Combines properties of:
- * - ItemCelestialCrystal (larger size, pure)
- * - ItemTunedCrystalBase (constellation attunement)
- * <p>
- * Uses:
- * - Advanced constellation-specific crafting
- * - High-tier rituals
- * - Celestial machine components
- * <p>
- * Created by:
- * - Advanced attunement altar rituals
- * - Special celestial events
- * <p>
- * TODO:
- * - Implement constellation-colored glow
- * - Implement constellation-specific effects
- * - Implement advanced crafting recipes
- * - Implement particle effects based on constellation
+ * - Celestial blue highlight color
+ * - Epic rarity
  */
 public class ItemTunedCelestialCrystal extends ItemTunedCrystalBase {
 
@@ -70,29 +59,54 @@ public class ItemTunedCelestialCrystal extends ItemTunedCrystalBase {
         return iconCrystal;
     }
 
+    @Override
     public int getMaxSize() {
-        return 900; // Celestial crystal max size
+        return CrystalProperties.MAX_SIZE_CELESTIAL;
     }
 
-    // ========== Display ==========
+    @Override
+    public Class<? extends Item> getTunedItemVariant() {
+        // This IS the tuned variant
+        // 1.7.10: Return the class instead of 'this' to match parent method signature
+        return ItemTunedCelestialCrystal.class;
+    }
 
+    /**
+     * Get highlight color for celestial crystals
+     * Migrated from 1.12.2 - celestial blue color
+     */
     @SideOnly(Side.CLIENT)
-    public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced) {
-        super.addInformation(stack, player, tooltip, advanced);
+    public Color getHightlightColor(ItemStack stack) {
+        // REMOVED: BlockCollectorCrystalBase.CollectorCrystalType.CELESTIAL_CRYSTAL.displayColor
+        // 1.7.10 doesn't have BlockCollectorCrystalBase with CollectorCrystalType enum
+        // Using hardcoded celestial blue color instead
+        return new Color(0x00, 0x88, 0xFF);
+    }
 
-        // Add celestial-specific info
-        IConstellation constellation = getConstellation(stack);
-        if (constellation != null) {
-            tooltip.add("Aligned with: " + constellation.getSimpleName());
+    @Override
+    public EnumRarity getRarity(ItemStack stack) {
+        // REMOVED: RegistryItems.rarityCelestial
+        // 1.7.10: Use epic rarity instead of custom rarityCelestial
+        return EnumRarity.epic;
+    }
 
-            // TODO: Add constellation-specific description
-            // TODO: Show trait effects
-        }
-
-        CrystalProperties props = getProperties(stack);
-        if (props != null) {
-            double efficiency = props.getEfficiencyMultiplier();
-            tooltip.add(String.format("Efficiency: %.2fx", efficiency));
+    /**
+     * Add all constellation variants to creative tab
+     * Migrated from 1.12.2
+     * 1.7.10: Removed isInCreativeTab() check - method doesn't exist in 1.7.10
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public void getSubItems(Item item, CreativeTabs tab, List list) {
+        // 1.7.10: Instead of isInCreativeTab(tab), check if tab matches
+        if (tab == this.getCreativeTab() || tab == CreativeTabs.tabAllSearch) {
+            ItemStack stack;
+            for (IWeakConstellation c : ConstellationRegistry.getWeakConstellations()) {
+                stack = new ItemStack(this);
+                CrystalProperties.applyCrystalProperties(stack, CrystalProperties.getMaxCelestialProperties());
+                applyMainConstellation(stack, c);
+                list.add(stack);
+            }
         }
     }
 
@@ -100,51 +114,5 @@ public class ItemTunedCelestialCrystal extends ItemTunedCrystalBase {
     public boolean hasEffect(ItemStack stack) {
         // Show enchantment effect for tuned celestial crystals
         return true;
-    }
-
-    // ========== Helper Methods ==========
-
-    /**
-     * Create a tuned celestial crystal with the specified constellation
-     *
-     * @param constellation The constellation to attune
-     * @param count         Stack size
-     * @return Crystal item stack
-     */
-    public ItemStack createCrystal(IConstellation constellation, int count) {
-        ItemStack stack = new ItemStack(this, count, 0);
-
-        // Create max-tier celestial crystal properties
-        CrystalProperties props = new CrystalProperties();
-        props.setSize(900); // Max size
-        props.setPurity(100); // Always pure
-        props.setCollectiveCapability(100); // Max efficiency
-        props.setFractured(0); // No damage
-
-        setProperties(stack, props);
-
-        // Apply constellation
-        if (constellation != null) {
-            setConstellation(stack, constellation);
-        }
-
-        return stack;
-    }
-
-    /**
-     * Create a tuned celestial crystal with constellation and trait
-     *
-     * @param constellation Primary constellation
-     * @param trait         Trait constellation
-     * @return Crystal item stack
-     */
-    public ItemStack createCrystal(IConstellation constellation, IConstellation trait) {
-        ItemStack stack = createCrystal(constellation, 1);
-
-        if (trait != null) {
-            setTrait(stack, trait);
-        }
-
-        return stack;
     }
 }

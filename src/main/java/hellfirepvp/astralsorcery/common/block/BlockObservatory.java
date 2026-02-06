@@ -59,21 +59,70 @@ public class BlockObservatory extends BlockContainer {
         return false; // Special rendering
     }
 
+    /**
+     * Check if block can be placed at this position
+     * 1.7.10: Simplified version - checks for space around the block
+     * Original version: Uses BlockPos.PooledMutableBlockPos
+     * 1.7.10 version: Direct coordinate checking
+     */
+    @Override
+    public boolean canPlaceBlockAt(World world, int x, int y, int z) {
+        // Check for 3x3x4 space (x-1 to x+1, y to y+3, z-1 to z+1)
+        for (int xx = -1; xx <= 1; xx++) {
+            for (int yy = 0; yy <= 3; yy++) {
+                for (int zz = -1; zz <= 1; zz++) {
+                    int checkX = x + xx;
+                    int checkY = y + yy;
+                    int checkZ = z + zz;
+
+                    // Skip the block itself
+                    if (xx == 0 && yy == 0 && zz == 0) continue;
+
+                    // Check if space is free
+                    if (!world.isAirBlock(checkX, checkY, checkZ)) {
+                        net.minecraft.block.Block block = world.getBlock(checkX, checkY, checkZ);
+                        // Check if block is replaceable
+                        if (block != null && !block.getMaterial().isReplaceable()) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * On block activated - open GUI or mount observatory
+     * 1.7.10: Removed EnumHand (off-hand is 1.9+ feature)
+     * Removed: getRidingEntity() mount system (needs EntityObservatory implementation)
+     * Current: Directly opens GUI
+     */
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX,
         float hitY, float hitZ) {
-        if (world.isRemote) {
-            return true; // Client side
-        }
+        if (!world.isRemote) {
+            TileEntity te = world.getTileEntity(x, y, z);
+            if (te instanceof TileObservatory) {
+                TileObservatory observatory = (TileObservatory) te;
 
-        TileEntity te = world.getTileEntity(x, y, z);
-        if (te instanceof TileObservatory) {
-            TileObservatory observatory = (TileObservatory) te;
-            // Open ModularUI GUI
-            com.cleanroommc.modularui.factory.TileEntityGuiFactory.INSTANCE.open(player, observatory);
-            return true;
-        }
-        return false;
+                // TODO: Re-enable after EntityObservatory is implemented
+                // 1.12.2 version has player mount the observatory entity
+                // Entity e = observatory.findRideableObservatoryEntity();
+                // if (e != null) {
+                //     if(player.ridingEntity == null) {
+                //         player.mountEntity(e);
+                //     }
+                //     // Open GUI
+                // }
 
+                // Check if observatory is usable
+                if (!player.isSneaking() && observatory.isUsable()) {
+                    // Open ModularUI GUI
+                    com.cleanroommc.modularui.factory.TileEntityGuiFactory.INSTANCE.open(player, observatory);
+                }
+            }
+        }
+        return true;
     }
 
     public Item getItemDropped(int meta, Random rand, int fortune) {
