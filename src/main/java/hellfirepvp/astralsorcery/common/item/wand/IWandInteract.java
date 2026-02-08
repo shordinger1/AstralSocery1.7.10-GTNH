@@ -27,13 +27,13 @@ public interface IWandInteract {
     /**
      * Called when a player right-clicks with a wand
      *
-     * @param world     The world
-     * @param x         X coordinate
-     * @param y         Y coordinate
-     * @param z         Z coordinate
-     * @param player    The player using the wand
-     * @param side      The side clicked
-     * @param sneaking  Whether the player is sneaking
+     * @param world    The world
+     * @param x        X coordinate
+     * @param y        Y coordinate
+     * @param z        Z coordinate
+     * @param player   The player using the wand
+     * @param side     The side clicked
+     * @param sneaking Whether the player is sneaking
      */
     void onInteract(World world, int x, int y, int z, net.minecraft.entity.player.EntityPlayer player,
         ForgeDirection side, boolean sneaking);

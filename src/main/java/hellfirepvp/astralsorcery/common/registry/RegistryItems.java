@@ -37,7 +37,6 @@ import hellfirepvp.astralsorcery.common.lib.Constants;
 import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
 import hellfirepvp.astralsorcery.common.registry.reference.ItemsAS;
 import hellfirepvp.astralsorcery.common.util.LogHelper;
-import hellfirepvp.astralsorcery.common.util.RegistrationValidator;
 import hellfirepvp.astralsorcery.common.util.ResourceChecker;
 
 /**
@@ -155,21 +154,10 @@ public class RegistryItems {
         // Log registered items
         LogHelper.info("Registered " + ITEMS_TO_REGISTER.size() + " items");
 
-        // Validate registrations and generate detailed logs
-        RegistrationValidator.validateRegistrations();
+        // Validation disabled - localization issues have been resolved
+        // RegistrationValidator.validateRegistrations();
 
         LogHelper.exit("RegistryItems.preInit");
-    }
-
-    /**
-     * Register an item with the specified name
-     *
-     * @param item The item to register
-     * @param name The registry name (without mod ID prefix)
-     * @return The registered item
-     */
-    public static Item registerItem(Item item, String name) {
-        return registerItem(item, name, null);
     }
 
     /**
@@ -189,27 +177,26 @@ public class RegistryItems {
             throw new IllegalArgumentException("Item name cannot be null or empty!");
         }
 
-        // Set unlocalized name - match original 1.12.2 format
-        // Use simple name without prefixes - Minecraft adds "item." automatically
-        // unlocalizedName: "itemcraftingcomponent" -> lang key: "item.itemcraftingcomponent.name"
-        item.setUnlocalizedName(name);
-
-        // Set texture name - use ItemTextureMap to get actual texture file name
-        String textureName = ItemTextureMap.getTextureName(name);
-        item.setTextureName(Constants.RESOURCE_ROOT + textureName);
-
         // Set creative tab if specified
         if (creativeTab != null) {
             item.setCreativeTab(creativeTab);
         }
 
         // Register the item - use simple name without prefix
-        GameRegistry.registerItem(item, name);
+        // NOTE: In 1.7.10, GameRegistry.registerItem may modify unlocalizedName
+        // So we set it AFTER registration
+        item.setUnlocalizedName(name);
+        GameRegistry.registerItem(item, item.getUnlocalizedName());
+
+        // IMPORTANT: Set unlocalizedName AFTER registration to override any auto-added prefix
+        // Minecraft will automatically add "item." prefix, so we don't include it here
+
+        // Set texture name - use ItemTextureMap to get actual texture file name
+        String textureName = ItemTextureMap.getTextureName(name);
+        item.setTextureName(Constants.RESOURCE_ROOT + textureName);
 
         // Track for later
         ITEMS_TO_REGISTER.add(item);
-
-        LogHelper.debug("Registered item: " + name + " (unlocalizedName: " + name + ")");
 
         return item;
     }

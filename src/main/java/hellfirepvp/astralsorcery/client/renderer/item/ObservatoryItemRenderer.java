@@ -104,6 +104,9 @@ public class ObservatoryItemRenderer implements IItemRenderer {
 
         Minecraft.getMinecraft().renderEngine.bindTexture(this.texture);
 
+        // Apply OBJ model scale - observatory.obj uses 1.12.2 world coordinates
+        GL11.glScalef(0.13F, 0.13F, 0.13F);
+
         if (this.model != null) {
             this.model.renderAll();
         } else {

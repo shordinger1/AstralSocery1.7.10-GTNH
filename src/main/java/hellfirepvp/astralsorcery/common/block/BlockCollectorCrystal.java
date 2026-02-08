@@ -12,6 +12,7 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 
 import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
@@ -62,19 +63,46 @@ public class BlockCollectorCrystal extends BlockContainer {
     }
 
     /**
+     * Get render type
+     * Uses TESR for rendering (renderType = -1)
+     */
+    @Override
+    public int getRenderType() {
+        return -1; // Use TileEntitySpecialRenderer
+    }
+
+    /**
      * Is this a full block?
      */
+    @Override
     public boolean isOpaqueCube() {
         return false;
-
     }
 
     /**
      * Does this block render normally?
      */
+    @Override
     public boolean renderAsNormalBlock() {
         return false;
+    }
 
+    /**
+     * Get collision box
+     * Crystal collision: (0.3, 0, 0.3) to (0.7, 1, 0.7)
+     */
+    @Override
+    public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
+        // Thin tall crystal shape
+        return AxisAlignedBB.getBoundingBox(0.3, 0.0, 0.3, 0.7, 1.0, 0.7);
+    }
+
+    /**
+     * Get selected bounding box (for block outline)
+     */
+    @Override
+    public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
+        return getCollisionBoundingBoxFromPool(world, x, y, z);
     }
 
     /**

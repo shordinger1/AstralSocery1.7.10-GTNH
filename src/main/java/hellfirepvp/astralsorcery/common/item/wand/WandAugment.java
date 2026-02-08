@@ -6,7 +6,6 @@
 
 package hellfirepvp.astralsorcery.common.item.wand;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import hellfirepvp.astralsorcery.common.constellation.IMajorConstellation;
@@ -47,8 +46,9 @@ public enum WandAugment {
         }
         for (WandAugment wa : values()) {
             if (cst.getUnlocalizedName()
-                .endsWith(wa.name()
-                    .toLowerCase())) {
+                .endsWith(
+                    wa.name()
+                        .toLowerCase())) {
                 return wa;
             }
         }

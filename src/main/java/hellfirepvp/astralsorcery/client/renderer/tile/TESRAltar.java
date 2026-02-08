@@ -17,7 +17,6 @@ import org.lwjgl.opengl.GL11;
 
 import hellfirepvp.astralsorcery.client.renderer.AstralBaseTESR;
 import hellfirepvp.astralsorcery.common.block.BlockAltar;
-import hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry;
 import hellfirepvp.astralsorcery.common.crafting.altar.ActiveCraftingTask;
 import hellfirepvp.astralsorcery.common.tile.TileAltar;
 import hellfirepvp.astralsorcery.common.util.LogHelper;
@@ -118,9 +117,9 @@ public class TESRAltar extends AstralBaseTESR {
         BlockAltar altarBlock = (BlockAltar) block;
 
         // Get icons for this altar tier
-        IIcon iconBottom = altarBlock.getIcon(0, meta);  // bottom face
-        IIcon iconTop = altarBlock.getIcon(1, meta);    // top face
-        IIcon iconSide = altarBlock.getIcon(2, meta);   // side face
+        IIcon iconBottom = altarBlock.getIcon(0, meta); // bottom face
+        IIcon iconTop = altarBlock.getIcon(1, meta); // top face
+        IIcon iconSide = altarBlock.getIcon(2, meta); // side face
 
         if (iconBottom == null || iconTop == null || iconSide == null) {
             return;
@@ -148,7 +147,8 @@ public class TESRAltar extends AstralBaseTESR {
     /**
      * Render the center pillar
      */
-    private void renderPillar(Tessellator t, double x1, double y1, double z1, double x2, double y2, double z2, IIcon icon) {
+    private void renderPillar(Tessellator t, double x1, double y1, double z1, double x2, double y2, double z2,
+        IIcon icon) {
         t.startDrawingQuads();
         // North face
         t.setNormal(0, 0, -1);
@@ -168,7 +168,8 @@ public class TESRAltar extends AstralBaseTESR {
     /**
      * Render the base part
      */
-    private void renderBasePart(Tessellator t, double x1, double y1, double z1, double x2, double y2, double z2, IIcon iconBottom, IIcon iconSide) {
+    private void renderBasePart(Tessellator t, double x1, double y1, double z1, double x2, double y2, double z2,
+        IIcon iconBottom, IIcon iconSide) {
         t.startDrawingQuads();
         // Bottom face
         t.setNormal(0, -1, 0);
@@ -194,7 +195,8 @@ public class TESRAltar extends AstralBaseTESR {
     /**
      * Render the top part
      */
-    private void renderTopPart(Tessellator t, double x1, double y1, double z1, double x2, double y2, double z2, IIcon iconTop, IIcon iconSide, IIcon iconBottom) {
+    private void renderTopPart(Tessellator t, double x1, double y1, double z1, double x2, double y2, double z2,
+        IIcon iconTop, IIcon iconSide, IIcon iconBottom) {
         t.startDrawingQuads();
         // Top face (uses iconTop)
         t.setNormal(0, 1, 0);
@@ -220,7 +222,8 @@ public class TESRAltar extends AstralBaseTESR {
     /**
      * Helper to render a face with UV coordinates
      */
-    private void renderFace(Tessellator t, double x1, double y1, double z1, double x2, double y2, double z2, IIcon icon, double u1, double u2, double v1, double v2) {
+    private void renderFace(Tessellator t, double x1, double y1, double z1, double x2, double y2, double z2, IIcon icon,
+        double u1, double u2, double v1, double v2) {
         double minU = icon.getInterpolatedU(u1 * 16);
         double maxU = icon.getInterpolatedU(u2 * 16);
         double minV = icon.getInterpolatedV(v1 * 16);
@@ -423,8 +426,8 @@ public class TESRAltar extends AstralBaseTESR {
             if (recipe != null) {
                 String constellationName = recipe.getConstellation();
                 if (constellationName != null && !constellationName.isEmpty()) {
-                    hellfirepvp.astralsorcery.common.constellation.IConstellation constellation =
-                        hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry.getConstellationByName(constellationName);
+                    hellfirepvp.astralsorcery.common.constellation.IConstellation constellation = hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry
+                        .getConstellationByName(constellationName);
                     if (constellation != null) {
                         // Render constellation flat on altar surface
                         renderConstellationFlat(constellation, 0.8F, 0.6F, 1.0F, 0.5F + pulse, time);
@@ -443,7 +446,7 @@ public class TESRAltar extends AstralBaseTESR {
      * Render constellation flat on altar surface
      */
     private void renderConstellationFlat(hellfirepvp.astralsorcery.common.constellation.IConstellation constellation,
-                                          float r, float g, float b, float alpha, float time) {
+        float r, float g, float b, float alpha, float time) {
         // Translate to altar top surface
         translate(0, 0.1F, 0);
 
@@ -456,7 +459,8 @@ public class TESRAltar extends AstralBaseTESR {
         // Render connections
         setColor4f(r, g, b, alpha * 0.8F);
 
-        for (hellfirepvp.astralsorcery.common.constellation.star.StarConnection conn : constellation.getStarConnections()) {
+        for (hellfirepvp.astralsorcery.common.constellation.star.StarConnection conn : constellation
+            .getStarConnections()) {
             hellfirepvp.astralsorcery.common.constellation.star.StarLocation s1 = conn.from;
             hellfirepvp.astralsorcery.common.constellation.star.StarLocation s2 = conn.to;
 
@@ -565,8 +569,8 @@ public class TESRAltar extends AstralBaseTESR {
             if (recipe != null) {
                 String constellationName = recipe.getConstellation();
                 if (constellationName != null && !constellationName.isEmpty()) {
-                    hellfirepvp.astralsorcery.common.constellation.IConstellation constellation =
-                        hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry.getConstellationByName(constellationName);
+                    hellfirepvp.astralsorcery.common.constellation.IConstellation constellation = hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry
+                        .getConstellationByName(constellationName);
                     if (constellation != null) {
                         renderConstellationFlat(constellation, 0.8F, 0.7F, 1.0F, 0.6F, time);
                     }
@@ -636,14 +640,18 @@ public class TESRAltar extends AstralBaseTESR {
 
         // Calculate crafting progress (0.0 to 1.0)
         float progress = task.getProgress();
-        float maxProgress = task.getRecipe() != null ? task.getRecipe().getCraftingTime() : 100F;
+        float maxProgress = task.getRecipe() != null ? task.getRecipe()
+            .getCraftingTime() : 100F;
         float progressRatio = progress / maxProgress;
 
         // Render progress ring
         renderProgressRing(1.0F, 0.9F, 0.6F, progressRatio, time);
 
         // Render floating item being crafted (above altar)
-        renderFloatingItem(task.getRecipe().getOutput(), time);
+        renderFloatingItem(
+            task.getRecipe()
+                .getOutput(),
+            time);
 
         restoreState();
     }

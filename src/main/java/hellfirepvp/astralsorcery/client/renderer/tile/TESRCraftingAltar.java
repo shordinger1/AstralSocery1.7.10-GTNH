@@ -52,9 +52,28 @@ public class TESRCraftingAltar extends TileEntitySpecialRenderer {
         if (!(tile instanceof TileAltar)) return;
 
         TileAltar altar = (TileAltar) tile;
+        int meta = altar.getBlockMetadata();
+        TileAltar.AltarLevel level = altar.getAltarLevel();
         int tier = getAltarTier(altar);
         IModelCustom model = getModelForTier(tier);
-        if (model == null) return;
+
+        // Debug logging to check tier selection
+        if (altar.getWorldObj() != null && altar.getWorldObj().isRemote) {
+            LogHelper.debug(
+                String.format(
+                    "[TESRCraftingAltar] Rendering altar - meta: %d, level: %s, tier: %d, pos: %d,%d,%d",
+                    meta,
+                    level,
+                    tier,
+                    altar.xCoord,
+                    altar.yCoord,
+                    altar.zCoord));
+        }
+
+        if (model == null) {
+            LogHelper.warn("[TESRCraftingAltar] Model is null for tier " + tier);
+            return;
+        }
 
         ResourceLocation texTop = getTexture(tier, "top");
         ResourceLocation texSide = getTexture(tier, "side");
@@ -67,17 +86,33 @@ public class TESRCraftingAltar extends TileEntitySpecialRenderer {
             GL11.glEnable(GL11.GL_CULL_FACE);
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
 
-            // Render pillar (center column) with side texture
-            bindTexture(texSide);
-            model.renderPart("pillar");
+            // Multi-texture rendering: render each group with its texture
+            // OBJ now has 'g' markers for different textures (Forge recognizes these)
+            // Group names: altar_X_top, altar_X_side, altar_X_bottom (without path)
 
-            // Render base with bottom texture
+            // Render parts with bottom texture
             bindTexture(texBottom);
-            model.renderPart("base");
+            try {
+                model.renderPart("altar_" + tier + "_bottom");
+            } catch (Exception e) {
+                LogHelper.debug("[TESRCraftingAltar] No altar_" + tier + "_bottom group");
+            }
 
-            // Render top with top texture
+            // Render parts with side texture
+            bindTexture(texSide);
+            try {
+                model.renderPart("altar_" + tier + "_side");
+            } catch (Exception e) {
+                LogHelper.debug("[TESRCraftingAltar] No altar_" + tier + "_side group");
+            }
+
+            // Render parts with top texture
             bindTexture(texTop);
-            model.renderPart("top");
+            try {
+                model.renderPart("altar_" + tier + "_top");
+            } catch (Exception e) {
+                LogHelper.debug("[TESRCraftingAltar] No altar_" + tier + "_top group");
+            }
 
         } catch (Exception e) {
             LogHelper.error("[TESRCraftingAltar] Render error", e);
@@ -89,23 +124,46 @@ public class TESRCraftingAltar extends TileEntitySpecialRenderer {
     }
 
     private int getAltarTier(TileAltar altar) {
+        // First try to get tier from block metadata (more reliable)
+        int meta = altar.getBlockMetadata();
+        if (meta >= 0 && meta <= 4) {
+            // Map metadata (0-4) to tier (1-4)
+            // DISCOVERY(0) -> tier 1, ATTUNEMENT(1) -> tier 2, etc.
+            int tierFromMeta = meta + 1;
+            if (tierFromMeta > 4) {
+                tierFromMeta = 4; // BRILLIANCE (meta=4) uses tier 4
+            }
+            return tierFromMeta;
+        }
+
+        // Fallback to TileEntity level field
         switch (altar.getAltarLevel()) {
-            case DISCOVERY: return 1;
-            case ATTUNEMENT: return 2;
-            case CONSTELLATION_CRAFT: return 3;
-            case TRAIT_CRAFT: return 4;
-            case BRILLIANCE: return 4; // BRILLIANCE reuses tier 4 model
-            default: return 1;
+            case DISCOVERY:
+                return 1;
+            case ATTUNEMENT:
+                return 2;
+            case CONSTELLATION_CRAFT:
+                return 3;
+            case TRAIT_CRAFT:
+            case BRILLIANCE:
+                return 4; // BRILLIANCE reuses tier 4 model
+            default:
+                return 1;
         }
     }
 
     private IModelCustom getModelForTier(int tier) {
         switch (tier) {
-            case 1: return modelTier1;
-            case 2: return modelTier2;
-            case 3: return modelTier3;
-            case 4: return modelTier4;
-            default: return modelTier1;
+            case 1:
+                return modelTier1;
+            case 2:
+                return modelTier2;
+            case 3:
+                return modelTier3;
+            case 4:
+                return modelTier4;
+            default:
+                return modelTier1;
         }
     }
 

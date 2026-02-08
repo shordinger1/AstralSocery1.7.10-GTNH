@@ -6,8 +6,9 @@
 
 package hellfirepvp.astralsorcery.common.item.base;
 
-import hellfirepvp.astralsorcery.common.constellation.IConstellation;
 import net.minecraft.item.ItemStack;
+
+import hellfirepvp.astralsorcery.common.constellation.IConstellation;
 
 /**
  * Interface for items that are linked to a constellation
@@ -19,6 +20,7 @@ public interface ItemConstellationFocus {
 
     /**
      * Get the constellation this item is focused on
+     * 
      * @param stack The item stack
      * @return The constellation, or null if none
      */

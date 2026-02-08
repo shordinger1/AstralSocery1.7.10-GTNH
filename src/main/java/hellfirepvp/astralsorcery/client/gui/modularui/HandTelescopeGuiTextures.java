@@ -8,10 +8,11 @@
 
 package hellfirepvp.astralsorcery.client.gui.modularui;
 
+import net.minecraft.util.ResourceLocation;
+
 import com.cleanroommc.modularui.drawable.UITexture;
 
 import hellfirepvp.astralsorcery.common.lib.Constants;
-import net.minecraft.util.ResourceLocation;
 
 /**
  * Texture definitions for Hand Telescope GUI

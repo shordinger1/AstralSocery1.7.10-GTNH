@@ -101,10 +101,12 @@ public class AttunementAltarItemRenderer implements IItemRenderer {
             }
             case INVENTORY -> {
                 // In GUI (creative/survival inventory)
-                GL11.glTranslated(0.0, -0.1, 0.0); // Center
-                GL11.glScaled(0.4, 0.4, 0.4); // Scale for inventory
-                GL11.glRotated(180, 0, 1, 0); // Rotate to face forward
-                GL11.glRotated(15, 1, 0, 0); // Slight tilt
+                // Match JSON display settings: rotation [30, 45, 0], translation [0, -1, 0], scale [0.375, 0.375,
+                // 0.375]
+                GL11.glScaled(0.375, 0.375, 0.375); // Scale to match JSON
+                GL11.glRotated(30, 1, 0, 0); // Rotate X
+                GL11.glRotated(45, 0, 1, 0); // Rotate Y
+                GL11.glTranslated(0.0, -1.0, 0.0); // Translation to match JSON
                 break;
             }
             default -> {

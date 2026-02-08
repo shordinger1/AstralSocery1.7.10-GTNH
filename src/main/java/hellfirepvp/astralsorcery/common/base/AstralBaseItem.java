@@ -18,11 +18,13 @@ import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.common.lib.Constants;
+import hellfirepvp.astralsorcery.common.util.ASUtils;
 
 /**
  * AstralBaseItem - Base class for all AstralSorcery items
@@ -391,5 +393,132 @@ public class AstralBaseItem extends Item {
      */
     protected boolean isServer(World world) {
         return !world.isRemote;
+    }
+
+    // ========================================================================
+    // Localization Helper Methods (Refactored for TST-style approach)
+    // ========================================================================
+
+    /**
+     * Get localized text for this item.
+     * <p>
+     * Uses the StatCollector system for runtime localization.
+     * Language files are loaded from assets/astralsorcery/lang/
+     * <p>
+     * <b>Usage:</b>
+     *
+     * <pre>
+     * // In item class:
+     * public class MyItem extends AstralBaseItem {
+     *     public MyItem() {
+     *         super();
+     *         this.setUnlocalizedName("astralsorcery.myItem");
+     *     }
+     *
+     *     // Override to add tooltip
+     *     public void addInformation(...) {
+     *         tooltip.add(getLocal("astralsorcery.myItem.tooltip"));
+     *     }
+     * }
+     * </pre>
+     *
+     * @param key the localization key
+     * @return the localized text
+     * @see StatCollector#translateToLocal(String)
+     */
+    protected String getLocal(String key) {
+        return ASUtils.tr(key);
+    }
+
+    /**
+     * Get localized text with formatting.
+     *
+     * @param key  the localization key
+     * @param args format arguments
+     * @return the localized and formatted text
+     * @see StatCollector#translateToLocalFormatted(String, Object...)
+     */
+    protected String getLocalFormatted(String key, Object... args) {
+        return ASUtils.tr(key, args);
+    }
+
+    /**
+     * Get localized tooltip for this item.
+     * <p>
+     * Helper method to get tooltip lines from localization.
+     * Tooltip keys should be in format: {@code {unlocalizedName}.tooltip.{lineNumber}}
+     * <p>
+     * Example:
+     * 
+     * <pre>
+     * // Language file:
+     * item.astralsorcery.myItem.name=My Item
+     * item.astralsorcery.myItem.tooltip.1=Line 1 of tooltip
+     * item.astralsorcery.myItem.tooltip.2=Line 2 of tooltip
+     *
+     * // In code:
+     * public void addInformation(...) {
+     *     addTooltips(tooltip, 3); // Adds tooltip.1, tooltip.2, tooltip.3
+     * }
+     * </pre>
+     *
+     * @param tooltip       the tooltip list to add to
+     * @param lineCount     number of tooltip lines to add
+     * @param showShiftOnly true if tooltips only show when holding shift
+     */
+    @SideOnly(Side.CLIENT)
+    protected void addTooltips(List<String> tooltip, int lineCount, boolean showShiftOnly) {
+        // Check shift requirement
+        if (showShiftOnly && !isShiftKeyDown()) {
+            tooltip.add(getLocal("misc.moreInformation"));
+            return;
+        }
+
+        // Get base unlocalizedName without "item." prefix
+        String baseKey = this.getUnlocalizedName();
+        if (baseKey.startsWith("item.")) {
+            baseKey = baseKey.substring(5); // Remove "item."
+        }
+
+        // Add each tooltip line
+        for (int i = 1; i <= lineCount; i++) {
+            String key = baseKey + ".tooltip." + i;
+            String localized = getLocal(key);
+            // Only add if the key exists (not equal to the key itself)
+            if (!localized.equals(key)) {
+                tooltip.add(localized);
+            }
+        }
+    }
+
+    /**
+     * Get localized tooltip for this item (always show).
+     *
+     * @param tooltip   the tooltip list to add to
+     * @param lineCount number of tooltip lines to add
+     */
+    @SideOnly(Side.CLIENT)
+    protected void addTooltips(List<String> tooltip, int lineCount) {
+        addTooltips(tooltip, lineCount, false);
+    }
+
+    /**
+     * Check if player is holding shift key.
+     *
+     * @return true if shift is pressed
+     */
+    @SideOnly(Side.CLIENT)
+    protected boolean isShiftKeyDown() {
+        return net.minecraft.client.gui.GuiScreen.isShiftKeyDown();
+    }
+
+    /**
+     * Check if localization key exists.
+     *
+     * @param key the localization key
+     * @return true if the key has a translation
+     */
+    protected boolean hasLocal(String key) {
+        return ASUtils.canTranslate(key);
     }
 }

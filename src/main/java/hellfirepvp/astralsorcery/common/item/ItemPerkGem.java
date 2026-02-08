@@ -65,6 +65,14 @@ public class ItemPerkGem extends AstralBaseItem {
         return super.getUnlocalizedName() + "." + type.getSuffix();
     }
 
+    @Override
+    public String getItemStackDisplayName(ItemStack stack) {
+        ConstellationType type = ConstellationType.byMetadata(stack.getItemDamage());
+        // Build localization key directly: item.itemperkgem.type.name
+        String key = "item.itemperkgem." + type.getSuffix();
+        return net.minecraft.util.StatCollector.translateToLocal(key);
+    }
+
     @SideOnly(Side.CLIENT)
     @Override
     public void registerIcons(IIconRegister register) {

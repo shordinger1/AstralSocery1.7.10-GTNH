@@ -13,6 +13,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 
@@ -81,6 +82,24 @@ public class BlockCelestialCollectorCrystal extends BlockContainer {
 
     public boolean renderAsNormalBlock() {
         return false; // Special rendering
+    }
+
+    /**
+     * Get collision box
+     * Crystal collision: (0.3, 0, 0.3) to (0.7, 1, 0.7)
+     */
+    @Override
+    public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
+        // Thin tall crystal shape
+        return AxisAlignedBB.getBoundingBox(0.3, 0.0, 0.3, 0.7, 1.0, 0.7);
+    }
+
+    /**
+     * Get selected bounding box (for block outline)
+     */
+    @Override
+    public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
+        return getCollisionBoundingBoxFromPool(world, x, y, z);
     }
 
     public Item getItemDropped(int meta, Random rand, int fortune) {

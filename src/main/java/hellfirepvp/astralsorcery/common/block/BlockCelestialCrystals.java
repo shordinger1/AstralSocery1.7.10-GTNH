@@ -16,6 +16,7 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -174,6 +175,40 @@ public class BlockCelestialCrystals extends BlockContainer {
         int meta = world.getBlockMetadata(x, y, z);
         GrowthStage stage = GrowthStage.byMetadata(meta);
         return stage.getHeight();
+    }
+
+    /**
+     * Get collision box based on growth stage
+     * STAGE_0: (0.3, 0, 0.3) to (0.7, 0.3, 0.7)
+     * STAGE_1: (0.3, 0, 0.3) to (0.7, 0.5, 0.7)
+     * STAGE_2_*: (0.25, 0, 0.25) to (0.75, height, 0.75)
+     */
+    @Override
+    public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
+        int meta = world.getBlockMetadata(x, y, z);
+        GrowthStage stage = GrowthStage.byMetadata(meta);
+
+        float height = stage.getHeight();
+
+        // Base size and height depend on stage
+        if (stage == GrowthStage.STAGE_0) {
+            // Small crystal
+            return AxisAlignedBB.getBoundingBox(0.3, 0.0, 0.3, 0.7, height, 0.7);
+        } else if (stage == GrowthStage.STAGE_1) {
+            // Medium crystal
+            return AxisAlignedBB.getBoundingBox(0.3, 0.0, 0.3, 0.7, height, 0.7);
+        } else {
+            // Large crystal (stage 2 variants)
+            return AxisAlignedBB.getBoundingBox(0.25, 0.0, 0.25, 0.75, height, 0.75);
+        }
+    }
+
+    /**
+     * Get selected bounding box (for block outline)
+     */
+    @Override
+    public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
+        return getCollisionBoundingBoxFromPool(world, x, y, z);
     }
 
     // ========== Light ==========

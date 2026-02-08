@@ -10,6 +10,9 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
 /**
  * Charged Crystal Sword
  * <p>
@@ -50,6 +53,25 @@ public class ItemChargedCrystalSword extends ItemSword {
 
     public boolean getIsRepairable(ItemStack stack, ItemStack material) {
         return false; // Cannot be repaired
+    }
+
+    /**
+     * Get max damage (durability bar)
+     * Return 0 to prevent NEI from showing multiple variants
+     */
+    @Override
+    public int getMaxDamage(ItemStack stack) {
+        return 0;
+    }
+
+    /**
+     * Show durability bar
+     * Charged tools don't use vanilla durability
+     */
+    @Override
+    @SideOnly(Side.CLIENT)
+    public boolean showDurabilityBar(ItemStack stack) {
+        return false;
     }
 
     public boolean hitEntity(ItemStack stack, EntityLivingBase target, EntityLivingBase attacker) {

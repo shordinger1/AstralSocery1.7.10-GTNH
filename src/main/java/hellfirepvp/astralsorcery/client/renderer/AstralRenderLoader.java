@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
  * Astral Sorcery - Minecraft 1.7.10 Port
  *
  * Central Render Loader - Loads all OBJ models and registers renderers
@@ -16,6 +16,40 @@ import net.minecraftforge.client.model.AdvancedModelLoader;
 import net.minecraftforge.client.model.IModelCustom;
 
 import hellfirepvp.astralsorcery.common.util.LogHelper;
+import hellfirepvp.astralsorcery.common.block.BlockBlackMarble;
+import hellfirepvp.astralsorcery.common.block.BlockInfusedWood;
+import hellfirepvp.astralsorcery.common.block.BlockMarble;
+import hellfirepvp.astralsorcery.common.registry.reference.BlocksAS;
+import hellfirepvp.astralsorcery.client.renderer.item.AttunementAltarItemRenderer;
+import hellfirepvp.astralsorcery.client.renderer.item.AttunementRelayItemRenderer;
+import hellfirepvp.astralsorcery.client.renderer.item.BoreItemRenderer;
+import hellfirepvp.astralsorcery.client.renderer.item.ChaliceItemRenderer;
+import hellfirepvp.astralsorcery.client.renderer.item.CollectorCrystalItemRenderer;
+import hellfirepvp.astralsorcery.client.renderer.item.CraftingAltarItemRenderer;
+import hellfirepvp.astralsorcery.client.renderer.item.GatewayItemRenderer;
+import hellfirepvp.astralsorcery.client.renderer.item.GrindstoneItemRenderer;
+import hellfirepvp.astralsorcery.client.renderer.item.LensItemRenderer;
+import hellfirepvp.astralsorcery.client.renderer.item.ObservatoryItemRenderer;
+import hellfirepvp.astralsorcery.client.renderer.item.PillarItemRenderer;
+import hellfirepvp.astralsorcery.client.renderer.item.PrismItemRenderer;
+import hellfirepvp.astralsorcery.client.renderer.item.RitualPedestalItemRenderer;
+import hellfirepvp.astralsorcery.client.renderer.item.StarlightInfuserItemRenderer;
+import hellfirepvp.astralsorcery.client.renderer.item.WellItemRenderer;
+import hellfirepvp.astralsorcery.client.renderer.tile.TESRAttunementAltar;
+import hellfirepvp.astralsorcery.client.renderer.tile.TESRAttunementRelay;
+import hellfirepvp.astralsorcery.client.renderer.tile.TESRBore;
+import hellfirepvp.astralsorcery.client.renderer.tile.TESRCelestialGateway;
+import hellfirepvp.astralsorcery.client.renderer.tile.TESRChalice;
+import hellfirepvp.astralsorcery.client.renderer.tile.TESRCollectorCrystal;
+import hellfirepvp.astralsorcery.client.renderer.tile.TESRCraftingAltar;
+import hellfirepvp.astralsorcery.client.renderer.tile.TESRCrystalLens;
+import hellfirepvp.astralsorcery.client.renderer.tile.TESRGrindstone;
+import hellfirepvp.astralsorcery.client.renderer.tile.TESRObservatory;
+import hellfirepvp.astralsorcery.client.renderer.tile.TESRRitualPedestal;
+import hellfirepvp.astralsorcery.client.renderer.tile.TESRStarlightInfuser;
+import hellfirepvp.astralsorcery.client.renderer.tile.TESRWell;
+
+
 
 /**
  * Central Render Loader for Astral Sorcery
@@ -70,6 +104,11 @@ public class AstralRenderLoader {
         registeredCount += registerCrystalLensTESR();
         registeredCount += registerStarlightInfuserRenderer();
 
+        // Pillar renderers (ISimpleBlockRenderingHandler)
+        registeredCount += registerMarblePillarRenderer();
+        registeredCount += registerBlackMarblePillarRenderer();
+        registeredCount += registerInfusedWoodPillarRenderer();
+
         LogHelper.info("=== Rendering System Complete ===");
         LogHelper.info("Total: " + loadedCount + " models loaded, " + registeredCount + " renderers registered");
         LogHelper.exit("AstralRenderLoader.init");
@@ -99,9 +138,13 @@ public class AstralRenderLoader {
             // Decorative
             "chalice", "lens_full",
 
+            // Pillars (marble, black marble, wood)
+            "marble_pillar", "marble_pillar_top", "marble_pillar_bottom", "marble_black_pillar",
+            "marble_black_pillar_top", "marble_black_pillar_bottom", "infused_wood_column", "infused_wood_column_top",
+            "infused_wood_column_bottom",
+
             // Collector crystal (P0 - starlight network)
-            "collector_crystal",
-        };
+            "collector_crystal", };
 
         for (String modelName : models) {
             if (loadModel(modelName)) {
@@ -153,13 +196,14 @@ public class AstralRenderLoader {
                 "astralsorcery",
                 "textures/models/celestialgateway/platform.png");
 
-            new hellfirepvp.astralsorcery.client.renderer.tile.TESRCelestialGateway(model, texture);
+            new TESRCelestialGateway(model, texture);
 
             // ItemRenderer
-            hellfirepvp.astralsorcery.client.renderer.item.GatewayItemRenderer itemRenderer = new hellfirepvp.astralsorcery.client.renderer.item.GatewayItemRenderer(
+            GatewayItemRenderer itemRenderer = new GatewayItemRenderer(
                 model,
                 texture);
-            Item item = Item.getItemFromBlock(hellfirepvp.astralsorcery.common.registry.reference.BlocksAS.celestialGateway);
+            Item item = Item
+                .getItemFromBlock(BlocksAS.celestialGateway);
             MinecraftForgeClient.registerItemRenderer(item, itemRenderer);
 
             LogHelper.info("✓ Registered CelestialGateway renderer");
@@ -183,13 +227,14 @@ public class AstralRenderLoader {
                 "textures/models/altar/altar_attunement.png");
 
             // Create TESR with model and texture
-            new hellfirepvp.astralsorcery.client.renderer.tile.TESRAttunementAltar(model, texture);
+            new TESRAttunementAltar(model, texture);
 
             // Create and register ItemRenderer
-            hellfirepvp.astralsorcery.client.renderer.item.AttunementAltarItemRenderer itemRenderer = new hellfirepvp.astralsorcery.client.renderer.item.AttunementAltarItemRenderer(
+            AttunementAltarItemRenderer itemRenderer = new AttunementAltarItemRenderer(
                 model,
                 texture);
-            Item item = Item.getItemFromBlock(hellfirepvp.astralsorcery.common.registry.reference.BlocksAS.attunementAltar);
+            Item item = Item
+                .getItemFromBlock(BlocksAS.attunementAltar);
             MinecraftForgeClient.registerItemRenderer(item, itemRenderer);
 
             LogHelper.info("✓ Registered AttunementAltar renderer");
@@ -213,13 +258,14 @@ public class AstralRenderLoader {
                 "textures/models/attunement_relay/attunement_relay.png");
 
             // Create TESR with model and texture
-            new hellfirepvp.astralsorcery.client.renderer.tile.TESRAttunementRelay(model, texture);
+            new TESRAttunementRelay(model, texture);
 
             // Create and register ItemRenderer
-            hellfirepvp.astralsorcery.client.renderer.item.AttunementRelayItemRenderer itemRenderer = new hellfirepvp.astralsorcery.client.renderer.item.AttunementRelayItemRenderer(
+            AttunementRelayItemRenderer itemRenderer = new AttunementRelayItemRenderer(
                 model,
                 texture);
-            Item item = Item.getItemFromBlock(hellfirepvp.astralsorcery.common.registry.reference.BlocksAS.attunementRelay);
+            Item item = Item
+                .getItemFromBlock(BlocksAS.attunementRelay);
             MinecraftForgeClient.registerItemRenderer(item, itemRenderer);
 
             LogHelper.info("✓ Registered AttunementRelay renderer");
@@ -242,13 +288,13 @@ public class AstralRenderLoader {
             ResourceLocation texture = new ResourceLocation("astralsorcery", "textures/models/lightwell/lightwell.png");
 
             // Set static model/texture and register TESR (1.7.10 pattern)
-            hellfirepvp.astralsorcery.client.renderer.tile.TESRWell.setModelAndTexture(model, texture);
+            TESRWell.setModelAndTexture(model, texture);
 
             // Create and register ItemRenderer
-            hellfirepvp.astralsorcery.client.renderer.item.WellItemRenderer itemRenderer = new hellfirepvp.astralsorcery.client.renderer.item.WellItemRenderer(
+            WellItemRenderer itemRenderer = new WellItemRenderer(
                 model,
                 texture);
-            Item item = Item.getItemFromBlock(hellfirepvp.astralsorcery.common.registry.reference.BlocksAS.blockWell);
+            Item item = Item.getItemFromBlock(BlocksAS.blockWell);
             MinecraftForgeClient.registerItemRenderer(item, itemRenderer);
 
             LogHelper.info("✓ Registered StarlightWell renderer");
@@ -269,17 +315,26 @@ public class AstralRenderLoader {
             if (grindstoneModel == null) return 0;
 
             // Use correct texture path from JSON model
-            ResourceLocation grindstoneTexture = new ResourceLocation("astralsorcery", "textures/models/grindstone/grindstone.png");
-            ResourceLocation telescopeTexture = new ResourceLocation("astralsorcery", "textures/models/base/telescope.png");
+            ResourceLocation grindstoneTexture = new ResourceLocation(
+                "astralsorcery",
+                "textures/models/grindstone/grindstone.png");
+            ResourceLocation telescopeTexture = new ResourceLocation(
+                "astralsorcery",
+                "textures/models/base/telescope.png");
 
             // Create TESR with both models (Grindstone + Telescope)
-            new hellfirepvp.astralsorcery.client.renderer.tile.TESRGrindstone(grindstoneModel, grindstoneTexture, telescopeModel, telescopeTexture);
+            new TESRGrindstone(
+                grindstoneModel,
+                grindstoneTexture,
+                telescopeModel,
+                telescopeTexture);
 
             // Create and register ItemRenderer
-            hellfirepvp.astralsorcery.client.renderer.item.GrindstoneItemRenderer itemRenderer = new hellfirepvp.astralsorcery.client.renderer.item.GrindstoneItemRenderer(
+            GrindstoneItemRenderer itemRenderer = new GrindstoneItemRenderer(
                 grindstoneModel,
                 grindstoneTexture);
-            Item item = Item.getItemFromBlock(hellfirepvp.astralsorcery.common.registry.reference.BlocksAS.blockMachine);
+            Item item = Item
+                .getItemFromBlock(BlocksAS.blockMachine);
             MinecraftForgeClient.registerItemRenderer(item, itemRenderer);
 
             LogHelper.info("✓ Registered Grindstone + Telescope renderer");
@@ -299,17 +354,22 @@ public class AstralRenderLoader {
             if (model == null) return 0;
 
             // Observatory uses dual textures
-            ResourceLocation textureBase = new ResourceLocation("astralsorcery", "textures/models/observatory/observatory_base.png");
-            ResourceLocation textureSeatTube = new ResourceLocation("astralsorcery", "textures/models/observatory/observatory_seat_tube.png");
+            ResourceLocation textureBase = new ResourceLocation(
+                "astralsorcery",
+                "textures/models/observatory/observatory_base.png");
+            ResourceLocation textureSeatTube = new ResourceLocation(
+                "astralsorcery",
+                "textures/models/observatory/observatory_seat_tube.png");
 
             // Create TESR with model and dual textures
-            new hellfirepvp.astralsorcery.client.renderer.tile.TESRObservatory(model, textureBase, textureSeatTube);
+            new TESRObservatory(model, textureBase, textureSeatTube);
 
             // Create and register ItemRenderer (uses base texture only)
-            hellfirepvp.astralsorcery.client.renderer.item.ObservatoryItemRenderer itemRenderer = new hellfirepvp.astralsorcery.client.renderer.item.ObservatoryItemRenderer(
+            ObservatoryItemRenderer itemRenderer = new ObservatoryItemRenderer(
                 model,
                 textureBase);
-            Item item = Item.getItemFromBlock(hellfirepvp.astralsorcery.common.registry.reference.BlocksAS.blockObservatory);
+            Item item = Item
+                .getItemFromBlock(BlocksAS.blockObservatory);
             MinecraftForgeClient.registerItemRenderer(item, itemRenderer);
 
             LogHelper.info("✓ Registered Observatory renderer (dual-texture: base + seat_tube)");
@@ -335,15 +395,20 @@ public class AstralRenderLoader {
             }
 
             // Create multi-texture TESR for all tiers
-            new hellfirepvp.astralsorcery.client.renderer.tile.TESRCraftingAltar(
-                modelTier1, modelTier2, modelTier3, modelTier4);
+            new TESRCraftingAltar(
+                modelTier1,
+                modelTier2,
+                modelTier3,
+                modelTier4);
 
             // Create and register ItemRenderer for all 4 tiers
-            hellfirepvp.astralsorcery.client.renderer.item.CraftingAltarItemRenderer itemRenderer =
-                new hellfirepvp.astralsorcery.client.renderer.item.CraftingAltarItemRenderer(
-                    modelTier1, modelTier2, modelTier3, modelTier4,
-                    new ResourceLocation("astralsorcery", "textures/models/altar/altar_1_side.png"));
-            Item item = Item.getItemFromBlock(hellfirepvp.astralsorcery.common.registry.reference.BlocksAS.blockAltar);
+            CraftingAltarItemRenderer itemRenderer = new CraftingAltarItemRenderer(
+                modelTier1,
+                modelTier2,
+                modelTier3,
+                modelTier4,
+                new ResourceLocation("astralsorcery", "textures/models/altar/altar_1_side.png"));
+            Item item = Item.getItemFromBlock(BlocksAS.blockAltar);
             MinecraftForgeClient.registerItemRenderer(item, itemRenderer);
 
             LogHelper.info("✓ Registered CraftingAltar renderer (4 tiers, multi-texture)");
@@ -367,13 +432,14 @@ public class AstralRenderLoader {
                 "textures/models/ritual/ritual_pedestal.png");
 
             // Register TESR for TileRitualPedestal
-            new hellfirepvp.astralsorcery.client.renderer.tile.TESRRitualPedestal(model, texture);
+            new TESRRitualPedestal(model, texture);
 
             // Create and register ItemRenderer
-            hellfirepvp.astralsorcery.client.renderer.item.RitualPedestalItemRenderer itemRenderer = new hellfirepvp.astralsorcery.client.renderer.item.RitualPedestalItemRenderer(
+            RitualPedestalItemRenderer itemRenderer = new RitualPedestalItemRenderer(
                 model,
                 texture);
-            Item item = Item.getItemFromBlock(hellfirepvp.astralsorcery.common.registry.reference.BlocksAS.ritualPedestal);
+            Item item = Item
+                .getItemFromBlock(BlocksAS.ritualPedestal);
             MinecraftForgeClient.registerItemRenderer(item, itemRenderer);
 
             LogHelper.info("✓ Registered RitualPedestal renderer (TESR + ItemRenderer)");
@@ -395,13 +461,13 @@ public class AstralRenderLoader {
             ResourceLocation texture = new ResourceLocation("astralsorcery", "textures/models/bore/bore_side.png");
 
             // Create TESR with model and texture
-            new hellfirepvp.astralsorcery.client.renderer.tile.TESRBore(model, texture);
+            new TESRBore(model, texture);
 
             // Create and register ItemRenderer
-            hellfirepvp.astralsorcery.client.renderer.item.BoreItemRenderer itemRenderer = new hellfirepvp.astralsorcery.client.renderer.item.BoreItemRenderer(
+            BoreItemRenderer itemRenderer = new BoreItemRenderer(
                 model,
                 texture);
-            Item item = Item.getItemFromBlock(hellfirepvp.astralsorcery.common.registry.reference.BlocksAS.blockBore);
+            Item item = Item.getItemFromBlock(BlocksAS.blockBore);
             MinecraftForgeClient.registerItemRenderer(item, itemRenderer);
 
             LogHelper.info("✓ Registered Bore renderer");
@@ -423,10 +489,10 @@ public class AstralRenderLoader {
             ResourceLocation texture = new ResourceLocation("astralsorcery", "textures/models/prism/prism_side.png");
 
             // Create and register ItemRenderer
-            hellfirepvp.astralsorcery.client.renderer.item.PrismItemRenderer itemRenderer = new hellfirepvp.astralsorcery.client.renderer.item.PrismItemRenderer(
+            PrismItemRenderer itemRenderer = new PrismItemRenderer(
                 model,
                 texture);
-            Item item = Item.getItemFromBlock(hellfirepvp.astralsorcery.common.registry.reference.BlocksAS.lensPrism);
+            Item item = Item.getItemFromBlock(BlocksAS.lensPrism);
             MinecraftForgeClient.registerItemRenderer(item, itemRenderer);
 
             LogHelper.info("✓ Registered Prism renderer");
@@ -448,10 +514,10 @@ public class AstralRenderLoader {
             ResourceLocation texture = new ResourceLocation("astralsorcery", "textures/models/lens/lens.png");
 
             // Create and register ItemRenderer
-            hellfirepvp.astralsorcery.client.renderer.item.LensItemRenderer itemRenderer = new hellfirepvp.astralsorcery.client.renderer.item.LensItemRenderer(
+            LensItemRenderer itemRenderer = new LensItemRenderer(
                 model,
                 texture);
-            Item item = Item.getItemFromBlock(hellfirepvp.astralsorcery.common.registry.reference.BlocksAS.lens);
+            Item item = Item.getItemFromBlock(BlocksAS.lens);
             MinecraftForgeClient.registerItemRenderer(item, itemRenderer);
 
             LogHelper.info("✓ Registered Lens renderer");
@@ -476,13 +542,14 @@ public class AstralRenderLoader {
             ResourceLocation texture = new ResourceLocation("astralsorcery", "textures/models/chalice/base.png");
 
             // Register TESR for TileChalice
-            new hellfirepvp.astralsorcery.client.renderer.tile.TESRChalice(model, texture);
+            new TESRChalice(model, texture);
 
             // Create and register ItemRenderer
-            hellfirepvp.astralsorcery.client.renderer.item.ChaliceItemRenderer itemRenderer = new hellfirepvp.astralsorcery.client.renderer.item.ChaliceItemRenderer(
+            ChaliceItemRenderer itemRenderer = new ChaliceItemRenderer(
                 model,
                 texture);
-            Item item = Item.getItemFromBlock(hellfirepvp.astralsorcery.common.registry.reference.BlocksAS.blockChalice);
+            Item item = Item
+                .getItemFromBlock(BlocksAS.blockChalice);
             MinecraftForgeClient.registerItemRenderer(item, itemRenderer);
 
             LogHelper.info("✓ Registered Chalice renderer (TESR + ItemRenderer)");
@@ -494,28 +561,38 @@ public class AstralRenderLoader {
     }
 
     /**
-     * Register Discovery Altar renderer
+     * Register Crafting Altar ItemRenderer (all 4 tiers)
      */
     private static int registerAltarRenderer() {
         try {
-            IModelCustom model = getModel("crafting_altar_tier_1");
-            if (model == null) return 0;
+            IModelCustom modelTier1 = getModel("crafting_altar_tier_1");
+            IModelCustom modelTier2 = getModel("crafting_altar_tier_2");
+            IModelCustom modelTier3 = getModel("crafting_altar_tier_3");
+            IModelCustom modelTier4 = getModel("crafting_altar_tier_4");
 
-            ResourceLocation texture = new ResourceLocation(
-                "astralsorcery",
-                "textures/models/altar/altar_1_side.png");
+            if (modelTier1 == null || modelTier2 == null || modelTier3 == null || modelTier4 == null) {
+                LogHelper.error("✗ Failed to load altar tier models");
+                return 0;
+            }
 
-            // Create and register ItemRenderer
-            hellfirepvp.astralsorcery.client.renderer.item.AltarItemRenderer itemRenderer = new hellfirepvp.astralsorcery.client.renderer.item.AltarItemRenderer(
-                model,
+            // Texture parameter is required by constructor but not used (multi-texture rendering in renderItem)
+            ResourceLocation texture = new ResourceLocation("astralsorcery", "textures/models/altar/altar_1_side.png");
+
+            // Create and register CraftingAltarItemRenderer with all 4 tier models
+            CraftingAltarItemRenderer itemRenderer = new CraftingAltarItemRenderer(
+                modelTier1,
+                modelTier2,
+                modelTier3,
+                modelTier4,
                 texture);
-            Item item = Item.getItemFromBlock(hellfirepvp.astralsorcery.common.registry.reference.BlocksAS.blockAltar);
+
+            Item item = Item.getItemFromBlock(BlocksAS.blockAltar);
             MinecraftForgeClient.registerItemRenderer(item, itemRenderer);
 
-            LogHelper.info("✓ Registered Altar renderer (Discovery Altar)");
+            LogHelper.info("✓ Registered CraftingAltar ItemRenderer (all 4 tiers)");
             return 1;
         } catch (Exception e) {
-            LogHelper.error("✗ Failed to register Altar renderer", e);
+            LogHelper.error("✗ Failed to register Altar ItemRenderer", e);
             return 0;
         }
     }
@@ -528,15 +605,19 @@ public class AstralRenderLoader {
             IModelCustom model = getModel("collector_crystal");
             if (model == null) return 0;
 
-            ResourceLocation texture = new ResourceLocation("astralsorcery", "textures/models/crystal/celestial_cluster_stage_5.png");
+            ResourceLocation texture = new ResourceLocation(
+                "astralsorcery",
+                "textures/blocks/crystal/celestial_cluster_stage_5.png");
 
             // Set static model/texture and register TESR (1.7.10 pattern)
-            hellfirepvp.astralsorcery.client.renderer.tile.TESRCollectorCrystal.setModelAndTexture(model, texture);
+            TESRCollectorCrystal.setModelAndTexture(model, texture);
 
             // Create and register ItemRenderer
-            hellfirepvp.astralsorcery.client.renderer.item.CollectorCrystalItemRenderer itemRenderer =
-                new hellfirepvp.astralsorcery.client.renderer.item.CollectorCrystalItemRenderer(model, texture);
-            Item item = Item.getItemFromBlock(hellfirepvp.astralsorcery.common.registry.reference.BlocksAS.collectorCrystal);
+            CollectorCrystalItemRenderer itemRenderer = new CollectorCrystalItemRenderer(
+                model,
+                texture);
+            Item item = Item
+                .getItemFromBlock(BlocksAS.collectorCrystal);
             MinecraftForgeClient.registerItemRenderer(item, itemRenderer);
 
             LogHelper.info("✓ Registered CollectorCrystal renderer (TESR + ItemRenderer)");
@@ -559,7 +640,7 @@ public class AstralRenderLoader {
             ResourceLocation texture = new ResourceLocation("astralsorcery", "textures/models/lens/lens.png");
 
             // Set static model/texture and register TESR (1.7.10 pattern)
-            hellfirepvp.astralsorcery.client.renderer.tile.TESRCrystalLens.setModelAndTexture(model, texture);
+            TESRCrystalLens.setModelAndTexture(model, texture);
 
             LogHelper.info("✓ Registered CrystalLens TESR (ItemRenderer already registered)");
             return 1;
@@ -577,21 +658,265 @@ public class AstralRenderLoader {
             IModelCustom model = getModel("starlight_infuser");
             if (model == null) return 0;
 
-            ResourceLocation texture = new ResourceLocation("astralsorcery", "textures/models/infuser/infuser.png");
+            ResourceLocation texture = new ResourceLocation(
+                "astralsorcery",
+                "textures/models/starlight_infuser/starlight_infuser.png");
 
             // Set static model/texture and register TESR (1.7.10 pattern)
-            hellfirepvp.astralsorcery.client.renderer.tile.TESRStarlightInfuser.setModelAndTexture(model, texture);
+            TESRStarlightInfuser.setModelAndTexture(model, texture);
 
             // Create and register ItemRenderer
-            hellfirepvp.astralsorcery.client.renderer.item.StarlightInfuserItemRenderer itemRenderer =
-                new hellfirepvp.astralsorcery.client.renderer.item.StarlightInfuserItemRenderer(model, texture);
-            Item item = Item.getItemFromBlock(hellfirepvp.astralsorcery.common.registry.reference.BlocksAS.starlightInfuser);
+            StarlightInfuserItemRenderer itemRenderer = new StarlightInfuserItemRenderer(
+                model,
+                texture);
+            Item item = Item
+                .getItemFromBlock(BlocksAS.starlightInfuser);
             MinecraftForgeClient.registerItemRenderer(item, itemRenderer);
 
             LogHelper.info("✓ Registered StarlightInfuser renderer (TESR + ItemRenderer)");
             return 1;
         } catch (Exception e) {
             LogHelper.error("✗ Failed to register StarlightInfuser renderer", e);
+            return 0;
+        }
+    }
+
+    /**
+     * Register Marble Pillar renderer (ISimpleBlockRenderingHandler)
+     * Uses PillarRenderer with multi-texture support
+     */
+    private static int registerMarblePillarRenderer() {
+        try {
+            // Load pillar models
+            IModelCustom modelPillar = getModel("marble_pillar");
+            IModelCustom modelPillarTop = getModel("marble_pillar_top");
+            IModelCustom modelPillarBottom = getModel("marble_pillar_bottom");
+
+            if (modelPillar == null || modelPillarTop == null || modelPillarBottom == null) {
+                LogHelper.error("✗ Failed to load marble pillar models");
+                return 0;
+            }
+
+            // Get render ID
+            int renderId = cpw.mods.fml.client.registry.RenderingRegistry.getNextAvailableRenderId();
+
+            // Define textures
+            ResourceLocation texTop = new ResourceLocation("astralsorcery", "textures/blocks/marble_pillar_top.png");
+            ResourceLocation texSide = new ResourceLocation("astralsorcery", "textures/blocks/marble_pillar.png");
+            ResourceLocation texBottom = new ResourceLocation(
+                "astralsorcery",
+                "textures/blocks/marble_pillar_bottom.png");
+            ResourceLocation texInner = new ResourceLocation(
+                "astralsorcery",
+                "textures/blocks/marble_pillar_inner.png");
+            ResourceLocation texUpdown = new ResourceLocation(
+                "astralsorcery",
+                "textures/blocks/marble_pillar_updown.png");
+
+            // Create and register block renderer (for world rendering)
+            PillarRenderer renderer = new PillarRenderer(
+                renderId,
+                modelPillar,
+                modelPillarTop,
+                modelPillarBottom,
+                "marble_pillar",
+                texTop,
+                texSide,
+                texBottom,
+                texInner,
+                texUpdown);
+            cpw.mods.fml.client.registry.RenderingRegistry.registerBlockHandler(renderer);
+
+            // Set render ID in BlockMarble so it can return it from getRenderType()
+            BlockMarble.PILLAR_RENDER_ID = renderId;
+
+            // Register ItemRenderer for BlockMarble (for inventory/hand rendering)
+            net.minecraft.item.Item itemMarble = net.minecraft.item.Item
+                .getItemFromBlock(BlocksAS.blockMarble);
+
+            LogHelper
+                .info("  BlockMarble: " + BlocksAS.blockMarble);
+            LogHelper.info("  ItemMarble: " + itemMarble);
+
+            if (itemMarble != null) {
+                PillarItemRenderer itemRenderer = new PillarItemRenderer(
+                    BlocksAS.blockMarble,
+                    modelPillar,
+                    modelPillarTop,
+                    modelPillarBottom,
+                    "marble_pillar",
+                    texTop,
+                    texSide,
+                    texBottom,
+                    texInner,
+                    texUpdown);
+                net.minecraftforge.client.MinecraftForgeClient.registerItemRenderer(itemMarble, itemRenderer);
+                LogHelper.info("✓ Registered Marble Pillar ItemRenderer");
+            } else {
+                LogHelper.error("✗ Failed to register Marble Pillar ItemRenderer - itemMarble is null");
+            }
+
+            LogHelper
+                .info("✓ Registered Marble Pillar renderer (ISimpleBlockRenderingHandler, renderId=" + renderId + ")");
+            return 1;
+        } catch (Exception e) {
+            LogHelper.error("✗ Failed to register Marble Pillar renderer", e);
+            return 0;
+        }
+    }
+
+    /**
+     * Register Black Marble Pillar renderer (ISimpleBlockRenderingHandler)
+     * Uses PillarRenderer with multi-texture support
+     */
+    private static int registerBlackMarblePillarRenderer() {
+        try {
+            // Load pillar models
+            IModelCustom modelPillar = getModel("marble_black_pillar");
+            IModelCustom modelPillarTop = getModel("marble_black_pillar_top");
+            IModelCustom modelPillarBottom = getModel("marble_black_pillar_bottom");
+
+            if (modelPillar == null || modelPillarTop == null || modelPillarBottom == null) {
+                LogHelper.error("✗ Failed to load black marble pillar models");
+                return 0;
+            }
+
+            // Get render ID
+            int renderId = cpw.mods.fml.client.registry.RenderingRegistry.getNextAvailableRenderId();
+
+            // Define textures
+            ResourceLocation texTop = new ResourceLocation(
+                "astralsorcery",
+                "textures/blocks/black_marble_pillar_top.png");
+            ResourceLocation texSide = new ResourceLocation("astralsorcery", "textures/blocks/black_marble_pillar.png");
+            ResourceLocation texBottom = new ResourceLocation(
+                "astralsorcery",
+                "textures/blocks/black_marble_pillar_bottom.png");
+            ResourceLocation texInner = new ResourceLocation(
+                "astralsorcery",
+                "textures/blocks/black_marble_pillar_inner.png");
+            ResourceLocation texUpdown = new ResourceLocation(
+                "astralsorcery",
+                "textures/blocks/black_marble_pillar_updown.png");
+
+            // Create and register block renderer (for world rendering)
+            PillarRenderer renderer = new PillarRenderer(
+                renderId,
+                modelPillar,
+                modelPillarTop,
+                modelPillarBottom,
+                "marble_black_pillar",
+                texTop,
+                texSide,
+                texBottom,
+                texInner,
+                texUpdown);
+            cpw.mods.fml.client.registry.RenderingRegistry.registerBlockHandler(renderer);
+
+            // Set render ID in BlockBlackMarble so it can return it from getRenderType()
+            BlockBlackMarble.PILLAR_RENDER_ID = renderId;
+
+            // Register ItemRenderer for BlockBlackMarble (for inventory/hand rendering)
+            net.minecraft.item.Item itemBlackMarble = net.minecraft.item.Item
+                .getItemFromBlock(BlocksAS.blockBlackMarble);
+
+            if (itemBlackMarble != null) {
+                PillarItemRenderer itemRenderer = new PillarItemRenderer(
+                    BlocksAS.blockBlackMarble,
+                    modelPillar,
+                    modelPillarTop,
+                    modelPillarBottom,
+                    "marble_black_pillar",
+                    texTop,
+                    texSide,
+                    texBottom,
+                    texInner,
+                    texUpdown);
+                net.minecraftforge.client.MinecraftForgeClient.registerItemRenderer(itemBlackMarble, itemRenderer);
+                LogHelper.info("✓ Registered Black Marble Pillar ItemRenderer");
+            }
+
+            LogHelper.info(
+                "✓ Registered Black Marble Pillar renderer (ISimpleBlockRenderingHandler, renderId=" + renderId + ")");
+            return 1;
+        } catch (Exception e) {
+            LogHelper.error("✗ Failed to register Black Marble Pillar renderer", e);
+            return 0;
+        }
+    }
+
+    /**
+     * Register Infused Wood Column renderer (ISimpleBlockRenderingHandler)
+     * Uses PillarRenderer with multi-texture support
+     */
+    private static int registerInfusedWoodPillarRenderer() {
+        try {
+            // Load pillar models
+            IModelCustom modelPillar = getModel("infused_wood_column");
+            IModelCustom modelPillarTop = getModel("infused_wood_column_top");
+            IModelCustom modelPillarBottom = getModel("infused_wood_column_bottom");
+
+            if (modelPillar == null || modelPillarTop == null || modelPillarBottom == null) {
+                LogHelper.error("✗ Failed to load infused wood column models");
+                return 0;
+            }
+
+            // Get render ID
+            int renderId = cpw.mods.fml.client.registry.RenderingRegistry.getNextAvailableRenderId();
+
+            // Define textures
+            ResourceLocation texTop = new ResourceLocation("astralsorcery", "textures/blocks/wood_column_top.png");
+            ResourceLocation texSide = new ResourceLocation("astralsorcery", "textures/blocks/wood_column.png");
+            ResourceLocation texBottom = new ResourceLocation(
+                "astralsorcery",
+                "textures/blocks/wood_column_bottom.png");
+            ResourceLocation texInner = new ResourceLocation("astralsorcery", "textures/blocks/wood_column_inner.png");
+            ResourceLocation texUpdown = new ResourceLocation(
+                "astralsorcery",
+                "textures/blocks/wood_column_updown.png");
+
+            // Create and register block renderer (for world rendering)
+            PillarRenderer renderer = new PillarRenderer(
+                renderId,
+                modelPillar,
+                modelPillarTop,
+                modelPillarBottom,
+                "wood_column",
+                texTop,
+                texSide,
+                texBottom,
+                texInner,
+                texUpdown);
+            cpw.mods.fml.client.registry.RenderingRegistry.registerBlockHandler(renderer);
+
+            // Set render ID in BlockInfusedWood so it can return it from getRenderType()
+            BlockInfusedWood.COLUMN_RENDER_ID = renderId;
+
+            // Register ItemRenderer for BlockInfusedWood (for inventory/hand rendering)
+            net.minecraft.item.Item itemInfusedWood = net.minecraft.item.Item
+                .getItemFromBlock(BlocksAS.blockInfusedWood);
+
+            if (itemInfusedWood != null) {
+                PillarItemRenderer itemRenderer = new PillarItemRenderer(
+                    BlocksAS.blockInfusedWood,
+                    modelPillar,
+                    modelPillarTop,
+                    modelPillarBottom,
+                    "wood_column",
+                    texTop,
+                    texSide,
+                    texBottom,
+                    texInner,
+                    texUpdown);
+                net.minecraftforge.client.MinecraftForgeClient.registerItemRenderer(itemInfusedWood, itemRenderer);
+                LogHelper.info("✓ Registered Infused Wood Column ItemRenderer");
+            }
+
+            LogHelper.info(
+                "✓ Registered Infused Wood Column renderer (ISimpleBlockRenderingHandler, renderId=" + renderId + ")");
+            return 1;
+        } catch (Exception e) {
+            LogHelper.error("✗ Failed to register Infused Wood Column renderer", e);
             return 0;
         }
     }

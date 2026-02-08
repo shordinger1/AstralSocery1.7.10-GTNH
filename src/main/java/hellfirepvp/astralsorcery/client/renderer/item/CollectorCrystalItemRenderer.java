@@ -104,6 +104,10 @@ public class CollectorCrystalItemRenderer implements IItemRenderer {
 
         Minecraft.getMinecraft().renderEngine.bindTexture(this.texture);
 
+        // Apply OBJ model scale - crystal_big.obj uses world coordinates
+        // Needs 0.13x scale to match Minecraft block size
+        GL11.glScalef(0.13F, 0.13F, 0.13F);
+
         if (this.model != null) {
             this.model.renderAll();
         } else {

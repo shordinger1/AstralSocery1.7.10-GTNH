@@ -6,7 +6,8 @@
 
 package hellfirepvp.astralsorcery.client.gui.modularui;
 
-import java.util.UUID;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.world.World;
 
 import com.cleanroommc.modularui.factory.PosGuiData;
 import com.cleanroommc.modularui.screen.ModularPanel;
@@ -23,8 +24,6 @@ import hellfirepvp.astralsorcery.common.data.research.PlayerProgress;
 import hellfirepvp.astralsorcery.common.data.research.ResearchManager;
 import hellfirepvp.astralsorcery.common.tile.TileTelescope;
 import hellfirepvp.astralsorcery.common.util.LogHelper;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.world.World;
 
 /**
  * Telescope GUI - 280x280 constellation viewing interface
@@ -52,15 +51,15 @@ public class TelescopeGui {
     /**
      * Build the Telescope GUI panel
      */
-    public static ModularPanel buildUI(TileTelescope tile,
-                                      PosGuiData guiData,
-                                      PanelSyncManager guiSyncManager,
-                                      UISettings settings) {
-        LogHelper.info("[TelescopeGui] Building Telescope GUI at " + tile.xCoord + "," + tile.yCoord + "," + tile.zCoord);
+    public static ModularPanel buildUI(TileTelescope tile, PosGuiData guiData, PanelSyncManager guiSyncManager,
+        UISettings settings) {
+        LogHelper
+            .info("[TelescopeGui] Building Telescope GUI at " + tile.xCoord + "," + tile.yCoord + "," + tile.zCoord);
 
         // Sync rotation value
         IntSyncValue rotationValue = new IntSyncValue(
-            () -> tile.getRotation().ordinal(),
+            () -> tile.getRotation()
+                .ordinal(),
             val -> tile.setRotation(TileTelescope.TelescopeRotation.values()[val]));
         guiSyncManager.syncValue("rotation", rotationValue);
 
@@ -87,14 +86,12 @@ public class TelescopeGui {
 
         // Add background texture
         panel.child(
-            TelescopeGuiTextures.BACKGROUND
-                .asWidget()
+            TelescopeGuiTextures.BACKGROUND.asWidget()
                 .pos(0, 0)
                 .size(280, 280));
 
         // Add sky render widget (main viewing area)
-        SkyRenderWidget skyWidget = new SkyRenderWidget()
-            .pos(20, 20)
+        SkyRenderWidget skyWidget = new SkyRenderWidget().pos(20, 20)
             .size(240, 240)
             .setTelescope(tile)
             .setPlayerProgress(progress)
@@ -104,8 +101,7 @@ public class TelescopeGui {
 
         // Add rotation buttons
         panel.child(
-            new ButtonWidget<>()
-                .pos(10, 230)
+            new ButtonWidget<>().pos(10, 230)
                 .size(40, 20)
                 .overlay(TelescopeGuiTextures.ARROW_CCW)
                 .onMousePressed(mouseButton -> {
@@ -121,8 +117,7 @@ public class TelescopeGui {
                 }));
 
         panel.child(
-            new ButtonWidget<>()
-                .pos(230, 230)
+            new ButtonWidget<>().pos(230, 230)
                 .size(40, 20)
                 .overlay(TelescopeGuiTextures.ARROW_CW)
                 .onMousePressed(mouseButton -> {
@@ -143,12 +138,11 @@ public class TelescopeGui {
     /**
      * Handle constellation click - attempt discovery
      *
-     * @param player       The player
-     * @param world        The world
+     * @param player        The player
+     * @param world         The world
      * @param constellation The constellation that was clicked
      */
-    private static void onConstellationClicked(EntityPlayer player, World world,
-                                                IConstellation constellation) {
+    private static void onConstellationClicked(EntityPlayer player, World world, IConstellation constellation) {
         LogHelper.info("[TelescopeGui] Constellation clicked: " + constellation.getUnlocalizedName());
 
         // Check if constellation is currently visible
@@ -203,9 +197,7 @@ public class TelescopeGui {
             .size(280, 280)
             .align(Alignment.Center);
 
-        panel.child(
-            new com.cleanroommc.modularui.widgets.TextWidget(errorMessage)
-                .pos(10, 10));
+        panel.child(new com.cleanroommc.modularui.widgets.TextWidget(errorMessage).pos(10, 10));
 
         return panel;
     }

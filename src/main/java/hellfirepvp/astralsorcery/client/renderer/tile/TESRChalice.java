@@ -73,14 +73,22 @@ public class TESRChalice extends AstralBaseTESR {
         }
 
         if (!(te instanceof TileChalice)) {
-            LogHelper.warn("[TESRChalice] TileEntity is not a TileChalice: " + te.getClass().getName());
+            LogHelper.warn(
+                "[TESRChalice] TileEntity is not a TileChalice: " + te.getClass()
+                    .getName());
             return;
         }
 
         TileChalice chalice = (TileChalice) te;
 
-        LogHelper.debug(String.format("[TESRChalice] Rendering at x=%.2f y=%.2f z=%.2f, model=%s, texture=%s",
-            x, y, z, model != null ? "loaded" : "NULL", texture != null ? texture.toString() : "NULL"));
+        LogHelper.debug(
+            String.format(
+                "[TESRChalice] Rendering at x=%.2f y=%.2f z=%.2f, model=%s, texture=%s",
+                x,
+                y,
+                z,
+                model != null ? "loaded" : "NULL",
+                texture != null ? texture.toString() : "NULL"));
 
         // Render the base chalice model
         if (model != null) {
@@ -107,6 +115,9 @@ public class TESRChalice extends AstralBaseTESR {
             // Enable proper lighting and face culling
             GL11.glEnable(GL11.GL_LIGHTING);
             GL11.glEnable(GL11.GL_CULL_FACE);
+
+            // Scale the model - 1.12.2 uses 0.9
+            GL11.glScaled(0.9, 0.9, 0.9);
 
             // Set full brightness
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);

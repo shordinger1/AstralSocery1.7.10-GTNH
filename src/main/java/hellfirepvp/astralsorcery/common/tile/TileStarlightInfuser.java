@@ -13,8 +13,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
-import hellfirepvp.astralsorcery.common.registry.reference.BlocksAS;
-import hellfirepvp.astralsorcery.common.registry.reference.ItemsAS;
 import hellfirepvp.astralsorcery.common.tile.base.TileEntityTick;
 import hellfirepvp.astralsorcery.common.util.LogHelper;
 
@@ -30,6 +28,7 @@ import hellfirepvp.astralsorcery.common.util.LogHelper;
  * </ul>
  * <p>
  * <b>Usage:</b>
+ * 
  * <pre>
  * // Build multiblock structure
  * // Place crystal to infuse in slot
@@ -192,8 +191,7 @@ public class TileStarlightInfuser extends TileEntityTick {
 
         if (found != this.hasMultiblock) {
             this.hasMultiblock = found;
-            LogHelper.debug("Infuser multiblock state: %s at [%d,%d,%d]",
-                found, xCoord, yCoord, zCoord);
+            LogHelper.debug("Infuser multiblock state: %s at [%d,%d,%d]", found, xCoord, yCoord, zCoord);
             markForUpdate();
         }
     }
@@ -236,8 +234,7 @@ public class TileStarlightInfuser extends TileEntityTick {
             xCoord + 0.5,
             yCoord + 1.2,
             zCoord + 0.5,
-            stack
-        );
+            stack);
 
         entityItem.delayBeforeCanPickup = 10;
         worldObj.spawnEntityInWorld(entityItem);
@@ -302,8 +299,7 @@ public class TileStarlightInfuser extends TileEntityTick {
      */
     public static void addRecipe(Item input, ItemStack output) {
         RECIPES.put(input, output);
-        LogHelper.info("Added infusion recipe: %s -> %s",
-            input.getUnlocalizedName(), output.getUnlocalizedName());
+        LogHelper.info("Added infusion recipe: %s -> %s", input.getUnlocalizedName(), output.getUnlocalizedName());
     }
 
     // ========== NBT ==========
@@ -348,7 +344,12 @@ public class TileStarlightInfuser extends TileEntityTick {
     protected void onFirstTick() {
         updateSkyState();
         updateMultiblockState();
-        LogHelper.debug("Infuser initialized at [%d,%d,%d], multiblock: %s, seesSky: %s",
-            xCoord, yCoord, zCoord, hasMultiblock, canSeeSky);
+        LogHelper.debug(
+            "Infuser initialized at [%d,%d,%d], multiblock: %s, seesSky: %s",
+            xCoord,
+            yCoord,
+            zCoord,
+            hasMultiblock,
+            canSeeSky);
     }
 }

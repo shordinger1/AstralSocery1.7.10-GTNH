@@ -58,6 +58,16 @@ public class ItemCraftingComponent extends AstralBaseItem {
                 .toLowerCase();
     }
 
+    @Override
+    public String getItemStackDisplayName(ItemStack stack) {
+        int meta = stack.getItemDamage();
+        MetaType type = MetaType.values()[meta];
+        // Build localization key directly: item.itemcraftingcomponent.type.name
+        String key = "item.itemcraftingcomponent." + type.name()
+            .toLowerCase();
+        return net.minecraft.util.StatCollector.translateToLocal(key);
+    }
+
     @SideOnly(Side.CLIENT)
     @Override
     public void getSubItems(Item item, CreativeTabs tab, List<ItemStack> list) {

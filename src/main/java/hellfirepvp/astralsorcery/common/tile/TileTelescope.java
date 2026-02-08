@@ -8,6 +8,8 @@
 
 package hellfirepvp.astralsorcery.common.tile;
 
+import net.minecraft.nbt.NBTTagCompound;
+
 import com.cleanroommc.modularui.api.IGuiHolder;
 import com.cleanroommc.modularui.factory.PosGuiData;
 import com.cleanroommc.modularui.screen.ModularPanel;
@@ -17,7 +19,6 @@ import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import hellfirepvp.astralsorcery.client.gui.modularui.TelescopeGuiFactory;
 import hellfirepvp.astralsorcery.common.tile.base.TileEntitySynchronized;
 import hellfirepvp.astralsorcery.common.util.LogHelper;
-import net.minecraft.nbt.NBTTagCompound;
 
 /**
  * TileTelescope - Telescope TileEntity (1.7.10)

@@ -22,6 +22,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.common.entity.EntityCrystalTool;
 import hellfirepvp.astralsorcery.common.item.crystal.CrystalProperties;
 import hellfirepvp.astralsorcery.common.item.crystal.ToolCrystalProperties;
+import hellfirepvp.astralsorcery.common.util.LocalizationHelper;
 
 /**
  * ItemCrystalToolBase - Crystal tool base (1.7.10)
@@ -122,12 +123,22 @@ public abstract class ItemCrystalToolBase extends ItemTool {
         ToolCrystalProperties.setToolProperties(stack, properties);
     }
 
+    /**
+     * Add tooltip information for crystal tools.
+     * <p>
+     * Shows crystal properties when advanced tooltips are enabled (F3+H).
+     * Also shows general tooltip from language files.
+     */
     @Override
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced) {
+        // Add general tooltip from language files
+        LocalizationHelper.addItemTooltip(stack, tooltip, 3, true);
+
+        // Show crystal properties when advanced tooltips are enabled (F3+H)
         ToolCrystalProperties prop = ItemCrystalToolBase.getToolProperties(stack);
         if (prop != null && advanced) {
-            tooltip.add("\u00a7Crystal Attributes:");
+            tooltip.add("§7" + LocalizationHelper.tr("item.crystaltool.properties"));
             CrystalProperties.addPropertyTooltip(prop, tooltip, getMaxSize(stack));
         }
     }
@@ -216,14 +227,14 @@ public abstract class ItemCrystalToolBase extends ItemTool {
         ToolCrystalProperties prop = ItemCrystalToolBase.getToolProperties(stack);
         if (prop == null) {
             // No properties yet, initialize
-            // Use super.setDamage() to avoid infinite recursion
-            super.setDamage(stack, stack.getMaxDamage());
+            // Don't set vanilla damage since getMaxDamage() returns 0
             return;
         }
 
         if (prop.getSize() <= 0) {
             // Tool broken
-            super.setDamage(stack, stack.getMaxDamage());
+            // Don't set vanilla damage since getMaxDamage() returns 0
+            // Tool will be unusable due to size check elsewhere
             return;
         }
 
@@ -250,23 +261,71 @@ public abstract class ItemCrystalToolBase extends ItemTool {
                     }
                 }
             }
+
+            // Check if tool should break early
+            if (prop.getSize() <= 0) {
+                break;
+            }
         }
 
         ItemCrystalToolBase.setToolProperties(stack, prop);
 
         // Check if tool should break
         if (prop.getSize() <= 0) {
-            super.setDamage(stack, stack.getMaxDamage());
+            // Tool broken - don't set vanilla damage
+            // Tool will be unusable due to size <= 0
         }
     }
 
     /**
      * Get max damage (durability bar)
-     * 1.7.10: Tools have 10 "durability" points
+     * Return 0 to indicate this item doesn't use vanilla durability
+     * Crystal tools use NBT-based fracturation instead
+     * <p>
+     * IMPORTANT: This prevents NEI from showing multiple durability variants
      */
     @Override
     public int getMaxDamage(ItemStack stack) {
-        return 10;
+        return 0;
+    }
+
+    /**
+     * Show durability bar
+     * Crystal tools don't use vanilla durability, so never show the bar
+     */
+    @Override
+    @SideOnly(Side.CLIENT)
+    public boolean showDurabilityBar(ItemStack stack) {
+        return false;
+    }
+
+    // ========== Icon Registration (1.7.10) ==========
+
+    /**
+     * Register icons for crystal tools
+     * In 1.7.10, ItemTool subclasses need to explicitly register icons
+     */
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void registerIcons(net.minecraft.client.renderer.texture.IIconRegister register) {
+        // Get the texture name that was set by setTextureName() in RegistryItems
+        String iconString = this.getIconString();
+        if (iconString != null) {
+            this.itemIcon = register.registerIcon(iconString);
+        } else {
+            // Fallback: use unlocalizedName without "item." prefix
+            String unlocalized = this.getUnlocalizedName();
+            if (unlocalized.startsWith("item.")) {
+                unlocalized = unlocalized.substring(5);
+            }
+            this.itemIcon = register.registerIcon("astralsorcery:" + unlocalized);
+        }
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public net.minecraft.util.IIcon getIconFromDamage(int damage) {
+        return this.itemIcon;
     }
 
 }

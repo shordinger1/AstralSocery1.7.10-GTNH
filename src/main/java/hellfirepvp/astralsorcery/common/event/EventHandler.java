@@ -47,7 +47,8 @@ public class EventHandler {
         LogHelper.debug("Registered PlayerProgressProperties for " + player.getCommandSenderName());
 
         // Load player research progress from extended properties
-        PlayerProgress progress = hellfirepvp.astralsorcery.common.data.research.PlayerProgressProperties.getProgress(player);
+        PlayerProgress progress = hellfirepvp.astralsorcery.common.data.research.PlayerProgressProperties
+            .getProgress(player);
 
         // Also cache in ResearchManager
         ResearchManager.getProgress(player);

@@ -6,7 +6,7 @@
 
 package hellfirepvp.astralsorcery.common.tile;
 
-import java.util.UUID;
+import net.minecraft.nbt.NBTTagCompound;
 
 import com.cleanroommc.modularui.api.IGuiHolder;
 import com.cleanroommc.modularui.factory.PosGuiData;
@@ -16,7 +16,6 @@ import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 
 import hellfirepvp.astralsorcery.client.gui.modularui.ObservatoryGuiFactory;
 import hellfirepvp.astralsorcery.common.tile.base.TileEntityTick;
-import net.minecraft.nbt.NBTTagCompound;
 
 /**
  * TileObservatory - Observatory TileEntity (1.7.10)

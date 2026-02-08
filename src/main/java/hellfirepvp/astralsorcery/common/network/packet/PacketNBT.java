@@ -161,8 +161,7 @@ public class PacketNBT extends AbstractPacket {
             }
 
             try {
-                hellfirepvp.astralsorcery.common.data.research.PlayerProgress progress =
-                    new hellfirepvp.astralsorcery.common.data.research.PlayerProgress();
+                hellfirepvp.astralsorcery.common.data.research.PlayerProgress progress = new hellfirepvp.astralsorcery.common.data.research.PlayerProgress();
                 progress.load(data);
 
                 // Update client progress

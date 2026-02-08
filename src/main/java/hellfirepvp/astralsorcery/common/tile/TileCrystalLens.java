@@ -31,6 +31,7 @@ import hellfirepvp.astralsorcery.common.util.LogHelper;
  * - Efficiency: decreases with distance (1.0 at 0 blocks, 0.5 at 16 blocks)
  * <p>
  * <b>Usage:</b>
+ * 
  * <pre>
  * // Place lens facing towards altar
  * // Lens will pull from behind (collector)
@@ -97,13 +98,20 @@ public class TileCrystalLens extends TileEntityTick {
      */
     private ForgeDirection getDirectionFromMetadata(int meta) {
         switch (meta) {
-            case 0: return ForgeDirection.DOWN;
-            case 1: return ForgeDirection.UP;
-            case 2: return ForgeDirection.NORTH;
-            case 3: return ForgeDirection.SOUTH;
-            case 4: return ForgeDirection.WEST;
-            case 5: return ForgeDirection.EAST;
-            default: return ForgeDirection.UP;
+            case 0:
+                return ForgeDirection.DOWN;
+            case 1:
+                return ForgeDirection.UP;
+            case 2:
+                return ForgeDirection.NORTH;
+            case 3:
+                return ForgeDirection.SOUTH;
+            case 4:
+                return ForgeDirection.WEST;
+            case 5:
+                return ForgeDirection.EAST;
+            default:
+                return ForgeDirection.UP;
         }
     }
 
@@ -150,8 +158,15 @@ public class TileCrystalLens extends TileEntityTick {
                     bufferedStarlight += pulled;
 
                     if (pulled > 0) {
-                        LogHelper.debug("Lens at [%d,%d,%d] pulled %.1f starlight from collector at [%d,%d,%d]",
-                            xCoord, yCoord, zCoord, pulled, x, y, z);
+                        LogHelper.debug(
+                            "Lens at [%d,%d,%d] pulled %.1f starlight from collector at [%d,%d,%d]",
+                            xCoord,
+                            yCoord,
+                            zCoord,
+                            pulled,
+                            x,
+                            y,
+                            z);
                     }
 
                     // Only pull from one source per tick
@@ -193,8 +208,16 @@ public class TileCrystalLens extends TileEntityTick {
                     bufferedStarlight -= pushed;
 
                     if (pushed > 0) {
-                        LogHelper.debug("Lens at [%d,%d,%d] pushed %.1f starlight to [%d,%d,%d] (efficiency: %.2f)",
-                            xCoord, yCoord, zCoord, pushed, x, y, z, efficiency);
+                        LogHelper.debug(
+                            "Lens at [%d,%d,%d] pushed %.1f starlight to [%d,%d,%d] (efficiency: %.2f)",
+                            xCoord,
+                            yCoord,
+                            zCoord,
+                            pushed,
+                            x,
+                            y,
+                            z,
+                            efficiency);
                     }
 
                     // Only push to one target per tick
@@ -233,7 +256,7 @@ public class TileCrystalLens extends TileEntityTick {
     /**
      * Push starlight to a consumer
      *
-     * @param te Consumer tile entity
+     * @param te     Consumer tile entity
      * @param amount Amount to push
      * @return Amount actually pushed
      */
@@ -331,7 +354,6 @@ public class TileCrystalLens extends TileEntityTick {
     @Override
     protected void onFirstTick() {
         updateFacing();
-        LogHelper.debug("Lens initialized at [%d,%d,%d], facing: %s",
-            xCoord, yCoord, zCoord, facing);
+        LogHelper.debug("Lens initialized at [%d,%d,%d], facing: %s", xCoord, yCoord, zCoord, facing);
     }
 }

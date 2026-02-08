@@ -6,12 +6,12 @@
 
 package hellfirepvp.astralsorcery.common.structure;
 
+import net.minecraft.world.World;
+
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 
-import hellfirepvp.astralsorcery.common.registry.reference.BlocksAS;
 import hellfirepvp.astralsorcery.common.util.LogHelper;
-import net.minecraft.world.World;
 
 /**
  * Structure Checker - Multiblock structure validation (1.7.10)
@@ -24,7 +24,9 @@ import net.minecraft.world.World;
  * </ul>
  * <p>
  * <b>Usage:</b>
+ * 
  * <pre>
+ * 
  * boolean formed = StructureChecker.checkAltar(world, x, y, z, AltarLevel.ATTUNEMENT);
  * </pre>
  */
@@ -34,9 +36,9 @@ public class StructureChecker {
      * Check altar structure by level
      *
      * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x     X coordinate
+     * @param y     Y coordinate
+     * @param z     Z coordinate
      * @param level Altar level (0=DISCOVERY, 1=ATTUNEMENT, 2=CONSTELLATION, 3=TRAIT, 4=BRILLIANCE)
      * @return true if structure is complete
      */
@@ -53,9 +55,9 @@ public class StructureChecker {
      * Check starlight infuser structure
      *
      * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x     X coordinate
+     * @param y     Y coordinate
+     * @param z     Z coordinate
      * @return true if structure is complete
      */
     public static boolean checkInfuserStructure(World world, int x, int y, int z) {
@@ -66,9 +68,9 @@ public class StructureChecker {
      * Check collector relay structure
      *
      * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x     X coordinate
+     * @param y     Y coordinate
+     * @param z     Z coordinate
      * @return true if structure is complete
      */
     public static boolean checkRelayStructure(World world, int x, int y, int z) {
@@ -79,9 +81,9 @@ public class StructureChecker {
      * Check celestial gateway structure
      *
      * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x     X coordinate
+     * @param y     Y coordinate
+     * @param z     Z coordinate
      * @return true if structure is complete
      */
     public static boolean checkGatewayStructure(World world, int x, int y, int z) {
@@ -92,9 +94,9 @@ public class StructureChecker {
      * Check ritual pedestal structure
      *
      * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x     X coordinate
+     * @param y     Y coordinate
+     * @param z     Z coordinate
      * @return true if structure is complete
      */
     public static boolean checkPedestalStructure(World world, int x, int y, int z) {
@@ -105,10 +107,10 @@ public class StructureChecker {
      * Generic structure check method
      *
      * @param definition The structure definition
-     * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param world      The world
+     * @param x          X coordinate
+     * @param y          Y coordinate
+     * @param z          Z coordinate
      * @return true if structure is complete
      */
     private static boolean checkStructure(IStructureDefinition<?> definition, World world, int x, int y, int z) {
@@ -120,8 +122,12 @@ public class StructureChecker {
                 "main", // piece name
                 world,
                 ExtendedFacing.SOUTH_NORMAL_NONE,
-                x, y, z,
-                0, 0, 0, // offsets
+                x,
+                y,
+                z,
+                0,
+                0,
+                0, // offsets
                 false // forceCheckAll
             );
             return formed;
@@ -135,9 +141,9 @@ public class StructureChecker {
      * Check ancient shrine structure
      *
      * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x     X coordinate
+     * @param y     Y coordinate
+     * @param z     Z coordinate
      * @return true if structure is complete
      */
     public static boolean checkAncientShrine(World world, int x, int y, int z) {
@@ -148,9 +154,9 @@ public class StructureChecker {
      * Check small shrine structure
      *
      * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x     X coordinate
+     * @param y     Y coordinate
+     * @param z     Z coordinate
      * @return true if structure is complete
      */
     public static boolean checkSmallShrine(World world, int x, int y, int z) {

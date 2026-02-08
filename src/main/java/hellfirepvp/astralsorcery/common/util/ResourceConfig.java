@@ -172,6 +172,18 @@ public final class ResourceConfig {
                     "shifting_star_enhanced_vicio" // 6
                 }));
 
+        // Cape (wearable)
+        ITEM_ICONS.put("itemcape", new IconConfig("mantle"));
+
+        // Enchantment Amulet
+        ITEM_ICONS.put("itemenchantmentamulet", new IconConfig("amulet"));
+
+        // Special Tools (Phase 5)
+        ITEM_ICONS.put("itemrosebranchbow", new IconConfig("bow_rose"));
+        ITEM_ICONS.put("itemlinkingtool", new IconConfig("linktool"));
+        ITEM_ICONS.put("itemskyresonator", new IconConfig("resonator_starlight"));
+        ITEM_ICONS.put("itemsextant", new IconConfig("sextant"));
+
         // ==================== BLOCKS ====================
 
         // Custom Ores (2 variants)

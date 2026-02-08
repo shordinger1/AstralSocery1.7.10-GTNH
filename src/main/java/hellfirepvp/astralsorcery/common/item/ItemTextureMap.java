@@ -101,6 +101,19 @@ public final class ItemTextureMap {
         // Other
         TEXTURE_MAP.put("iteminfusedglass", "glass_infused");
         TEXTURE_MAP.put("iteminfusedglass.active", "glass_infused_engraved");
+
+        // === Missing Mappings ===
+        // Linking Tool
+        TEXTURE_MAP.put("itemlinkingtool", "linktool");
+
+        // Rose Branch Bow
+        TEXTURE_MAP.put("itemrosebranchbow", "bow_rose");
+
+        // Sextant
+        TEXTURE_MAP.put("itemsextant", "sextant");
+
+        // Sky Resonator
+        TEXTURE_MAP.put("itemskyresonator", "resonator_starlight");
     }
 
     /**

@@ -36,6 +36,7 @@ public class ItemBlockAltar extends ItemBlock {
         if (meta < 0 || meta >= 5) {
             meta = 0;
         }
-        return super.getUnlocalizedName() + "." + meta;
+        // Language files use altar_1, altar_2, etc. (1-based indexing)
+        return super.getUnlocalizedName() + ".altar_" + (meta + 1);
     }
 }

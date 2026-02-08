@@ -18,6 +18,7 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -179,17 +180,59 @@ public class BlockGemCrystals extends BlockContainer implements BlockCustomName,
     /**
      * Is this a full block?
      */
+    @Override
     public boolean isOpaqueCube() {
         return false;
-
     }
 
     /**
      * Does this block render normally?
      */
+    @Override
     public boolean renderAsNormalBlock() {
         return false;
+    }
 
+    /**
+     * Get collision box based on growth stage
+     * STAGE_0: (0.25, 0, 0.25) to (0.75, 0.375, 0.75)
+     * STAGE_1: (0.25, 0, 0.25) to (0.75, 0.5, 0.75)
+     * STAGE_2_*: (0.25, 0, 0.25) to (0.75, 0.5625, 0.75)
+     */
+    @Override
+    public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
+        int meta = world.getBlockMetadata(x, y, z);
+        CrystalStage stage = CrystalStage.byMetadata(meta);
+
+        double minY = 0.0;
+        double maxY;
+
+        switch (stage) {
+            case STAGE_0:
+                maxY = 0.375;
+                break;
+            case STAGE_1:
+                maxY = 0.5;
+                break;
+            case STAGE_2_SKY:
+            case STAGE_2_DAY:
+            case STAGE_2_NIGHT:
+                maxY = 0.5625;
+                break;
+            default:
+                maxY = 0.375;
+                break;
+        }
+
+        return AxisAlignedBB.getBoundingBox(0.25, minY, 0.25, 0.75, maxY, 0.75);
+    }
+
+    /**
+     * Get selected bounding box (for block outline)
+     */
+    @Override
+    public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
+        return getCollisionBoundingBoxFromPool(world, x, y, z);
     }
 
     /**

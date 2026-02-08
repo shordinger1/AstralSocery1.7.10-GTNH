@@ -131,8 +131,11 @@ public class PerkEventHandler {
             PlayerProgress progress = ResearchManager.getProgress(player);
             if (progress != null) {
                 // Check for night vision perk (cst_ulteria)
-                for (hellfirepvp.astralsorcery.common.constellation.perk.AbstractPerk perk : progress.getUnlockedPerkData().keySet()) {
-                    if (perk.getRegistryName().equals("cst_ulteria")) {
+                for (hellfirepvp.astralsorcery.common.constellation.perk.AbstractPerk perk : progress
+                    .getUnlockedPerkData()
+                    .keySet()) {
+                    if (perk.getRegistryName()
+                        .equals("cst_ulteria")) {
                         // Re-apply night vision
                         perk.applyPerk(player, cpw.mods.fml.relauncher.Side.SERVER);
                         lastNightVisionTick.put(uuid, currentTick);

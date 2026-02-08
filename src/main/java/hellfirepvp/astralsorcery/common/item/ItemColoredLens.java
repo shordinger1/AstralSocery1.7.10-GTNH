@@ -21,6 +21,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.common.base.AstralBaseItem;
 import hellfirepvp.astralsorcery.common.util.IconHelper;
+import hellfirepvp.astralsorcery.common.util.LocalizationHelper;
 
 /**
  * Colored Lens Item
@@ -183,6 +184,34 @@ public class ItemColoredLens extends AstralBaseItem {
                 return WHITE;
             }
             return values()[meta];
+        }
+    }
+
+    // ========================================================================
+    // Tooltip Support
+    // ========================================================================
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced) {
+        // Add general tooltip from language file
+        LocalizationHelper.addItemTooltip(stack, tooltip, 2, false);
+
+        // Add color-specific effect
+        int dmg = stack.getItemDamage();
+        if (dmg >= 0 && dmg < LensColor.values().length) {
+            LensColor color = LensColor.values()[dmg];
+            String colorKey = "item.itemcoloredlens.effect." + color.name()
+                .toLowerCase() + ".name";
+            String colorEffect = LocalizationHelper.tr(colorKey);
+            if (!colorEffect.equals(colorKey)) {
+                tooltip.add("§7" + colorEffect);
+            }
+        }
+
+        // Show engraved status
+        if (isEngraved(stack)) {
+            tooltip.add("§b" + LocalizationHelper.tr("item.itemcoloredlens.engraved"));
         }
     }
 }

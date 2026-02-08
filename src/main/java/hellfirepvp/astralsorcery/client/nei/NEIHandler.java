@@ -11,8 +11,8 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import hellfirepvp.astralsorcery.common.registry.reference.BlocksAS;
 import hellfirepvp.astralsorcery.common.lib.Constants;
+import hellfirepvp.astralsorcery.common.registry.reference.BlocksAS;
 
 /**
  * NEI Handler for Astral Sorcery

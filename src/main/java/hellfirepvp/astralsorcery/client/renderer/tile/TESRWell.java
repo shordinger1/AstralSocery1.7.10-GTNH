@@ -79,9 +79,8 @@ public class TESRWell extends AstralBaseTESR {
 
         if (model != null) {
             try {
-                cpw.mods.fml.client.registry.ClientRegistry.bindTileEntitySpecialRenderer(
-                    TileWell.class,
-                    new TESRWell());
+                cpw.mods.fml.client.registry.ClientRegistry
+                    .bindTileEntitySpecialRenderer(TileWell.class, new TESRWell());
                 hellfirepvp.astralsorcery.common.util.LogHelper
                     .info("[TESRWell] Registered TESR with OBJ model support (static storage)");
             } catch (Exception e) {
@@ -104,8 +103,8 @@ public class TESRWell extends AstralBaseTESR {
         // Debug log to confirm TESR is being called
         hellfirepvp.astralsorcery.common.util.LogHelper.debug(
             "[TESRWell] renderTileEntityAt called at [" + well.xCoord + ", " + well.yCoord + ", " + well.zCoord + "]");
-        hellfirepvp.astralsorcery.common.util.LogHelper.debug(
-            "[TESRWell] Model is " + (this.model != null ? "NOT NULL" : "NULL"));
+        hellfirepvp.astralsorcery.common.util.LogHelper
+            .debug("[TESRWell] Model is " + (this.model != null ? "NOT NULL" : "NULL"));
 
         // Render OBJ model if available
         if (this.model != null) {

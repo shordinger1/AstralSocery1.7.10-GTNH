@@ -384,7 +384,7 @@ public class ResearchManager {
      * Discover multiple constellations at once
      *
      * @param constellations The constellations to discover
-     * @param player        The player
+     * @param player         The player
      * @return true if successful
      */
     public static boolean discoverConstellations(java.util.Collection<IConstellation> constellations,

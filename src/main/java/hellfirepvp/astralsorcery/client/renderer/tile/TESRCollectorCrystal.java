@@ -124,8 +124,13 @@ public class TESRCollectorCrystal extends TileEntitySpecialRenderer {
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
 
-        // Scale the model slightly
-        GL11.glScaled(1.0, 1.0, 1.0);
+        // Center the model in the block BEFORE scaling
+        // This centers the model within the block space
+        GL11.glTranslatef(0.5F, 0.5F, 0.5F);
+
+        // Scale the model - OBJ models are ~16x larger than JSON models
+        // collector_crystal.obj uses world coordinates, needs to scale down to Minecraft block size
+        GL11.glScalef(0.13F, 0.13F, 0.13F);
 
         // Bind texture
         this.bindTexture(this.texture);

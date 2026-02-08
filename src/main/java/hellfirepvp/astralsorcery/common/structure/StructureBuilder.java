@@ -6,11 +6,12 @@
 
 package hellfirepvp.astralsorcery.common.structure;
 
+import net.minecraft.world.World;
+
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 
 import hellfirepvp.astralsorcery.common.util.LogHelper;
-import net.minecraft.world.World;
 
 /**
  * Structure Builder - Multiblock structure construction (1.7.10)
@@ -23,6 +24,7 @@ import net.minecraft.world.World;
  * </ul>
  * <p>
  * <b>Usage:</b>
+ * 
  * <pre>
  * StructureBuilder.buildAltar(world, x, y, z, AltarLevel.ATTUNEMENT);
  * </pre>
@@ -40,9 +42,9 @@ public class StructureBuilder {
      * Build altar structure by level
      *
      * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x     X coordinate
+     * @param y     Y coordinate
+     * @param z     Z coordinate
      * @param level Altar level (0=DISCOVERY, 1=ATTUNEMENT, 2=CONSTELLATION, 3=TRAIT, 4=BRILLIANCE)
      */
     public static void buildAltar(World world, int x, int y, int z, int level) {
@@ -59,9 +61,9 @@ public class StructureBuilder {
      * Build starlight infuser structure
      *
      * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x     X coordinate
+     * @param y     Y coordinate
+     * @param z     Z coordinate
      */
     public static void buildInfuser(World world, int x, int y, int z) {
         buildStructure(MultiblockStructures.STARLIGHT_INFUSER, world, x, y, z, "Starlight Infuser");
@@ -71,9 +73,9 @@ public class StructureBuilder {
      * Build collector relay structure
      *
      * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x     X coordinate
+     * @param y     Y coordinate
+     * @param z     Z coordinate
      */
     public static void buildRelay(World world, int x, int y, int z) {
         buildStructure(MultiblockStructures.COLLECTOR_RELAY, world, x, y, z, "Collector Relay");
@@ -83,9 +85,9 @@ public class StructureBuilder {
      * Build celestial gateway structure
      *
      * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x     X coordinate
+     * @param y     Y coordinate
+     * @param z     Z coordinate
      */
     public static void buildGateway(World world, int x, int y, int z) {
         buildStructure(MultiblockStructures.CELESTIAL_GATEWAY, world, x, y, z, "Celestial Gateway");
@@ -95,9 +97,9 @@ public class StructureBuilder {
      * Build ritual pedestal structure
      *
      * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x     X coordinate
+     * @param y     Y coordinate
+     * @param z     Z coordinate
      */
     public static void buildPedestal(World world, int x, int y, int z) {
         buildStructure(MultiblockStructures.RITUAL_PEDESTAL, world, x, y, z, "Ritual Pedestal");
@@ -107,9 +109,9 @@ public class StructureBuilder {
      * Build ancient shrine structure
      *
      * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x     X coordinate
+     * @param y     Y coordinate
+     * @param z     Z coordinate
      */
     public static void buildAncientShrine(World world, int x, int y, int z) {
         buildStructure(MultiblockStructures.ANCIENT_SHRINE, world, x, y, z, "Ancient Shrine");
@@ -119,9 +121,9 @@ public class StructureBuilder {
      * Build small shrine structure
      *
      * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x     X coordinate
+     * @param y     Y coordinate
+     * @param z     Z coordinate
      */
     public static void buildSmallShrine(World world, int x, int y, int z) {
         buildStructure(MultiblockStructures.SMALL_SHRINE, world, x, y, z, "Small Shrine");
@@ -131,9 +133,9 @@ public class StructureBuilder {
      * Build treasure shrine structure
      *
      * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x     X coordinate
+     * @param y     Y coordinate
+     * @param z     Z coordinate
      */
     public static void buildTreasureShrine(World world, int x, int y, int z) {
         buildStructure(MultiblockStructures.TREASURE_SHRINE, world, x, y, z, "Treasure Shrine");
@@ -143,9 +145,9 @@ public class StructureBuilder {
      * Build small ruin structure
      *
      * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x     X coordinate
+     * @param y     Y coordinate
+     * @param z     Z coordinate
      */
     public static void buildSmallRuin(World world, int x, int y, int z) {
         buildStructure(MultiblockStructures.SMALL_RUIN, world, x, y, z, "Small Ruin");
@@ -154,11 +156,11 @@ public class StructureBuilder {
     /**
      * Generic structure build method
      *
-     * @param definition The structure definition
-     * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param definition    The structure definition
+     * @param world         The world
+     * @param x             X coordinate
+     * @param y             Y coordinate
+     * @param z             Z coordinate
      * @param structureName Name for logging
      */
     private static void buildStructure(IStructureDefinition<?> definition, World world, int x, int y, int z,
@@ -169,18 +171,23 @@ public class StructureBuilder {
 
             // Correct parameter order: object, trigger, piece, world, facing, x, y, z, a, b, c
             def.build(
-                null,  // object (context - not used)
-                null,  // trigger (ItemStack - not needed)
-                structureName,  // piece (structure name)
+                null, // object (context - not used)
+                null, // trigger (ItemStack - not needed)
+                structureName, // piece (structure name)
                 world,
                 ExtendedFacing.SOUTH_NORMAL_NONE,
-                x, y, z,  // base position
-                0, 0, 0   // A, B, C offsets
+                x,
+                y,
+                z, // base position
+                0,
+                0,
+                0 // A, B, C offsets
             );
 
             LogHelper.info("Built " + structureName + " at " + x + "," + y + "," + z);
         } catch (Exception e) {
-            LogHelper.error("Failed to build " + structureName + " at " + x + "," + y + "," + z + ": " + e.getMessage());
+            LogHelper
+                .error("Failed to build " + structureName + " at " + x + "," + y + "," + z + ": " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -188,10 +195,10 @@ public class StructureBuilder {
     /**
      * Build structure by name (for command usage)
      *
-     * @param world The world
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param world         The world
+     * @param x             X coordinate
+     * @param y             Y coordinate
+     * @param z             Z coordinate
      * @param structureName Structure name (case-insensitive)
      * @return true if structure was built successfully
      */
@@ -200,7 +207,10 @@ public class StructureBuilder {
             return false;
         }
 
-        String name = structureName.toLowerCase().replace(" ", "").replace("_", "").replace("-", "");
+        String name = structureName.toLowerCase()
+            .replace(" ", "")
+            .replace("_", "")
+            .replace("-", "");
 
         // Match structure name to definition
         switch (name) {

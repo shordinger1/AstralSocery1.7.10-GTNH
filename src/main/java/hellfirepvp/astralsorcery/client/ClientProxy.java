@@ -7,13 +7,9 @@
 package hellfirepvp.astralsorcery.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidRegistry;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -23,12 +19,12 @@ import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import hellfirepvp.astralsorcery.proxy.CommonProxy;
 import hellfirepvp.astralsorcery.client.effect.EffectHandler;
 import hellfirepvp.astralsorcery.client.event.ClientEventHandler;
 import hellfirepvp.astralsorcery.client.util.ResourceLocationRegister;
 import hellfirepvp.astralsorcery.common.registry.reference.BlocksAS;
 import hellfirepvp.astralsorcery.common.util.LogHelper;
+import hellfirepvp.astralsorcery.proxy.CommonProxy;
 
 /**
  * Client-side proxy for client-specific logic
@@ -137,24 +133,9 @@ public class ClientProxy extends CommonProxy {
             LogHelper.debug("  Stack trace:\n" + sw.toString());
         }
 
-        // Register OBJ models
-        LogHelper.debug("Registering OBJ models...");
-        try {
-            hellfirepvp.astralsorcery.client.renderer.ModelRegistry.registerModels();
-            LogHelper.info("✓ OBJ model registration complete");
-        } catch (Exception e) {
-            LogHelper.error("✗ Failed to register OBJ models", e);
-            LogHelper.debug(
-                "  Exception type: " + e.getClass()
-                    .getName());
-            LogHelper.debug("  Exception message: " + e.getMessage());
-
-            // Print stack trace for debugging
-            java.io.StringWriter sw = new java.io.StringWriter();
-            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
-            e.printStackTrace(pw);
-            LogHelper.debug("  Stack trace:\n" + sw.toString());
-        }
+        // NOTE: OBJ model rendering is now handled by AstralRenderLoader
+        // Custom OBJ loaders (ObjBlockRenderer, ObjModelLoader, ObjRenderHelper) are no longer used
+        // All OBJ rendering now uses Forge's WavefrontObject directly via AdvancedModelLoader
 
         // Client-specific initialization here
         // - Additional renderers

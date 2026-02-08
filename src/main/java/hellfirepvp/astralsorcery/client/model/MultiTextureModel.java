@@ -19,7 +19,7 @@ import cpw.mods.fml.relauncher.SideOnly;
  * This replaces the 1.12.2 JSON model system.
  * <p>
  * Example: A pillar block with top/bottom/side textures:
- * 
+ *
  * <pre>
  * {@literal @}Override
  * public IIcon getIcon(int side, int meta) {
@@ -37,7 +37,7 @@ public final class MultiTextureModel {
     /**
      * Get icon for pillar-type blocks (top, bottom, side)
      *
-     * @param icons Icon array: [bottom, top, side] or [side, top, bottom]
+     * @param icons Icon array: [bottom, top, side] or [side, top, bottom, updown]
      * @param side  Block side (0=down, 1=up, 2=north, 3=south, 4=west, 5=east)
      * @return Appropriate icon
      */
@@ -49,9 +49,9 @@ public final class MultiTextureModel {
         // side: 0=down, 1=up, 2-4=sides
         switch (side) {
             case 0: // down
-                return icons[0]; // bottom
+                return icons[3]; // bottom
             case 1: // up
-                return icons[1]; // top
+                return icons[3]; // top
             default: // sides (2=north, 3=south, 4=west, 5=east)
                 return icons[2]; // side
         }

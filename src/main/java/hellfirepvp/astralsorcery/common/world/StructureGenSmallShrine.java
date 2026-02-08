@@ -6,9 +6,6 @@
 
 package hellfirepvp.astralsorcery.common.world;
 
-import java.util.Random;
-
-import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 
 /**
@@ -55,11 +52,10 @@ public class StructureGenSmallShrine extends StructureGenBase {
         String biomeName = biome.biomeName.toLowerCase();
 
         // Exclude aquatic and nether biomes
-        if (biomeName.contains("ocean") ||
-            biomeName.contains("river") ||
-            biomeName.contains("beach") ||
-            biomeName.contains("swamp") ||
-            biomeName.contains("hell")) {
+        if (biomeName.contains("ocean") || biomeName.contains("river")
+            || biomeName.contains("beach")
+            || biomeName.contains("swamp")
+            || biomeName.contains("hell")) {
             return false;
         }
 

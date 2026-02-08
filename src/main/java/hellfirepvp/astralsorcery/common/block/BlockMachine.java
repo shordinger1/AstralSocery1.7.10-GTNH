@@ -9,7 +9,6 @@ package hellfirepvp.astralsorcery.common.block;
 import java.util.List;
 import java.util.Random;
 
-import com.cleanroommc.modularui.factory.TileEntityGuiFactory;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
@@ -21,6 +20,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
+
+import com.cleanroommc.modularui.factory.TileEntityGuiFactory;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -48,11 +49,11 @@ import hellfirepvp.astralsorcery.common.util.IconHelper;
  * <p>
  * 1.7.10 API Notes:
  * - Removed: PlayerInteractEvent.RightClickBlock event (1.8+ feature)
- *   Grindstone interaction now handled in onBlockActivated()
+ * Grindstone interaction now handled in onBlockActivated()
  * - Removed: EnumHand parameter (off-hand is 1.9+ feature)
- *   Only main hand is considered in 1.7.10
+ * Only main hand is considered in 1.7.10
  * - Removed: IBlockState (1.8+ feature)
- *   Uses metadata directly instead
+ * Uses metadata directly instead
  */
 public class BlockMachine extends BlockContainer {
 
@@ -151,8 +152,7 @@ public class BlockMachine extends BlockContainer {
         if (meta == META_GRINDSTONE) {
             TileEntity te = world.getTileEntity(x, y, z);
             if (te instanceof hellfirepvp.astralsorcery.common.tile.TileGrindstone) {
-                hellfirepvp.astralsorcery.common.tile.TileGrindstone tgr =
-                    (hellfirepvp.astralsorcery.common.tile.TileGrindstone) te;
+                hellfirepvp.astralsorcery.common.tile.TileGrindstone tgr = (hellfirepvp.astralsorcery.common.tile.TileGrindstone) te;
                 ItemStack grind = tgr.getGrindingItem();
 
                 if (grind != null && grind.stackSize > 0) {
@@ -177,7 +177,7 @@ public class BlockMachine extends BlockContainer {
             }
             TileEntity te = world.getTileEntity(x, y, z);
             if (te instanceof hellfirepvp.astralsorcery.common.tile.TileTelescope) {
-                TileEntityGuiFactory.INSTANCE.open(player, te);
+                TileEntityGuiFactory.INSTANCE.open(player, (hellfirepvp.astralsorcery.common.tile.TileTelescope) te);
             }
             return true;
         } else if (meta == META_GRINDSTONE) {
@@ -189,8 +189,7 @@ public class BlockMachine extends BlockContainer {
                 return false;
             }
 
-            hellfirepvp.astralsorcery.common.tile.TileGrindstone tgr =
-                (hellfirepvp.astralsorcery.common.tile.TileGrindstone) te;
+            hellfirepvp.astralsorcery.common.tile.TileGrindstone tgr = (hellfirepvp.astralsorcery.common.tile.TileGrindstone) te;
 
             if (!world.isRemote) {
                 // Server-side logic
@@ -205,8 +204,8 @@ public class BlockMachine extends BlockContainer {
                         world.playSoundEffect(x + 0.5, y + 0.5, z + 0.5, "random.pop", 0.5F, 1.0F);
                     } else {
                         // Right-click: Try to grind
-                        hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipe.GrindResult result =
-                            tgr.tryGrind();
+                        hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipe.GrindResult result = tgr
+                            .tryGrind();
 
                         if (result != null) {
                             switch (result.getType()) {
@@ -236,10 +235,11 @@ public class BlockMachine extends BlockContainer {
                     ItemStack held = player.inventory.mainInventory[player.inventory.currentItem];
 
                     if (held != null && held.stackSize > 0) {
-                        hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipe recipe =
-                            hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipeRegistry.findMatchingRecipe(held);
+                        hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipe recipe = hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipeRegistry
+                            .findMatchingRecipe(held);
 
-                        if (recipe != null || hellfirepvp.astralsorcery.common.tile.TileGrindstone.SwordSharpenHelper.canBeSharpened(held)) {
+                        if (recipe != null || hellfirepvp.astralsorcery.common.tile.TileGrindstone.SwordSharpenHelper
+                            .canBeSharpened(held)) {
                             // Place item in grindstone
                             ItemStack toSet = held.copy();
                             toSet.stackSize = 1;
@@ -261,17 +261,21 @@ public class BlockMachine extends BlockContainer {
                 // Client-side: Play particles if grinding
                 ItemStack grind = tgr.getGrindingItem();
                 if (grind != null && grind.stackSize > 0) {
-                    hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipe recipe =
-                        hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipeRegistry.findMatchingRecipe(grind);
+                    hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipe recipe = hellfirepvp.astralsorcery.common.crafting.grindstone.GrindstoneRecipeRegistry
+                        .findMatchingRecipe(grind);
 
-                    if (recipe != null || hellfirepvp.astralsorcery.common.tile.TileGrindstone.SwordSharpenHelper.canBeSharpened(grind)) {
+                    if (recipe != null || hellfirepvp.astralsorcery.common.tile.TileGrindstone.SwordSharpenHelper
+                        .canBeSharpened(grind)) {
                         // Spawn critical particles
                         for (int j = 0; j < 8; j++) {
-                            world.spawnParticle("crit",
+                            world.spawnParticle(
+                                "crit",
                                 x + 0.5 + (world.rand.nextBoolean() ? 1 : -1) * world.rand.nextFloat() * 0.3,
                                 y + 0.8 + (world.rand.nextBoolean() ? 1 : -1) * world.rand.nextFloat() * 0.3,
                                 z + 0.4 + (world.rand.nextBoolean() ? 1 : -1) * world.rand.nextFloat() * 0.3,
-                                0, 0, 0);
+                                0,
+                                0,
+                                0);
                         }
                     }
                 }

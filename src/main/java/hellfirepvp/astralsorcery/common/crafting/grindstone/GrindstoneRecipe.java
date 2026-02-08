@@ -40,7 +40,7 @@ public class GrindstoneRecipe {
     /**
      * Create a grindstone recipe
      *
-     * @param input Input item (will be copied)
+     * @param input  Input item (will be copied)
      * @param output Output item (will be copied)
      * @param chance 1 in X chance to produce output
      */
@@ -51,9 +51,9 @@ public class GrindstoneRecipe {
     /**
      * Create a grindstone recipe with double output chance
      *
-     * @param input Input item (will be copied)
-     * @param output Output item (will be copied)
-     * @param chance 1 in X chance to produce output
+     * @param input        Input item (will be copied)
+     * @param output       Output item (will be copied)
+     * @param chance       1 in X chance to produce output
      * @param doubleChance Chance (0-1) to double output
      */
     public GrindstoneRecipe(ItemStack input, ItemStack output, int chance, float doubleChance) {

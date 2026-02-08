@@ -8,13 +8,8 @@
 
 package hellfirepvp.astralsorcery.common.item.block;
 
-import hellfirepvp.astralsorcery.common.block.BlockAltar;
 import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
 import hellfirepvp.astralsorcery.common.registry.reference.BlocksAS;
-import net.minecraft.block.Block;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
 
 // REMOVED: IBlockState, BlockPos, EnumFacing - using 1.7.10 coordinate system
 

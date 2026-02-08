@@ -6,14 +6,6 @@
 
 package hellfirepvp.astralsorcery.client.util;
 
-import hellfirepvp.astralsorcery.client.effect.IComplexEffect;
-import hellfirepvp.astralsorcery.common.structure.MultiblockStructures;
-import hellfirepvp.astralsorcery.common.tile.TileAltar;
-import hellfirepvp.astralsorcery.common.util.LogHelper;
-
-import java.util.Random;
-
-import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.tileentity.TileEntity;
@@ -21,6 +13,8 @@ import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
 
 import org.lwjgl.opengl.GL11;
+
+import hellfirepvp.astralsorcery.client.effect.IComplexEffect;
 
 /**
  * Structure Preview - Simplified structure visualization (1.7.10)
@@ -33,6 +27,7 @@ import org.lwjgl.opengl.GL11;
  * </ul>
  * <p>
  * <b>Usage:</b>
+ * 
  * <pre>
  * // Create preview for altar
  * StructurePreview preview = new StructurePreview(tile, 1);
@@ -62,7 +57,7 @@ public class StructurePreview implements IComplexEffect {
     /**
      * Create structure preview
      *
-     * @param tile The TileEntity
+     * @param tile           The TileEntity
      * @param structureLevel Structure level (for altars: 0-4)
      */
     public StructurePreview(TileEntity tile, int structureLevel) {
@@ -109,11 +104,7 @@ public class StructurePreview implements IComplexEffect {
         }
 
         // Check if player is close enough
-        double dist = mc.thePlayer.getDistanceSq(
-            center.posX + 0.5,
-            center.posY + 0.5,
-            center.posZ + 0.5
-        );
+        double dist = mc.thePlayer.getDistanceSq(center.posX + 0.5, center.posY + 0.5, center.posZ + 0.5);
 
         if (dist > 256) { // 16 blocks away
             return;
@@ -140,11 +131,7 @@ public class StructurePreview implements IComplexEffect {
         // Reset timeout if player is close and looking at structure
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.thePlayer != null && mc.theWorld != null) {
-            double dist = mc.thePlayer.getDistanceSq(
-                center.posX + 0.5,
-                center.posY + 0.5,
-                center.posZ + 0.5
-            );
+            double dist = mc.thePlayer.getDistanceSq(center.posX + 0.5, center.posY + 0.5, center.posZ + 0.5);
 
             if (dist < 64) { // Within 8 blocks
                 timeout = Math.min(timeout + 10, 300);
@@ -155,7 +142,7 @@ public class StructurePreview implements IComplexEffect {
     /**
      * Render structure outline using GL11
      *
-     * @param world World instance
+     * @param world        World instance
      * @param partialTicks Partial ticks
      */
     private void renderOutline(World world, float partialTicks) {
@@ -166,11 +153,11 @@ public class StructurePreview implements IComplexEffect {
         GL11.glDisable(GL11.GL_DEPTH_TEST);
 
         // Get structure definition
-//         MultiblockStructures.IStructureDefinition<?> def = null;
-// 
-//         if (tile instanceof TileAltar) {
-//             def = MultiblockStructures.getAltarStructure(structureLevel);
-//         }
+        // MultiblockStructures.IStructureDefinition<?> def = null;
+        //
+        // if (tile instanceof TileAltar) {
+        // def = MultiblockStructures.getAltarStructure(structureLevel);
+        // }
 
         if (true) {
             // Fallback: render simple outline around center
@@ -217,9 +204,9 @@ public class StructurePreview implements IComplexEffect {
     /**
      * Draw cube outline at position
      *
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param z Z coordinate
+     * @param x    X coordinate
+     * @param y    Y coordinate
+     * @param z    Z coordinate
      * @param size Cube size
      */
     private void drawCubeOutline(float x, float y, float z, float size) {

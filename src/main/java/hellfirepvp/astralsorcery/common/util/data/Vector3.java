@@ -14,7 +14,6 @@ import net.minecraft.util.AxisAlignedBB;
 
 import hellfirepvp.astralsorcery.common.util.math.BlockPos;
 import hellfirepvp.astralsorcery.common.util.math.ChunkPos;
-import net.minecraft.util.MathHelper;
 import hellfirepvp.astralsorcery.common.util.math.Vec3d;
 import io.netty.buffer.ByteBuf;
 

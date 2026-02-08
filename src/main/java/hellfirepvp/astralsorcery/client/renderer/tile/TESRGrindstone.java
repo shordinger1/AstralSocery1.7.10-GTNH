@@ -6,9 +6,6 @@
 
 package hellfirepvp.astralsorcery.client.renderer.tile;
 
-import hellfirepvp.astralsorcery.common.block.BlockMachine;
-import hellfirepvp.astralsorcery.common.tile.TileGrindstone;
-import hellfirepvp.astralsorcery.common.util.LogHelper;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.tileentity.TileEntity;
@@ -21,6 +18,9 @@ import org.lwjgl.opengl.GL11;
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import hellfirepvp.astralsorcery.common.block.BlockMachine;
+import hellfirepvp.astralsorcery.common.tile.TileGrindstone;
+import hellfirepvp.astralsorcery.common.util.LogHelper;
 
 /**
  * TESR for Grindstone and Telescope (BlockMachine)
@@ -45,8 +45,8 @@ public class TESRGrindstone extends TileEntitySpecialRenderer {
     /**
      * Constructor for two-machine support
      */
-    public TESRGrindstone(IModelCustom grindstoneModel, ResourceLocation grindstoneTexture,
-                          IModelCustom telescopeModel, ResourceLocation telescopeTexture) {
+    public TESRGrindstone(IModelCustom grindstoneModel, ResourceLocation grindstoneTexture, IModelCustom telescopeModel,
+        ResourceLocation telescopeTexture) {
         this.grindstoneModel = grindstoneModel;
         this.grindstoneTexture = grindstoneTexture;
         this.telescopeModel = telescopeModel;
@@ -71,7 +71,9 @@ public class TESRGrindstone extends TileEntitySpecialRenderer {
         }
 
         if (!(tile instanceof TileGrindstone)) {
-            LogHelper.warn("[TESRGrindstone] TileEntity is not a TileGrindstone: " + tile.getClass().getName());
+            LogHelper.warn(
+                "[TESRGrindstone] TileEntity is not a TileGrindstone: " + tile.getClass()
+                    .getName());
             return;
         }
 
@@ -90,13 +92,25 @@ public class TESRGrindstone extends TileEntitySpecialRenderer {
         if (isTelescope) {
             model = this.telescopeModel;
             texture = this.telescopeTexture;
-            LogHelper.debug(String.format("[TESRGrindstone] Rendering TELESCOPE at x=%.2f y=%.2f z=%.2f, model=%s, texture=%s",
-                x, y, z, model != null ? "loaded" : "NULL", texture != null ? texture.toString() : "NULL"));
+            LogHelper.debug(
+                String.format(
+                    "[TESRGrindstone] Rendering TELESCOPE at x=%.2f y=%.2f z=%.2f, model=%s, texture=%s",
+                    x,
+                    y,
+                    z,
+                    model != null ? "loaded" : "NULL",
+                    texture != null ? texture.toString() : "NULL"));
         } else {
             model = this.grindstoneModel;
             texture = this.grindstoneTexture;
-            LogHelper.debug(String.format("[TESRGrindstone] Rendering GRINDSTONE at x=%.2f y=%.2f z=%.2f, model=%s, texture=%s",
-                x, y, z, model != null ? "loaded" : "NULL", texture != null ? texture.toString() : "NULL"));
+            LogHelper.debug(
+                String.format(
+                    "[TESRGrindstone] Rendering GRINDSTONE at x=%.2f y=%.2f z=%.2f, model=%s, texture=%s",
+                    x,
+                    y,
+                    z,
+                    model != null ? "loaded" : "NULL",
+                    texture != null ? texture.toString() : "NULL"));
         }
 
         if (model == null) {
@@ -114,6 +128,9 @@ public class TESRGrindstone extends TileEntitySpecialRenderer {
             // Enable proper lighting and face culling
             GL11.glEnable(GL11.GL_LIGHTING);
             GL11.glEnable(GL11.GL_CULL_FACE);
+
+            // Scale the model - 1.12.2 uses 0.0625
+            GL11.glScaled(0.0625, 0.0625, 0.0625);
 
             // Set full brightness
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);

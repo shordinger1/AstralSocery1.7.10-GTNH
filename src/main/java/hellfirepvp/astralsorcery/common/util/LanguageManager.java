@@ -2,177 +2,206 @@
  * Astral Sorcery - Minecraft 1.7.10 Port
  *
  * Language manager for localization
+ *
+ * Refactored to follow Twist Space Technology's localization approach
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.util;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.IllegalFormatException;
-
-import org.apache.commons.io.IOUtils;
+import net.minecraft.util.StatCollector;
 
 import cpw.mods.fml.common.registry.LanguageRegistry;
 
 /**
  * Language manager for Astral Sorcery (1.7.10)
  * <p>
- * Handles loading and managing localizations using FML's LanguageRegistry system.
+ * Refactored to follow the Twist Space Technology localization approach.
+ * Uses a hybrid system supporting both FML's LanguageRegistry and StatCollector.
  * <p>
- * <b>1.7.10 LanguageRegistry API:</b>
+ * <b>Architecture:</b>
  * <ul>
- * <li>Batch loading: {@code LanguageRegistry.instance().injectLanguage(lang, HashMap)}</li>
- * <li>Single entry (current lang): {@code instance().addStringLocalization(key, value)}</li>
- * <li>Single entry (specific lang): {@code instance().addStringLocalization(lang, key, value)}</li>
+ * <li><b>Primary method</b>: Language files loaded from {@code assets/astralsorcery/lang/}</li>
+ * <li><b>Runtime lookup</b>: Uses {@link StatCollector#translateToLocal(String)}</li>
+ * <li><b>Type-safe access</b>: Use {@link TextEnums} enum for compile-time checking</li>
+ * <li><b>Utility access</b>: Use {@link ASUtils#tr(String)} for simple localization</li>
  * </ul>
  * <p>
- * <b>Language File Format:</b>
- * 
+ * <b>Recommended Usage:</b>
+ *
  * <pre>
- * # Comment lines start with #
+ * // Method 1: Using TextEnums (Recommended - Type Safe)
+ * import static hellfirepvp.astralsorcery.common.util.TextEnums.*;
+ *
+ * // In code:
+ * String name = ItemGroup_AstralSorcery.toString();
+ *
+ * // Method 2: Using ASUtils (Simple)
+ * String name = ASUtils.tr("itemGroup.astralsorcery");
+ *
+ * // Method 3: Using LanguageManager (Legacy)
+ * String name = LanguageManager.localize("itemGroup.astralsorcery");
+ * </pre>
+ * <p>
+ * <b>Language File Format:</b>
+ *
+ * <pre>
+ * # Comments start with #
  * item.celestialCrystal.name=Celestial Crystal
  * tile.celestialAltar.name=Celestial Altar
  * astralsorcery.desc.crafting=Crafted with starlight
- * </pre>
- * <p>
- * <b>Usage Example:</b>
- * 
- * <pre>
- * // 1. Language files are automatically loaded from assets/astralsorcery/lang/
- * // en_US.lang, zh_CN.lang
- *
- * // 2. Get localized string
- * String name = LanguageManager.localize("item.celestialCrystal.name");
- *
- * // 3. Add localization dynamically
- * LanguageManager.addLocalization("item.myItem.name", "My Item");
- * LanguageManager.addEnglishLocalization("item.myItem.name", "My Item");
- * LanguageManager.addLocalization("zh_CN", "item.myItem.name", "我的物品");
- *
- * // 4. Check if key is localized
- * if (LanguageManager.isLocalized("item.myItem.name")) {
- *     // Key has translation
- * }
  * </pre>
  * <p>
  * <b>Important Notes:</b>
  * <ul>
  * <li>Language files must be in UTF-8 encoding</li>
  * <li>Escape sequences: \n (newline), \t (tab), \" (quote), \\ (backslash)</li>
- * <li>Comments start with #</li>
- * <li>Empty lines are ignored</li>
- * <li>Lines use key=value format (no spaces around = recommended)</li>
+ * <li>Forge automatically loads .lang files from assets/{modid}/lang/</li>
+ * <li>This LanguageManager ensures proper initialization and provides utility methods</li>
  * </ul>
+ *
+ * @author Astral Sorcery Team
+ * @version 1.7.10 (Refactored)
  */
 public class LanguageManager {
 
-    private static final String[] LANGUAGES = { "en_US", // English (US)
-        "zh_CN" // Chinese (Simplified)
+    /**
+     * Supported languages for Astral Sorcery
+     */
+    private static final String[] LANGUAGES = { "en_us", // English (US) - Primary/Fallback
+        "zh_cn", // Chinese (Simplified)
+        "ja_JP", // Japanese
+        "ko_KR", // Korean
+        "ru_RU", // Russian
+        "it_IT", // Italian
+        "zh_TW" // Chinese (Traditional)
     };
 
     /**
-     * Initialize language manager
+     * Initialize language manager.
+     * <p>
+     * In 1.7.10, Forge automatically loads .lang files from assets/{modid}/lang/ directory.
+     * This method ensures proper initialization and logs the loaded languages.
+     * <p>
+     * The actual file loading is handled by FML's resource loading system.
+     * This init method primarily serves as a synchronization point and for any
+     * dynamic localization registration that needs to happen at startup.
      */
     public static void init() {
         LogHelper.entry("LanguageManager.init");
 
-        // Load localizations for each language
-        for (String lang : LANGUAGES) {
-            loadLanguage(lang);
+        // Note: In 1.7.10, FML automatically loads .lang files from assets/astralsorcery/lang/
+        // We don't need to manually load them here, but we log what languages are supported
+        StringBuilder langList = new StringBuilder();
+        for (int i = 0; i < LANGUAGES.length; i++) {
+            if (i > 0) langList.append(", ");
+            langList.append(LANGUAGES[i]);
         }
 
-        LogHelper.info("Loaded " + LANGUAGES.length + " language files");
+        LogHelper.info("Localization initialized for: " + langList);
+        LogHelper.info("Language files are automatically loaded by FML from assets/astralsorcery/lang/");
+
+        // Any dynamic localization initialization can go here
+        // For example, adding runtime-generated localizations
 
         LogHelper.exit("LanguageManager.init");
     }
 
     /**
-     * Load language file
+     * Get localized text using StatCollector (Recommended).
      * <p>
-     * 1.7.10 API: Uses HashMap + injectLanguage() for batch loading
+     * This is the preferred method as it directly uses Minecraft's localization system.
      *
-     * @param lang The language code (e.g., "en_US")
+     * @param key the localization key
+     * @return the localized string
+     * @see StatCollector#translateToLocal(String)
      */
-    private static void loadLanguage(String lang) {
-        String fileName = "astralsorcery/lang/" + lang + ".lang";
-        InputStream stream = null;
+    public static String localize(String key) {
+        return StatCollector.translateToLocal(key);
+    }
 
-        try {
-            // Try to load from assets
-            stream = LanguageManager.class.getResourceAsStream("/assets/" + fileName);
+    /**
+     * Get localized text with formatting.
+     *
+     * @param key  the localization key
+     * @param args format arguments
+     * @return the localized and formatted string
+     * @see StatCollector#translateToLocalFormatted(String, Object...)
+     */
+    public static String localizeFormatted(String key, Object... args) {
+        return StatCollector.translateToLocalFormatted(key, args);
+    }
 
-            if (stream == null) {
-                LogHelper.warn("Language file not found: " + fileName);
-                return;
-            }
+    /**
+     * Check if a key has a localization.
+     * <p>
+     * Returns true if the translated value differs from the key itself.
+     *
+     * @param key The key to check
+     * @return True if the key is localized
+     */
+    public static boolean isLocalized(String key) {
+        String localized = StatCollector.translateToLocal(key);
+        return !localized.equals(key);
+    }
 
-            // Read all lines
-            String content = IOUtils.toString(stream);
-            String[] lines = content.split("\n");
+    // ========================================================================
+    // Legacy methods for backward compatibility
+    // ========================================================================
 
-            // Collect all translations into HashMap
-            HashMap<String, String> translations = new HashMap<>();
-            int count = 0;
-
-            for (String line : lines) {
-                line = line.trim();
-
-                // Skip comments and empty lines
-                if (line.isEmpty() || line.startsWith("#")) {
-                    continue;
-                }
-
-                // Parse key=value
-                int idx = line.indexOf('=');
-                if (idx > 0) {
-                    String key = line.substring(0, idx)
-                        .trim();
-                    String value = line.substring(idx + 1)
-                        .trim();
-
-                    // Convert escape sequences
-                    value = convertEscapeSequences(value);
-
-                    // Add to translations map
-                    translations.put(key, value);
-                    count++;
-                }
-            }
-
-            // Batch inject all translations for this language
-            if (!translations.isEmpty()) {
-                LanguageRegistry.instance()
-                    .injectLanguage(lang, translations);
-                LogHelper.debug("Loaded " + count + " translations for " + lang);
-            }
-
-        } catch (IOException e) {
-            LogHelper.error("Failed to load language file: " + fileName, e);
-        } finally {
-            IOUtils.closeQuietly(stream);
+    /**
+     * Get a localized string (Legacy - use {@link #localize(String)} instead).
+     *
+     * @param key  the localization key
+     * @param args Optional format arguments (deprecated - use localizeFormatted)
+     * @return the localized string
+     * @deprecated Use {@link #localize(String)} or {@link #localizeFormatted(String, Object...)}
+     */
+    @Deprecated
+    public static String getLocalizedText(String key, Object... args) {
+        if (args.length > 0) {
+            return localizeFormatted(key, args);
         }
+        return localize(key);
     }
 
     /**
-     * Convert escape sequences in localization strings
+     * Get a localized item name.
      *
-     * @param value The string to convert
-     * @return The converted string
+     * @param itemName The item name (without "item." prefix and ".name" suffix)
+     * @return The localized name
      */
-    private static String convertEscapeSequences(String value) {
-        // Convert escape sequences
-        value = value.replace("\\n", "\n");
-        value = value.replace("\\t", "\t");
-        value = value.replace("\\\"", "\"");
-        value = value.replace("\\\\", "\\");
-        return value;
+    public static String getItemName(String itemName) {
+        return localize("item." + itemName + ".name");
     }
 
     /**
-     * Add a localization dynamically (for current game language)
+     * Get a localized block name.
+     *
+     * @param blockName The block name (without "tile." prefix and ".name" suffix)
+     * @return The localized name
+     */
+    public static String getBlockName(String blockName) {
+        return localize("tile." + blockName + ".name");
+    }
+
+    /**
+     * Get a localized entity name.
+     *
+     * @param entityName The entity name (without "entity." prefix and ".name" suffix)
+     * @return The localized name
+     */
+    public static String getEntityName(String entityName) {
+        return localize("entity." + entityName + ".name");
+    }
+
+    // ========================================================================
+    // Dynamic Localization (Runtime)
+    // ========================================================================
+
+    /**
+     * Add a localization dynamically (for current game language).
      * <p>
-     * 1.7.10 API: Uses addStringLocalization() without lang parameter
+     * Use this sparingly - prefer defining translations in .lang files.
      *
      * @param key   The localization key
      * @param value The localized value
@@ -183,11 +212,11 @@ public class LanguageManager {
     }
 
     /**
-     * Add a localization for a specific language
+     * Add a localization for a specific language.
      * <p>
-     * 1.7.10 API: Uses addStringLocalization() with lang parameter
+     * Use this sparingly - prefer defining translations in .lang files.
      *
-     * @param lang  The language code (e.g., "en_US")
+     * @param lang  The language code (e.g., "en_us")
      * @param key   The localization key
      * @param value The localized value
      */
@@ -197,79 +226,13 @@ public class LanguageManager {
     }
 
     /**
-     * Add a localization for English
-     * <p>
-     * 1.7.10 API: Uses addStringLocalization() with "en_US"
+     * Add a localization for English (fallback language).
      *
      * @param key   The localization key
      * @param value The English value
      */
     public static void addEnglishLocalization(String key, String value) {
-        LanguageRegistry.instance()
-            .addStringLocalization("en_US", key, value);
+        addLocalization("en_us", key, value);
     }
 
-    /**
-     * Get a localized string
-     *
-     * @param key  The localization key
-     * @param args Optional format arguments
-     * @return The localized string
-     */
-    public static String localize(String key, Object... args) {
-        String localized = net.minecraft.util.StatCollector.translateToLocal(key);
-
-        if (args.length > 0) {
-            try {
-                return String.format(localized, args);
-            } catch (IllegalFormatException e) {
-                LogHelper.error("Invalid format for key: " + key, e);
-                return localized;
-            }
-        }
-
-        return localized;
-    }
-
-    /**
-     * Check if a key has a localization
-     *
-     * @param key The key to check
-     * @return True if the key is localized
-     */
-    public static boolean isLocalized(String key) {
-        String localized = net.minecraft.util.StatCollector.translateToLocal(key);
-        return !localized.equals(key)
-            || !localized.startsWith("tile.") && !localized.startsWith("item.") && !localized.startsWith("entity.");
-    }
-
-    /**
-     * Get a localized item name
-     *
-     * @param itemName The item name
-     * @return The localized name
-     */
-    public static String getItemName(String itemName) {
-        return localize("item." + itemName + ".name");
-    }
-
-    /**
-     * Get a localized block name
-     *
-     * @param blockName The block name
-     * @return The localized name
-     */
-    public static String getBlockName(String blockName) {
-        return localize("tile." + blockName + ".name");
-    }
-
-    /**
-     * Get a localized entity name
-     *
-     * @param entityName The entity name
-     * @return The localized name
-     */
-    public static String getEntityName(String entityName) {
-        return localize("entity." + entityName + ".name");
-    }
 }

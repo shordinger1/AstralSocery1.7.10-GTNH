@@ -28,7 +28,9 @@ import hellfirepvp.astralsorcery.common.util.LogHelper;
  * - Max capacity: 1000 starlight
  * <p>
  * <b>Usage:</b>
+ * 
  * <pre>
+ * 
  * // Get stored starlight
  * double starlight = crystal.getStoredStarlight();
  *
@@ -78,8 +80,7 @@ public class TileCollectorCrystal extends TileEntityTick {
         // Notify client if collecting state changed
         if (wasCollecting != this.isCollecting) {
             markForUpdate();
-            LogHelper.debug("CollectorCrystal at [%d,%d,%d] collecting: %s",
-                xCoord, yCoord, zCoord, this.isCollecting);
+            LogHelper.debug("CollectorCrystal at [%d,%d,%d] collecting: %s", xCoord, yCoord, zCoord, this.isCollecting);
         }
 
         // Collect starlight if conditions met
@@ -275,8 +276,7 @@ public class TileCollectorCrystal extends TileEntityTick {
     protected void onFirstTick() {
         // Update sky visibility on first tick
         updateSkyVisibility();
-        LogHelper.debug("CollectorCrystal initialized at [%d,%d,%d], canSeeSky: %s",
-            xCoord, yCoord, zCoord, canSeeSky);
+        LogHelper.debug("CollectorCrystal initialized at [%d,%d,%d], canSeeSky: %s", xCoord, yCoord, zCoord, canSeeSky);
     }
 
     // ========== Configuration (for future enhancement) ==========

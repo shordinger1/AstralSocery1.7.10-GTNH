@@ -26,14 +26,15 @@ public class ItemBlockMachine extends ItemBlock {
 
     public String getUnlocalizedName(ItemStack stack) {
         // Return different unlocalized names based on metadata
+        // Language files use: tile.blockmachine.telescope.name
         int meta = stack.getItemDamage();
         switch (meta) {
             case BlockMachine.META_TELESCOPE:
-                return "tile.astralsorcery.machine.telescope";
+                return "tile.blockmachine.telescope";
             case BlockMachine.META_GRINDSTONE:
-                return "tile.astralsorcery.machine.grindstone";
+                return "tile.blockmachine.grindstone";
             default:
-                return "tile.astralsorcery.machine";
+                return "tile.blockmachine";
         }
     }
 }

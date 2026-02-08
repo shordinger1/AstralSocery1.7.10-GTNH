@@ -8,10 +8,11 @@
 
 package hellfirepvp.astralsorcery.common.item.block;
 
-import hellfirepvp.astralsorcery.common.block.BlockCustomName;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+
+import hellfirepvp.astralsorcery.common.block.BlockCustomName;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -24,7 +25,7 @@ public class ItemBlockCustomName extends ItemBlock {
 
     public ItemBlockCustomName(Block block) {
         super(block);
-        setHasSubtypes(true); //Normally the case if you're using multi-type blocks.
+        setHasSubtypes(true); // Normally the case if you're using multi-type blocks.
     }
 
     @Override

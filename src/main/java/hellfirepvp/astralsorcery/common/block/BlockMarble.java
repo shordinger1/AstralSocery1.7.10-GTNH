@@ -7,8 +7,10 @@
 package hellfirepvp.astralsorcery.common.block;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
@@ -16,6 +18,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -23,6 +26,7 @@ import hellfirepvp.astralsorcery.client.model.MultiTextureModel;
 import hellfirepvp.astralsorcery.client.util.TextureRegister;
 import hellfirepvp.astralsorcery.common.base.AstralBaseBlock;
 import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
+import hellfirepvp.astralsorcery.common.util.IconHelper;
 
 /**
  * BlockMarble - Marble decorative block (1.7.10)
@@ -61,7 +65,7 @@ import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
  * </ul>
  * <p>
  * <b>Variants:</b>
- * 
+ *
  * <pre>
  * 0 = RAW        - Raw marble
  * 1 = BRICKS     - Brick marble
@@ -74,24 +78,30 @@ import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
  */
 public class BlockMarble extends AstralBaseBlock implements BlockCustomName, BlockVariants {
 
+    /** Render ID for pillar OBJ rendering (set by AstralRenderLoader) */
+    public static int PILLAR_RENDER_ID = 0;
+
     /** Variant names */
     private static final String[] VARIANT_NAMES = { "raw", // 0
         "bricks", // 1
         "pillar", // 2
-        "arch", // 3
-        "chiseled", // 4
-        "engraved", // 5
-        "runed" // 6
+        "pillar_top", // 3 - dynamic pillar top
+        "pillar_bottom", // 4 - dynamic pillar bottom
+        "arch", // 5
+        "chiseled", // 6
+        "engraved", // 7
+        "runed" // 8
     };
 
     @SideOnly(Side.CLIENT)
-    private IIcon[] icons;
+    private Map<Integer, IIcon> iconMap;
 
     @SideOnly(Side.CLIENT)
     private IIcon pillarTop;
     @SideOnly(Side.CLIENT)
     private IIcon pillarBottom;
-
+    @SideOnly(Side.CLIENT)
+    private IIcon updown;
     /**
      * Enum for marble types
      */
@@ -103,14 +113,18 @@ public class BlockMarble extends AstralBaseBlock implements BlockCustomName, Blo
         BRICKS(1, true),
         /** Pillar middle (translucent) */
         PILLAR(2, true),
+        /** Pillar top (dynamic - when no pillar above) */
+        PILLAR_TOP(3, false),
+        /** Pillar bottom (dynamic - when no pillar below) */
+        PILLAR_BOTTOM(4, false),
         /** Arch marble */
-        ARCH(3, true),
+        ARCH(5, true),
         /** Chiseled marble */
-        CHISELED(4, true),
+        CHISELED(6, true),
         /** Engraved marble */
-        ENGRAVED(5, true),
+        ENGRAVED(7, true),
         /** Runed marble */
-        RUNED(6, true);
+        RUNED(8, true);
 
         private final int meta;
         private final boolean obtainable;
@@ -133,7 +147,7 @@ public class BlockMarble extends AstralBaseBlock implements BlockCustomName, Blo
          * Pillar variants are translucent.
          */
         public boolean isPillar() {
-            return this == PILLAR;
+            return this == PILLAR || this == PILLAR_TOP || this == PILLAR_BOTTOM;
         }
 
         /**
@@ -171,6 +185,20 @@ public class BlockMarble extends AstralBaseBlock implements BlockCustomName, Blo
     }
 
     /**
+     * Get render type
+     * <p>
+     * Returns the pillar OBJ renderer render ID for pillar variants (metadata 2, 3, 4)
+     * Returns default render type (0) for all other variants
+     */
+    @Override
+    public int getRenderType() {
+        // Note: This method doesn't have access to metadata in 1.7.10
+        // We return the pillar render ID, and the renderer will check metadata
+        // For non-pillar variants, they use standard icon-based rendering
+        return PILLAR_RENDER_ID;
+    }
+
+    /**
      * Get damage value for dropped item
      */
     public int damageDropped(int meta) {
@@ -192,12 +220,14 @@ public class BlockMarble extends AstralBaseBlock implements BlockCustomName, Blo
     /**
      * Is this a full block?
      * <p>
-     * Return true for standard block rendering
-     * Note: In 1.7.10, opaque cubes use standard rendering
+     * Pillar variants are translucent (not opaque)
+     * All other variants are standard opaque blocks
      */
     @Override
     public boolean isOpaqueCube() {
-        return true; // Use standard opaque block rendering
+        // This method doesn't have access to metadata in 1.7.10
+        // Pillar transparency is handled through getLightOpacity() and shouldSideBeRendered()
+        return true; // Default to true, TESR blocks handle their own rendering
     }
 
     /**
@@ -209,16 +239,28 @@ public class BlockMarble extends AstralBaseBlock implements BlockCustomName, Blo
         // All other variants use standard block rendering
         return true; // Use standard rendering for all marble types
     }
+
     /**
      * Get light opacity
      * <p>
      * Pillar variants are translucent (opacity 0)
-     * NOTE: 1.7.10 signature is different: getLightOpacity()
-     * Override per-state check not possible without TileEntity
+     * All other variants are opaque (opacity 255)
      */
-    // NOTE: Original: getLightOpacity(IBlockState, IBlockAccess, BlockPos)
-    // 1.7.10: getLightOpacity() - no state parameter
-    // For now, using default opacity
+    @Override
+    public int getLightOpacity() {
+        // This method doesn't have access to metadata in 1.7.10
+        return 255; // Default opaque
+    }
+
+    /**
+     * Get light opacity for a specific block position
+     */
+    @Override
+    public int getLightOpacity(IBlockAccess world, int x, int y, int z) {
+        int meta = world.getBlockMetadata(x, y, z);
+        MarbleType type = MarbleType.byMetadata(meta);
+        return type.isPillar() ? 0 : 255; // Pillars are translucent
+    }
 
     /**
      * Get the item dropped
@@ -319,42 +361,123 @@ public class BlockMarble extends AstralBaseBlock implements BlockCustomName, Blo
         return MarbleType.byMetadata(meta);
     }
 
+    /**
+     * Called when a neighbor block changes
+     * Handles dynamic pillar connection (PILLAR <-> PILLAR_TOP <-> PILLAR_BOTTOM)
+     * <p>
+     * NOTE: 1.7.10 does not use @Override for this method
+     */
+    public void onNeighborBlockChange(World world, int x, int y, int z, Block neighborBlock) {
+        if (!world.isRemote) {
+            int meta = world.getBlockMetadata(x, y, z);
+            MarbleType type = MarbleType.byMetadata(meta);
+
+            if (type.isPillar()) {
+                boolean pillarAbove = isPillarAt(world, x, y + 1, z);
+                boolean pillarBelow = isPillarAt(world, x, y - 1, z);
+
+                int newMeta;
+                if (pillarAbove && pillarBelow) {
+                    newMeta = MarbleType.PILLAR.getMetadata(); // Middle section
+                } else if (!pillarAbove && pillarBelow) {
+                    newMeta = MarbleType.PILLAR_TOP.getMetadata(); // Top section
+                } else if (pillarAbove && !pillarBelow) {
+                    newMeta = MarbleType.PILLAR_BOTTOM.getMetadata(); // Bottom section
+                } else {
+                    newMeta = MarbleType.PILLAR.getMetadata(); // Single pillar block
+                }
+
+                if (newMeta != meta) {
+                    world.setBlockMetadataWithNotify(x, y, z, newMeta, 2);
+                }
+            }
+        }
+    }
+
+    /**
+     * Check if there's a pillar block at the given position
+     */
+    private boolean isPillarAt(World world, int x, int y, int z) {
+        Block block = world.getBlock(x, y, z);
+        if (block == this) {
+            int meta = world.getBlockMetadata(x, y, z);
+            return MarbleType.byMetadata(meta)
+                .isPillar();
+        }
+        return false;
+    }
+
     // ========== Texture Registration ==========
 
     @SideOnly(Side.CLIENT)
     @Override
     public void registerBlockIcons(IIconRegister reg) {
-        icons = new IIcon[7];
-        icons[0] = TextureRegister.registerBlockIcon(reg, "marble_raw");
-        icons[1] = TextureRegister.registerBlockIcon(reg, "marble_bricks");
-        icons[2] = TextureRegister.registerBlockIcon(reg, "marble_pillar"); // Side texture for pillar
-        icons[3] = TextureRegister.registerBlockIcon(reg, "marble_arch");
-        icons[4] = TextureRegister.registerBlockIcon(reg, "marble_chiseled");
-        icons[5] = TextureRegister.registerBlockIcon(reg, "marble_engraved");
-        icons[6] = TextureRegister.registerBlockIcon(reg, "marble_runed");
+        // Register main variant icons using Map-based approach (TST-style)
+        iconMap = IconHelper.registerVariantIconMap(reg, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, meta -> {
+            // Map metadata to texture name
+            switch (meta) {
+                case 0:
+                    return "marble_raw";
+                case 1:
+                    return "marble_bricks";
+                case 2:
+                    return "marble_pillar"; // Side texture for pillar middle
+                case 3:
+                    return "marble_pillar"; // Side texture for pillar top (same as middle)
+                case 4:
+                    return "marble_pillar"; // Side texture for pillar bottom (same as middle)
+                case 5:
+                    return "marble_arch";
+                case 6:
+                    return "marble_chiseled";
+                case 7:
+                    return "marble_engraved";
+                case 8:
+                    return "marble_runed";
+                default:
+                    return "marble_raw";
+            }
+        });
 
-        // Register pillar top and bottom textures
+        // Register pillar top and bottom textures (for pillar ends)
         pillarTop = TextureRegister.registerBlockIcon(reg, "marble_pillar_top");
         pillarBottom = TextureRegister.registerBlockIcon(reg, "marble_pillar_bottom");
+        updown = TextureRegister.registerBlockIcon(reg,"marble_pillar_updown");
+        // Set default block icon
+        this.blockIcon = iconMap.get(0);
     }
 
     @SideOnly(Side.CLIENT)
+    @Override
     public IIcon getIcon(int side, int meta) {
-        if (meta < 0 || meta >= icons.length) {
+        // Safety check: if iconMap not initialized yet, return null
+        if (iconMap == null) {
+            hellfirepvp.astralsorcery.common.util.LogHelper.warn(
+                "[BlockMarble] iconMap is null! registerBlockIcons() may not have been called. side=" + side
+                    + " meta="
+                    + meta);
+            return null;
+        }
+
+        // Clamp metadata to valid range
+        if (meta < 0 || meta >= 9) {
             meta = 0;
         }
 
-        // PILLAR variant (2) uses different textures for top/bottom/side
-        if (meta == MarbleType.PILLAR.getMetadata()) {
-            IIcon[] pillarIcons = { pillarBottom, pillarTop, icons[2] }; // [bottom, top, side]
+        // All pillar variants (PILLAR, PILLAR_TOP, PILLAR_BOTTOM) use different textures for top/bottom/side
+        if (meta == MarbleType.PILLAR.getMetadata() || meta == MarbleType.PILLAR_TOP.getMetadata()
+            || meta == MarbleType.PILLAR_BOTTOM.getMetadata()) {
+            IIcon pillarSide = iconMap.get(meta);
+            IIcon[] pillarIcons = { pillarBottom, pillarTop, pillarSide,updown }; // [bottom, top, side]
             return MultiTextureModel.getPillarIcon(pillarIcons, side);
         }
 
         // All other variants use single texture
-        return icons[meta];
+        return IconHelper.getIconFromMap(iconMap, meta);
     }
 
     @SideOnly(Side.CLIENT)
+    @Override
     public IIcon getIcon(IBlockAccess world, int x, int y, int z, int side) {
         int meta = world.getBlockMetadata(x, y, z);
         return getIcon(side, meta);

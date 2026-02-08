@@ -20,6 +20,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.common.constellation.IConstellation;
 import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
+import hellfirepvp.astralsorcery.common.util.LocalizationHelper;
 
 /**
  * Cape
@@ -86,13 +87,20 @@ public class ItemCape extends ItemArmor {
 
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced) {
+        // Add general tooltip from language file
+        LocalizationHelper.addItemTooltip(stack, tooltip, 2, false);
+
+        // Show constellation attunement status
         IConstellation constellation = getConstellation(stack);
         if (constellation != null) {
-            tooltip.add("§7Constellation: §e" + constellation.getSimpleName());
+            // Use localized constellation name
+            String constelKey = "astralsorcery.constellation." + constellation.getUnlocalizedName();
+            String constelName = LocalizationHelper.tr(constelKey);
+            tooltip.add("§7Constellation: §e" + constelName);
             // TODO: Show effect description
         } else {
             tooltip.add("§7Constellation: §cNone");
-            tooltip.add("§8Use on an altar to attune");
+            tooltip.add(LocalizationHelper.tr("item.itemcape.tooltip.attune"));
         }
     }
 

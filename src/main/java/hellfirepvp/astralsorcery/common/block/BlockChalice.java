@@ -334,29 +334,28 @@ public class BlockChalice extends BlockContainer {
         // The structure will still be created on placement, just won't auto-break
         // This is a 1.7.10 compatibility fix
         /*
-        int meta = world.getBlockMetadata(x, y, z);
-
-        // If this is the top block (meta=0), check if bottom block exists below
-        if (meta == 0) {
-            int yBelow = y - 1;
-            if (world.getBlock(x, yBelow, z) != this || world.getBlockMetadata(x, yBelow, z) != 1) {
-                // Bottom block missing, break self
-                world.func_147480_a(x, y, z, true); // breakBlock + drop items
-                hellfirepvp.astralsorcery.common.util.LogHelper
-                    .info("[BlockChalice] Breaking top block at " + x + "," + y + "," + z + " - bottom block missing");
-            }
-        }
-        // If this is the bottom block (meta=1), check if top block exists above
-        else if (meta == 1) {
-            int yAbove = y + 1;
-            if (world.getBlock(x, yAbove, z) != this || world.getBlockMetadata(x, yAbove, z) != 0) {
-                // Top block missing, break self
-                world.func_147480_a(x, y, z, true);
-                hellfirepvp.astralsorcery.common.util.LogHelper
-                    .info("[BlockChalice] Breaking bottom block at " + x + "," + y + "," + z + " - top block missing");
-            }
-        }
-        */
+         * int meta = world.getBlockMetadata(x, y, z);
+         * // If this is the top block (meta=0), check if bottom block exists below
+         * if (meta == 0) {
+         * int yBelow = y - 1;
+         * if (world.getBlock(x, yBelow, z) != this || world.getBlockMetadata(x, yBelow, z) != 1) {
+         * // Bottom block missing, break self
+         * world.func_147480_a(x, y, z, true); // breakBlock + drop items
+         * hellfirepvp.astralsorcery.common.util.LogHelper
+         * .info("[BlockChalice] Breaking top block at " + x + "," + y + "," + z + " - bottom block missing");
+         * }
+         * }
+         * // If this is the bottom block (meta=1), check if top block exists above
+         * else if (meta == 1) {
+         * int yAbove = y + 1;
+         * if (world.getBlock(x, yAbove, z) != this || world.getBlockMetadata(x, yAbove, z) != 0) {
+         * // Top block missing, break self
+         * world.func_147480_a(x, y, z, true);
+         * hellfirepvp.astralsorcery.common.util.LogHelper
+         * .info("[BlockChalice] Breaking bottom block at " + x + "," + y + "," + z + " - top block missing");
+         * }
+         * }
+         */
     }
 
     /**

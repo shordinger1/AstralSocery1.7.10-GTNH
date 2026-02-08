@@ -7,8 +7,8 @@ package hellfirepvp.astralsorcery.common.block;
 
 import net.minecraft.block.BlockStairs;
 
-import hellfirepvp.astralsorcery.common.registry.reference.BlocksAS;
 import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
+import hellfirepvp.astralsorcery.common.registry.reference.BlocksAS;
 
 /**
  * BlockMarbleStairs - Marble stairs (1.7.10)

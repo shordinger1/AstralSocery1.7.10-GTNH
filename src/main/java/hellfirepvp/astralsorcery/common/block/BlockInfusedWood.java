@@ -7,8 +7,10 @@
 package hellfirepvp.astralsorcery.common.block;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
@@ -25,6 +27,7 @@ import hellfirepvp.astralsorcery.client.model.MultiTextureModel;
 import hellfirepvp.astralsorcery.client.util.TextureRegister;
 import hellfirepvp.astralsorcery.common.base.AstralBaseBlock;
 import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
+import hellfirepvp.astralsorcery.common.util.IconHelper;
 
 /**
  * BlockInfusedWood - Starlight-infused wood (1.7.10)
@@ -70,18 +73,23 @@ import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
  */
 public class BlockInfusedWood extends AstralBaseBlock implements BlockCustomName, BlockVariants {
 
+    /** Render ID for column OBJ rendering (set by AstralRenderLoader) */
+    public static int COLUMN_RENDER_ID = 0;
+
     /** Variant names */
     private static final String[] VARIANT_NAMES = { "raw", // 0
         "planks", // 1
         "column", // 2
-        "arch", // 3
-        "engraved", // 4
-        "enriched", // 5
-        "infused" // 6
+        "column_top", // 3 - dynamic column top
+        "column_bottom", // 4 - dynamic column bottom
+        "arch", // 5
+        "engraved", // 6
+        "enriched", // 7
+        "infused" // 8
     };
 
     @SideOnly(Side.CLIENT)
-    private IIcon[] icons;
+    private Map<Integer, IIcon> iconMap;
 
     @SideOnly(Side.CLIENT)
     private IIcon columnTop;
@@ -99,14 +107,18 @@ public class BlockInfusedWood extends AstralBaseBlock implements BlockCustomName
         PLANKS(1, true),
         /** Column middle (thinner, translucent) */
         COLUMN(2, true),
+        /** Column top (dynamic - when no column above) */
+        COLUMN_TOP(3, false),
+        /** Column bottom (dynamic - when no column below) */
+        COLUMN_BOTTOM(4, false),
         /** Arch infused wood */
-        ARCH(3, true),
+        ARCH(5, true),
         /** Engraved infused wood */
-        ENGRAVED(4, true),
+        ENGRAVED(6, true),
         /** Enriched infused wood */
-        ENRICHED(5, true),
+        ENRICHED(7, true),
         /** Fully infused wood */
-        INFUSED(6, true);
+        INFUSED(8, true);
 
         private final int meta;
         private final boolean obtainable;
@@ -129,7 +141,7 @@ public class BlockInfusedWood extends AstralBaseBlock implements BlockCustomName
          * Column variants are translucent and have thinner collision box.
          */
         public boolean isColumn() {
-            return this == COLUMN;
+            return this == COLUMN || this == COLUMN_TOP || this == COLUMN_BOTTOM;
         }
 
         /**
@@ -167,6 +179,20 @@ public class BlockInfusedWood extends AstralBaseBlock implements BlockCustomName
     }
 
     /**
+     * Get render type
+     * <p>
+     * Returns the column OBJ renderer render ID for column variants (metadata 2, 3, 4)
+     * Returns default render type (0) for all other variants
+     */
+    @Override
+    public int getRenderType() {
+        // Note: This method doesn't have access to metadata in 1.7.10
+        // We return the column render ID, and the renderer will check metadata
+        // For non-column variants, they use standard icon-based rendering
+        return COLUMN_RENDER_ID;
+    }
+
+    /**
      * Get damage value for dropped item
      */
     public int damageDropped(int meta) {
@@ -188,11 +214,14 @@ public class BlockInfusedWood extends AstralBaseBlock implements BlockCustomName
     /**
      * Is this a full block?
      * <p>
-     * Return true for standard block rendering
+     * Column variants are translucent (not opaque)
+     * All other variants are standard opaque blocks
      */
     @Override
     public boolean isOpaqueCube() {
-        return true; // Use standard opaque block rendering
+        // This method doesn't have access to metadata in 1.7.10
+        // Column transparency is handled through getLightOpacity() and shouldSideBeRendered()
+        return true; // Default to true, TESR blocks handle their own rendering
     }
 
     /**
@@ -206,15 +235,38 @@ public class BlockInfusedWood extends AstralBaseBlock implements BlockCustomName
     }
 
     /**
+     * Get light opacity
+     * <p>
+     * Column variants are translucent (opacity 0)
+     * All other variants are opaque (opacity 255)
+     */
+    @Override
+    public int getLightOpacity() {
+        // This method doesn't have access to metadata in 1.7.10
+        return 255; // Default opaque
+    }
+
+    /**
+     * Get light opacity for a specific block position
+     */
+    @Override
+    public int getLightOpacity(IBlockAccess world, int x, int y, int z) {
+        int meta = world.getBlockMetadata(x, y, z);
+        WoodType type = WoodType.byMetadata(meta);
+        return type.isColumn() ? 0 : 255; // Columns are translucent
+    }
+
+    /**
      * Set block bounds based on state
      * <p>
-     * COLUMN variant has thinner bounds (0.25-0.75)
+     * All column variants have thinner bounds (0.25-0.75)
      * Other variants use standard full block bounds
      */
     @Override
     public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z) {
         int meta = world.getBlockMetadata(x, y, z);
-        if (meta == WoodType.COLUMN.getMetadata()) {
+        WoodType type = WoodType.byMetadata(meta);
+        if (type.isColumn()) {
             // Thinner column: 0.25 to 0.75 (50% width)
             this.setBlockBounds(0.25F, 0.0F, 0.25F, 0.75F, 1.0F, 0.75F);
         } else {
@@ -225,12 +277,13 @@ public class BlockInfusedWood extends AstralBaseBlock implements BlockCustomName
     /**
      * Get collision bounding box
      * <p>
-     * COLUMN variant has thinner collision
+     * All column variants have thinner collision
      */
     @Override
     public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
         int meta = world.getBlockMetadata(x, y, z);
-        if (meta == WoodType.COLUMN.getMetadata()) {
+        WoodType type = WoodType.byMetadata(meta);
+        if (type.isColumn()) {
             return AxisAlignedBB.getBoundingBox(x + 0.25, y, z + 0.25, x + 0.75, y + 1, z + 0.75);
         }
         return super.getCollisionBoundingBoxFromPool(world, x, y, z);
@@ -314,42 +367,123 @@ public class BlockInfusedWood extends AstralBaseBlock implements BlockCustomName
         return WoodType.byMetadata(meta);
     }
 
+    /**
+     * Called when a neighbor block changes
+     * Handles dynamic column connection (COLUMN <-> COLUMN_TOP <-> COLUMN_BOTTOM)
+     * <p>
+     * NOTE: 1.7.10 does not use @Override for this method
+     */
+    public void onNeighborBlockChange(World world, int x, int y, int z, Block neighborBlock) {
+        if (!world.isRemote) {
+            int meta = world.getBlockMetadata(x, y, z);
+            WoodType type = WoodType.byMetadata(meta);
+
+            if (type.isColumn()) {
+                boolean columnAbove = isColumnAt(world, x, y + 1, z);
+                boolean columnBelow = isColumnAt(world, x, y - 1, z);
+
+                int newMeta;
+                if (columnAbove && columnBelow) {
+                    newMeta = WoodType.COLUMN.getMetadata(); // Middle section
+                } else if (!columnAbove && columnBelow) {
+                    newMeta = WoodType.COLUMN_TOP.getMetadata(); // Top section
+                } else if (columnAbove && !columnBelow) {
+                    newMeta = WoodType.COLUMN_BOTTOM.getMetadata(); // Bottom section
+                } else {
+                    newMeta = WoodType.COLUMN.getMetadata(); // Single column block
+                }
+
+                if (newMeta != meta) {
+                    world.setBlockMetadataWithNotify(x, y, z, newMeta, 2);
+                }
+            }
+        }
+    }
+
+    /**
+     * Check if there's a column block at the given position
+     */
+    private boolean isColumnAt(World world, int x, int y, int z) {
+        Block block = world.getBlock(x, y, z);
+        if (block == this) {
+            int meta = world.getBlockMetadata(x, y, z);
+            return WoodType.byMetadata(meta)
+                .isColumn();
+        }
+        return false;
+    }
+
     // ========== Texture Registration ==========
 
     @Override
     @SideOnly(Side.CLIENT)
     public void registerBlockIcons(IIconRegister reg) {
-        icons = new IIcon[7];
-        icons[0] = TextureRegister.registerBlockIcon(reg, "wood_raw");
-        icons[1] = TextureRegister.registerBlockIcon(reg, "wood_planks");
-        icons[2] = TextureRegister.registerBlockIcon(reg, "wood_column"); // Side texture for column
-        icons[3] = TextureRegister.registerBlockIcon(reg, "wood_arch");
-        icons[4] = TextureRegister.registerBlockIcon(reg, "wood_engraved");
-        icons[5] = TextureRegister.registerBlockIcon(reg, "wood_enriched");
-        icons[6] = TextureRegister.registerBlockIcon(reg, "wood_infused");
+        // Register main variant icons using Map-based approach (TST-style)
+        iconMap = IconHelper.registerVariantIconMap(reg, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, meta -> {
+            // Map metadata to texture name
+            switch (meta) {
+                case 0:
+                    return "wood_raw";
+                case 1:
+                    return "wood_planks";
+                case 2:
+                    return "wood_column"; // Side texture for column middle
+                case 3:
+                    return "wood_column"; // Side texture for column top (same as middle)
+                case 4:
+                    return "wood_column"; // Side texture for column bottom (same as middle)
+                case 5:
+                    return "wood_arch";
+                case 6:
+                    return "wood_engraved";
+                case 7:
+                    return "wood_enriched";
+                case 8:
+                    return "wood_infused";
+                default:
+                    return "wood_raw";
+            }
+        });
 
         // Register column top and bottom textures
         columnTop = TextureRegister.registerBlockIcon(reg, "wood_column_top");
         columnBottom = TextureRegister.registerBlockIcon(reg, "wood_column_bottom");
+
+        // Set default block icon
+        this.blockIcon = iconMap.get(0);
     }
 
     @SideOnly(Side.CLIENT)
+    @Override
     public IIcon getIcon(int side, int meta) {
-        if (meta < 0 || meta >= icons.length) {
+        // Safety check: if iconMap not initialized yet, return null
+        if (iconMap == null) {
+            hellfirepvp.astralsorcery.common.util.LogHelper.warn(
+                "[BlockInfusedWood] iconMap is null! registerBlockIcons() may not have been called. side=" + side
+                    + " meta="
+                    + meta);
+            return null;
+        }
+
+        // Clamp metadata to valid range
+        if (meta < 0 || meta >= 9) {
             meta = 0;
         }
 
-        // COLUMN variant (2) uses different textures for top/bottom/side
-        if (meta == WoodType.COLUMN.getMetadata()) {
-            IIcon[] columnIcons = { columnBottom, columnTop, icons[2] }; // [bottom, top, side]
+        // All column variants (COLUMN, COLUMN_TOP, COLUMN_BOTTOM) use different textures for top/bottom/side
+        if (meta == WoodType.COLUMN.getMetadata() || meta == WoodType.COLUMN_TOP.getMetadata()
+            || meta == WoodType.COLUMN_BOTTOM.getMetadata()) {
+            IIcon columnSide = iconMap.get(meta);
+            IIcon[] columnIcons = { columnBottom, columnTop, columnSide }; // [bottom, top, side]
             return MultiTextureModel.getPillarIcon(columnIcons, side);
         }
 
         // All other variants use single texture
-        return icons[meta];
+        return IconHelper.getIconFromMap(iconMap, meta);
     }
 
     @SideOnly(Side.CLIENT)
+    @Override
     public IIcon getIcon(IBlockAccess world, int x, int y, int z, int side) {
         int meta = world.getBlockMetadata(x, y, z);
         return getIcon(side, meta);

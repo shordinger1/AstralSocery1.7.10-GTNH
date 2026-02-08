@@ -130,8 +130,12 @@ public class TileAttunementRelay extends TileEntityTick {
 
                                         // Occasionally log
                                         if (worldObj.getTotalWorldTime() % 200 == 0) {
-                                            LogHelper.debug("Relay transmitted %d starlight to altar at [%d,%d,%d]",
-                                                toAdd, linked.getX(), linked.getY(), linked.getZ());
+                                            LogHelper.debug(
+                                                "Relay transmitted %d starlight to altar at [%d,%d,%d]",
+                                                toAdd,
+                                                linked.getX(),
+                                                linked.getY(),
+                                                linked.getZ());
                                         }
                                     }
                                 }

@@ -32,7 +32,9 @@ public class PerkGelu extends ConstellationPerk {
         super("cst_gelu", constellation, x, y);
 
         // Add mining speed modifier: +20% mining speed
-        addModifier(0.2F, PerkAttributeModifier.Mode.ADDED_MULTIPLY,
+        addModifier(
+            0.2F,
+            PerkAttributeModifier.Mode.ADDED_MULTIPLY,
             hellfirepvp.astralsorcery.common.constellation.perk.attribute.AttributeTypeRegistry.ATTR_TYPE_MINING_SPEED);
     }
 

@@ -16,9 +16,6 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
-import hellfirepvp.astralsorcery.common.registry.reference.ItemsAS;
-import hellfirepvp.astralsorcery.common.util.LogHelper;
-
 /**
  * WellLiquefaction System (1.7.10 Simplified Version)
  * <p>
@@ -33,13 +30,14 @@ import hellfirepvp.astralsorcery.common.util.LogHelper;
  * </ul>
  * <p>
  * <b>Usage</b>:
+ * 
  * <pre>
  * // Register a liquefaction recipe
  * WellLiquefaction.registerRecipe(
  *     new ItemStack(Items.ghast_tear),
  *     FluidRegistry.getFluid("liquid_starlight"),
- *     1.0,  // productionMultiplier
- *     0.01  // shatterMultiplier
+ *     1.0, // productionMultiplier
+ *     0.01 // shatterMultiplier
  * );
  *
  * // Get recipe for an item
@@ -53,89 +51,143 @@ public class WellLiquefaction {
 
     /**
      * Initialize default liquefaction recipes
+     * Matching 1.12.2 Astral Sorcery recipes
      */
     public static void init() {
         if (initialized) {
+            LogHelper.info("[WellLiquefaction] Already initialized, skipping");
             return;
         }
 
-        LogHelper.info("Initializing WellLiquefaction recipes...");
+        LogHelper.info("[WellLiquefaction] Initializing WellLiquefaction recipes...");
 
-        // === Vanilla Items ===
+        // === LIQUID STARLIGHT RECIPES ===
 
-        // Glowstone Dust → Liquid Starlight (basic recipe)
+        // Aquamarine → Liquid Starlight (0.4x, 12 shatter)
+        LogHelper.info("[WellLiquefaction] Registering Aquamarine recipe...");
+        hellfirepvp.astralsorcery.common.item.ItemCraftingComponent cc = new hellfirepvp.astralsorcery.common.item.ItemCraftingComponent();
         registerRecipe(
-            new ItemStack(net.minecraft.init.Items.glowstone_dust),
-            "astralsorcery.liquidStarlight",
-            0.8,   // 80% production efficiency
-            0.01   // 1% shatter chance
+            new ItemStack(
+                cc,
+                1,
+                hellfirepvp.astralsorcery.common.item.ItemCraftingComponent.MetaType.AQUAMARINE.ordinal()),
+            "astralsorcery.liquidstarlight",
+            0.4F,
+            12F,
+            new java.awt.Color(0x00, 0x88, 0xDD));
+
+        // Resonance Gem → Liquid Starlight (0.6x, 18 shatter)
+        LogHelper.info("[WellLiquefaction] Registering Resonance Gem recipe...");
+        registerRecipe(
+            new ItemStack(
+                cc,
+                1,
+                hellfirepvp.astralsorcery.common.item.ItemCraftingComponent.MetaType.RESO_GEM.ordinal()),
+            "astralsorcery.liquidstarlight",
+            0.6F,
+            18F,
+            new java.awt.Color(0x00, 0x88, 0xDD));
+
+        // Tuned Celestial Crystal → Liquid Starlight (1.0x, 100 shatter)
+        LogHelper.info("[WellLiquefaction] Registering Tuned Celestial Crystal recipe...");
+        registerRecipe(
+            new ItemStack(hellfirepvp.astralsorcery.common.registry.reference.ItemsAS.tunedCelestialCrystal),
+            "astralsorcery.liquidstarlight",
+            1.0F,
+            100F,
+            null // Will use celestial crystal color
         );
 
-        // Glowstone → Liquid Starlight (better)
+        // Celestial Crystal → Liquid Starlight (0.9x, 50 shatter)
+        LogHelper.info("[WellLiquefaction] Registering Celestial Crystal recipe...");
         registerRecipe(
-            new ItemStack(net.minecraft.init.Blocks.glowstone),
-            "astralsorcery.liquidStarlight",
-            1.2,   // 120% production efficiency
-            0.005  // 0.5% shatter chance
+            new ItemStack(hellfirepvp.astralsorcery.common.registry.reference.ItemsAS.celestialCrystal),
+            "astralsorcery.liquidstarlight",
+            0.9F,
+            50F,
+            null // Will use celestial crystal color
         );
 
-        // Nether Star → Liquid Starlight (very high efficiency)
+        // Tuned Rock Crystal → Liquid Starlight (0.8x, 70 shatter)
+        LogHelper.info("[WellLiquefaction] Registering Tuned Rock Crystal recipe...");
         registerRecipe(
-            new ItemStack(net.minecraft.init.Items.nether_star),
-            "astralsorcery.liquidStarlight",
-            5.0,   // 500% production efficiency
-            0.001, // 0.1% shatter chance (very durable)
-            new java.awt.Color(0xFFFFAA) // Light yellow
+            new ItemStack(hellfirepvp.astralsorcery.common.registry.reference.ItemsAS.tunedRockCrystal),
+            "astralsorcery.liquidstarlight",
+            0.8F,
+            70F,
+            null // Will use rock crystal color
         );
 
-        // === Astral Sorcery Items ===
-
-        // TODO: Uncomment when ItemsAS are fully registered
-        /*
-        // Rock Crystal → Liquid Starlight
+        // Rock Crystal → Liquid Starlight (0.7x, 30 shatter)
+        LogHelper.info("[WellLiquefaction] Registering Rock Crystal recipe...");
         registerRecipe(
-            new ItemStack(hellfirepvp.astralsorcery.common.registry.reference.ItemsAS.rockCrystal),
-            "astralsorcery.liquidStarlight",
-            1.0,   // 100% production efficiency
-            0.008  // 0.8% shatter chance
+            new ItemStack(hellfirepvp.astralsorcery.common.registry.reference.ItemsAS.rockCrystalSimple),
+            "astralsorcery.liquidstarlight",
+            0.7F,
+            30F,
+            null // Will use rock crystal color
         );
 
-        // Celestial Crystal → Liquid Starlight (high efficiency)
-        registerRecipe(
-            new ItemStack(hellfirepvp.astralsorcery.common.registry.reference.ItemsAS.celestitalCrystal),
-            "astralsorcery.liquidStarlight",
-            1.5,   // 150% production efficiency
-            0.003, // 0.3% shatter chance
-            new java.awt.Color(0x89CFF0) // Celestial blue
-        );
+        // === WATER RECIPES ===
 
-        // Resonant Crystal → Liquid Starlight (very high efficiency)
+        // Ice → Water (1.0x, 15 shatter)
+        LogHelper.info("[WellLiquefaction] Registering Ice recipe...");
         registerRecipe(
-            new ItemStack(hellfirepvp.astralsorcery.common.registry.reference.ItemsAS.crystalResonant),
-            "astralsorcery.liquidStarlight",
-            2.0,   // 200% production efficiency
-            0.002, // 0.2% shatter chance
-            new java.awt.Color(0x00FFFF) // Cyan
-        );
-        */
+            new ItemStack(net.minecraft.init.Blocks.ice),
+            "water",
+            1.0F,
+            15F,
+            new java.awt.Color(0x53, 0x69, 0xFF));
+
+        // Packed Ice → Water (1.0x, 15 shatter)
+        LogHelper.info("[WellLiquefaction] Registering Packed Ice recipe...");
+        registerRecipe(
+            new ItemStack(net.minecraft.init.Blocks.packed_ice),
+            "water",
+            1.0F,
+            15F,
+            new java.awt.Color(0x53, 0x69, 0xFF));
+
+        // Snow → Water (1.5x, 15 shatter)
+        LogHelper.info("[WellLiquefaction] Registering Snow recipe...");
+        registerRecipe(
+            new ItemStack(net.minecraft.init.Blocks.snow),
+            "water",
+            1.5F,
+            15F,
+            new java.awt.Color(0x53, 0x69, 0xFF));
+
+        // === LAVA RECIPES ===
+
+        // NOTE: Magma block doesn't exist in 1.7.10 (added in 1.10)
+
+        // Netherrack → Lava (0.5x, 0.1 shatter - very durable)
+        LogHelper.info("[WellLiquefaction] Registering Netherrack recipe...");
+        registerRecipe(
+            new ItemStack(net.minecraft.init.Blocks.netherrack),
+            "lava",
+            0.5F,
+            0.1F,
+            new java.awt.Color(0xFF, 0x35, 0x0C));
 
         initialized = true;
-        LogHelper.info("WellLiquefaction recipes initialized: " + recipes.size() + " recipes");
+        LogHelper.info("[WellLiquefaction] WellLiquefaction recipes initialized: " + recipes.size() + " recipes");
     }
 
     /**
      * Register a liquefaction recipe
      *
-     * @param input               The input item
-     * @param fluidName           The output fluid name (e.g., "liquid_starlight")
+     * @param input                The input item
+     * @param fluidName            The output fluid name (e.g., "liquid_starlight")
      * @param productionMultiplier Production rate multiplier (higher = faster)
-     * @param shatterMultiplier   Catalyst shatter chance per tick (higher = more likely to break)
+     * @param shatterMultiplier    Catalyst shatter chance per tick (higher = more likely to break)
      */
     public static void registerRecipe(ItemStack input, String fluidName, double productionMultiplier,
         double shatterMultiplier) {
         Fluid fluid = FluidRegistry.getFluid(fluidName);
         if (fluid == null) {
-            LogHelper.warn("Failed to register liquefaction recipe: Fluid '" + fluidName + "' not found!");
+            LogHelper.warn(
+                "[WellLiquefaction] Failed to register liquefaction recipe: Fluid '" + fluidName + "' not found!");
             return;
         }
 
@@ -147,17 +199,23 @@ public class WellLiquefaction {
             shatterMultiplier);
 
         recipes.put(key, entry);
-        LogHelper.debug("Registered liquefaction recipe: " + input.getDisplayName() + " → " + fluidName);
+        LogHelper.info(
+            "[WellLiquefaction] Registered recipe: key='%s', displayName='%s' → %s (mult: %.2f, shatter: %.4f)",
+            key,
+            input.getDisplayName(),
+            fluidName,
+            productionMultiplier,
+            shatterMultiplier);
     }
 
     /**
      * Register a liquefaction recipe with custom color
      *
-     * @param input               The input item
-     * @param fluidName           The output fluid name
+     * @param input                The input item
+     * @param fluidName            The output fluid name
      * @param productionMultiplier Production rate multiplier
-     * @param shatterMultiplier   Catalyst shatter chance
-     * @param catalystColor       Custom color for catalyst effect
+     * @param shatterMultiplier    Catalyst shatter chance
+     * @param catalystColor        Custom color for catalyst effect
      */
     public static void registerRecipe(ItemStack input, String fluidName, double productionMultiplier,
         double shatterMultiplier, Color catalystColor) {
@@ -176,7 +234,13 @@ public class WellLiquefaction {
             catalystColor);
 
         recipes.put(key, entry);
-        LogHelper.debug("Registered liquefaction recipe with color: " + input.getDisplayName());
+        LogHelper.info(
+            "[WellLiquefaction] Registered recipe with color: key='%s', displayName='%s' → %s (mult: %.2f, shatter: %.4f)",
+            key,
+            input.getDisplayName(),
+            fluidName,
+            productionMultiplier,
+            shatterMultiplier);
     }
 
     /**
@@ -187,11 +251,27 @@ public class WellLiquefaction {
      */
     public static LiquefactionEntry getLiquefactionEntry(ItemStack stack) {
         if (stack == null) {
+            LogHelper.debug("[WellLiquefaction] getLiquefactionEntry: stack is null");
             return null;
         }
 
         String key = getItemStackKey(stack);
-        return recipes.get(key);
+        LogHelper
+            .debug("[WellLiquefaction] Looking for recipe: key='%s', displayName='%s'", key, stack.getDisplayName());
+        LogHelper.debug("[WellLiquefaction] Total recipes: %d", recipes.size());
+
+        LiquefactionEntry entry = recipes.get(key);
+        if (entry == null) {
+            LogHelper.debug("[WellLiquefaction] Recipe not found for key: %s", key);
+            // Log all available keys for debugging
+            if (!recipes.isEmpty()) {
+                LogHelper.debug("[WellLiquefaction] Available recipe keys: %s", recipes.keySet());
+            }
+        } else {
+            LogHelper.debug("[WellLiquefaction] Recipe FOUND for: %s", key);
+        }
+
+        return entry;
     }
 
     /**
@@ -201,17 +281,24 @@ public class WellLiquefaction {
      * @return true if the item has a liquefaction recipe
      */
     public static boolean canLiquefy(ItemStack stack) {
-        return getLiquefactionEntry(stack) != null;
+        if (stack == null) {
+            LogHelper.debug("[WellLiquefaction] canLiquefy: stack is null");
+            return false;
+        }
+        boolean result = getLiquefactionEntry(stack) != null;
+        LogHelper.debug("[WellLiquefaction] canLiquefy(%s): %s", stack.getDisplayName(), result);
+        return result;
     }
 
     /**
      * Get the key for an ItemStack
-     * Format: "itemRegistryName:meta"
+     * Format: "ItemClassName:meta" to avoid registry timing issues
      */
     private static String getItemStackKey(ItemStack stack) {
         Item item = stack.getItem();
-        String itemName = item != null ? Item.itemRegistry.getNameForObject(item)
-            : "unknown";
+        // Use class name instead of registry name to avoid timing issues
+        String itemName = item != null ? item.getClass()
+            .getName() : "unknown";
         int meta = stack.getItemDamage();
         return itemName + ":" + meta;
     }

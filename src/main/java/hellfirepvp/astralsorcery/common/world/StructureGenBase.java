@@ -6,13 +6,13 @@
 
 package hellfirepvp.astralsorcery.common.world;
 
-import hellfirepvp.astralsorcery.common.structure.StructureBuilder;
-import hellfirepvp.astralsorcery.common.util.LogHelper;
-
 import java.util.Random;
 
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
+
+import hellfirepvp.astralsorcery.common.structure.StructureBuilder;
+import hellfirepvp.astralsorcery.common.util.LogHelper;
 
 /**
  * StructureGenBase - Base class for structure world generation (1.7.10)
@@ -26,16 +26,17 @@ import net.minecraft.world.biome.BiomeGenBase;
  * </ul>
  * <p>
  * <b>Usage:</b>
+ * 
  * <pre>
  * public class StructureAncientShrine extends StructureGenBase {
+ * 
  *     public StructureAncientShrine() {
  *         super("ancientShrine", 140, Type.MOUNTAIN);
  *     }
  *
  *     &#64;Override
  *     protected boolean isValidBiome(BiomeGenBase biome) {
- *         return biome.biomeName.equals("Extreme Hills") ||
- *                biome.biomeName.equals("Ice Mountains");
+ *         return biome.biomeName.equals("Extreme Hills") || biome.biomeName.equals("Ice Mountains");
  *     }
  * }
  * </pre>
@@ -157,7 +158,8 @@ public abstract class StructureGenBase extends AstralBaseWorldGenerator {
         // Find highest non-air block
         for (int y = world.getHeight() - 1; y >= 0; y--) {
             // 1.7.10: Use isOpaqueCube() instead of isOpaque(World, int, int, int)
-            if (world.getBlock(x, y, z).isOpaqueCube()) {
+            if (world.getBlock(x, y, z)
+                .isOpaqueCube()) {
                 return y;
             }
         }
@@ -180,23 +182,18 @@ public abstract class StructureGenBase extends AstralBaseWorldGenerator {
 
         switch (type) {
             case MOUNTAIN:
-                return biomeName.contains("mountain") ||
-                       biomeName.contains("hill") ||
-                       biomeName.contains("extreme") ||
-                       biomeName.contains("snow");
+                return biomeName.contains("mountain") || biomeName.contains("hill")
+                    || biomeName.contains("extreme")
+                    || biomeName.contains("snow");
 
             case DESERT:
-                return biomeName.contains("desert") ||
-                       biomeName.contains("savanna");
+                return biomeName.contains("desert") || biomeName.contains("savanna");
 
             case FOREST:
-                return biomeName.contains("forest") ||
-                       biomeName.contains("taiga") ||
-                       biomeName.contains("jungle");
+                return biomeName.contains("forest") || biomeName.contains("taiga") || biomeName.contains("jungle");
 
             case PLAINS:
-                return biomeName.contains("plain") ||
-                       biomeName.contains("field");
+                return biomeName.contains("plain") || biomeName.contains("field");
 
             default:
                 return true;

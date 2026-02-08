@@ -58,10 +58,7 @@ public class ItemHandTelescope extends AstralBaseItem {
         }
 
         // Check if player can see sky
-        if (!world.canBlockSeeTheSky(
-            (int) player.posX,
-            (int) player.posY,
-            (int) player.posZ)) {
+        if (!world.canBlockSeeTheSky((int) player.posX, (int) player.posY, (int) player.posZ)) {
             player.addChatMessage(new ChatComponentText("§cYou need a clear view of the sky!"));
             return stack;
         }
@@ -89,16 +86,22 @@ public class ItemHandTelescope extends AstralBaseItem {
                 boolean discovered = ResearchManager.discoverConstellation(constellation, player);
                 if (discovered) {
                     discoveredCount++;
-                    LogHelper.info("Player " + player.getCommandSenderName() + " discovered constellation: "
-                        + constellation.getUnlocalizedName());
+                    LogHelper.info(
+                        "Player " + player.getCommandSenderName()
+                            + " discovered constellation: "
+                            + constellation.getUnlocalizedName());
                 }
             }
         }
 
         // Send discovery messages
         if (discoveredCount > 0) {
-            player.addChatMessage(new ChatComponentText(
-                "§aYou discovered " + discoveredCount + " new constellation" + (discoveredCount > 1 ? "s" : "") + "!"));
+            player.addChatMessage(
+                new ChatComponentText(
+                    "§aYou discovered " + discoveredCount
+                        + " new constellation"
+                        + (discoveredCount > 1 ? "s" : "")
+                        + "!"));
 
             // List discovered constellations
             for (IConstellation constellation : visibleConstellations) {
@@ -113,9 +116,12 @@ public class ItemHandTelescope extends AstralBaseItem {
             // Check if player can now attune to a constellation
             checkAttunation(player, progress);
         } else if (alreadyKnownCount > 0) {
-            player.addChatMessage(new ChatComponentText(
-                "§eYou see " + alreadyKnownCount + " constellation" + (alreadyKnownCount > 1 ? "s" : "")
-                    + ", but you already know them all."));
+            player.addChatMessage(
+                new ChatComponentText(
+                    "§eYou see " + alreadyKnownCount
+                        + " constellation"
+                        + (alreadyKnownCount > 1 ? "s" : "")
+                        + ", but you already know them all."));
         } else {
             player.addChatMessage(new ChatComponentText("§eNo new constellations to discover."));
         }
@@ -134,8 +140,8 @@ public class ItemHandTelescope extends AstralBaseItem {
 
             for (IMajorConstellation constellation : majorConstellations) {
                 if (progress.hasConstellationDiscovered(constellation)) {
-                    player.addChatMessage(new ChatComponentText(
-                        "§eYou can now attune to a constellation using an Attunement Altar!"));
+                    player.addChatMessage(
+                        new ChatComponentText("§eYou can now attune to a constellation using an Attunement Altar!"));
                     break;
                 }
             }

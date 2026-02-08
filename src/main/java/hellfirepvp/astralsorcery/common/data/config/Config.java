@@ -504,23 +504,14 @@ public class Config {
                 "Enables/Disables all patreon effects.");
 
             // Feature Toggles (from ConfigurationHandler)
-            enableAlchemy = configuration.getBoolean(
-                "enableAlchemy",
-                "features",
-                enableAlchemy,
-                "Enable alchemy features");
+            enableAlchemy = configuration
+                .getBoolean("enableAlchemy", "features", enableAlchemy, "Enable alchemy features");
 
-            enableConstellations = configuration.getBoolean(
-                "enableConstellations",
-                "features",
-                enableConstellations,
-                "Enable constellation features");
+            enableConstellations = configuration
+                .getBoolean("enableConstellations", "features", enableConstellations, "Enable constellation features");
 
-            enableRituals = configuration.getBoolean(
-                "enableRituals",
-                "features",
-                enableRituals,
-                "Enable ritual features");
+            enableRituals = configuration
+                .getBoolean("enableRituals", "features", enableRituals, "Enable ritual features");
 
             starlightTransmissionRange = configuration.getInt(
                 "starlightTransmissionRange",
@@ -531,23 +522,14 @@ public class Config {
                 "Maximum range for starlight transmission");
 
             // Client Graphics (from ConfigurationHandler)
-            fancyGraphics = configuration.getBoolean(
-                "fancyGraphics",
-                "graphics",
-                fancyGraphics,
-                "Use fancy graphics settings");
+            fancyGraphics = configuration
+                .getBoolean("fancyGraphics", "graphics", fancyGraphics, "Use fancy graphics settings");
 
-            enableParticles = configuration.getBoolean(
-                "enableParticles",
-                "graphics",
-                enableParticles,
-                "Enable particle effects");
+            enableParticles = configuration
+                .getBoolean("enableParticles", "graphics", enableParticles, "Enable particle effects");
 
-            enableLightBeams = configuration.getBoolean(
-                "enableLightBeams",
-                "graphics",
-                enableLightBeams,
-                "Enable starlight beam rendering");
+            enableLightBeams = configuration
+                .getBoolean("enableLightBeams", "graphics", enableLightBeams, "Enable starlight beam rendering");
 
             beamOpacity = configuration.getFloat(
                 "beamOpacity",
@@ -581,23 +563,14 @@ public class Config {
                 "Growth speed multiplier for celestial crystals (100 = normal)");
 
             // Debug Settings (from ConfigurationHandler)
-            debugMode = configuration.getBoolean(
-                "debugMode",
-                "debug",
-                debugMode,
-                "Enable debug mode (additional logging)");
+            debugMode = configuration
+                .getBoolean("debugMode", "debug", debugMode, "Enable debug mode (additional logging)");
 
-            verboseLogging = configuration.getBoolean(
-                "verboseLogging",
-                "debug",
-                verboseLogging,
-                "Enable verbose logging");
+            verboseLogging = configuration
+                .getBoolean("verboseLogging", "debug", verboseLogging, "Enable verbose logging");
 
-            enableDevTools = configuration.getBoolean(
-                "enableDevTools",
-                "debug",
-                enableDevTools,
-                "Enable development tools");
+            enableDevTools = configuration
+                .getBoolean("enableDevTools", "debug", enableDevTools, "Enable development tools");
 
             // Fill whitelists
             fillWhitelistIDs(dimWhitelist);

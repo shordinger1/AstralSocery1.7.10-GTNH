@@ -17,8 +17,8 @@ import net.minecraft.world.World;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import hellfirepvp.astralsorcery.client.gui.AltarRecipeViewer;
 import hellfirepvp.astralsorcery.common.base.AstralBaseItem;
+import hellfirepvp.astralsorcery.common.util.LocalizationHelper;
 
 /**
  * Journal Item
@@ -54,10 +54,10 @@ public class ItemJournal extends AstralBaseItem {
             return stack;
         }
 
-        // Phase 4: Open recipe viewer on client side
+        // Open Journal GUI on client side
         if (world.isRemote) {
             FMLCommonHandler.instance()
-                .showGuiScreen(new AltarRecipeViewer());
+                .showGuiScreen(new hellfirepvp.astralsorcery.client.gui.journal.GuiJournalProgression());
         }
 
         return stack;
@@ -106,14 +106,18 @@ public class ItemJournal extends AstralBaseItem {
     @Override
     public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced) {
         int count = getPaperCount(stack);
-        tooltip.add("§7Stored Papers: §e" + count + "§7/§e" + INVENTORY_SIZE);
+        tooltip
+            .add("§7" + LocalizationHelper.tr("item.itemjournal.stored") + ": §e" + count + "§7/§e" + INVENTORY_SIZE);
 
         if (count > 0) {
-            tooltip.add("§7Sneak + Right-click: §aOpen journal");
+            tooltip.add("§7" + LocalizationHelper.tr("item.itemjournal.open"));
         } else {
-            tooltip.add("§cEmpty journal");
-            tooltip.add("§8Add constellation papers to fill");
+            tooltip.add("§c" + LocalizationHelper.tr("item.itemjournal.empty"));
+            tooltip.add("§8" + LocalizationHelper.tr("item.itemjournal.fill"));
         }
+
+        // Add general tooltip from language file
+        LocalizationHelper.addItemTooltip(stack, tooltip, 2, false);
 
         // TODO: When GUI is implemented, show detailed contents
     }

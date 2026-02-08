@@ -14,9 +14,9 @@ import cpw.mods.fml.common.IWorldGenerator;
 import cpw.mods.fml.common.registry.GameRegistry;
 import hellfirepvp.astralsorcery.common.util.LogHelper;
 import hellfirepvp.astralsorcery.common.world.StructureGenAncientShrine;
+import hellfirepvp.astralsorcery.common.world.StructureGenSmallRuin;
 import hellfirepvp.astralsorcery.common.world.StructureGenSmallShrine;
 import hellfirepvp.astralsorcery.common.world.StructureGenTreasureShrine;
-import hellfirepvp.astralsorcery.common.world.StructureGenSmallRuin;
 
 /**
  * WorldGenerator registry for Astral Sorcery

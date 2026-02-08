@@ -8,16 +8,12 @@
 
 package hellfirepvp.astralsorcery.common.tile;
 
-import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
-import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlockAnyMeta;
-
 import java.util.Random;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import hellfirepvp.astralsorcery.common.tile.base.TileReceiverBaseInventory;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -26,35 +22,26 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.cleanroommc.modularui.api.IGuiHolder;
-import com.cleanroommc.modularui.api.drawable.IKey;
-import com.cleanroommc.modularui.drawable.GuiTextures;
 import com.cleanroommc.modularui.factory.PosGuiData;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.UISettings;
 import com.cleanroommc.modularui.utils.item.IItemHandlerModifiable;
 import com.cleanroommc.modularui.utils.item.ItemStackHandler;
-import com.cleanroommc.modularui.value.sync.IntSyncValue;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
-import com.cleanroommc.modularui.widgets.ProgressWidget;
-import com.cleanroommc.modularui.widgets.SlotGroupWidget;
-import com.cleanroommc.modularui.widgets.slot.ItemSlot;
-import com.cleanroommc.modularui.widgets.slot.ModularSlot;
-import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
-import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 
+import hellfirepvp.astralsorcery.client.gui.modularui.AltarGuiFactory;
 import hellfirepvp.astralsorcery.common.block.BlockAltar;
+import hellfirepvp.astralsorcery.common.crafting.IGatedRecipe;
 import hellfirepvp.astralsorcery.common.crafting.altar.ASAltarRecipe;
 import hellfirepvp.astralsorcery.common.crafting.altar.ActiveCraftingTask;
 import hellfirepvp.astralsorcery.common.crafting.altar.AltarRecipeRegistry;
-import hellfirepvp.astralsorcery.client.gui.modularui.AltarGuiFactory;
-import hellfirepvp.astralsorcery.common.registry.reference.BlocksAS;
-import hellfirepvp.astralsorcery.common.structure.MultiblockStructures;
-import hellfirepvp.astralsorcery.common.tile.base.TileEntitySynchronized;
+import hellfirepvp.astralsorcery.common.tile.base.TileEntityTick;
+import hellfirepvp.astralsorcery.common.util.AltarStructureHelper;
 import hellfirepvp.astralsorcery.common.util.LogHelper;
-import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
 import hellfirepvp.astralsorcery.common.util.StarlightHelper;
 import hellfirepvp.astralsorcery.common.util.math.BlockPos;
+import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -69,7 +56,7 @@ import hellfirepvp.astralsorcery.common.util.math.BlockPos;
  * - Creates ModularPanel with altar-specific UI
  */
 // TODO: IWandInteract interface not available - remove interface for now
-public class TileAltar extends TileEntitySynchronized implements IGuiHolder<PosGuiData> {
+public class TileAltar extends TileEntityTick implements IGuiHolder<PosGuiData> {
 
     // TODO: Implement after IMultiblockDependantTile interface is migrated
     // implements IMultiblockDependantTile
@@ -91,6 +78,7 @@ public class TileAltar extends TileEntitySynchronized implements IGuiHolder<PosG
     private ItemStack focusItem = null;
     private boolean doesSeeSky = false;
     private int starlightStored = 0;
+    private boolean hasLoggedUpdate = false;
 
     // Phase 3.1: Inventory system using ItemStackHandler
     // Size depends on altar level: 9 slots for crafting + focus slot
@@ -142,6 +130,56 @@ public class TileAltar extends TileEntitySynchronized implements IGuiHolder<PosG
         }
     }
 
+    // ========================================================================
+    // Starlight Network Integration (Simplified for 1.7.10)
+    // ========================================================================
+
+    /**
+     * Receive starlight from the network
+     * Called by starlight transmission network when this altar receives starlight
+     *
+     * @param constellation The constellation type (can be null for generic starlight)
+     * @param amount        Amount of starlight received (0.0 to 1.0+)
+     */
+    public void receiveStarlight(String constellation, double amount) {
+        if (amount <= 0.001) {
+            return;
+        }
+
+        // Convert received starlight to storage units
+        // Multiplier of 200D matches 1.12.2 behavior
+        int starlightToAdd = (int) (amount * 200D);
+
+        int currentStored = starlightStored;
+        int maxStorage = getMaxStarlightStorage();
+
+        starlightStored = Math.min(maxStorage, starlightStored + starlightToAdd);
+
+        if (starlightStored != currentStored) {
+            markForUpdate(); // Sync to client
+
+            // Log occasionally
+            if (worldObj.getTotalWorldTime() % 200 == 0) {
+                LogHelper.debug(
+                    String.format(
+                        "Received %.2f starlight from network (constellation: %s), total: %d/%d",
+                        amount,
+                        constellation == null ? "none" : constellation,
+                        starlightStored,
+                        maxStorage));
+            }
+        }
+    }
+
+    /**
+     * Receive starlight from the network (generic, no constellation)
+     *
+     * @param amount Amount of starlight received
+     */
+    public void receiveStarlight(double amount) {
+        receiveStarlight(null, amount);
+    }
+
     // Phase 3.1: Get the inventory handler
     public IItemHandlerModifiable getInventory() {
         return inventory;
@@ -170,37 +208,8 @@ public class TileAltar extends TileEntitySynchronized implements IGuiHolder<PosG
      * Uses StructureLib to validate the multiblock structure
      */
     public boolean checkStructure() {
-        AltarLevel level = getAltarLevel();
-        if (level == null || level == AltarLevel.DISCOVERY) {
-            // Discovery altar requires no structure
-            return true;
-        }
-
-        IStructureDefinition<?> definition = getStructureDefinition();
-        if (definition == null) {
-            return true;
-        }
-
-        // Check structure using StructureLib
-        // Note: We use SOUTH_NORMAL_NONE facing for now (no rotation support in Phase 1)
-        // Using null as context since our structure definition is Object-based
-        @SuppressWarnings("unchecked")
-        IStructureDefinition<Object> def = (IStructureDefinition<Object>) definition;
-        boolean formed = def.check(
-            null, // context (not used for Object-based structures)
-            "main", // piece name (all structures use "main")
-            worldObj, // world
-            ExtendedFacing.SOUTH_NORMAL_NONE, // facing (no rotation for now)
-            xCoord,
-            yCoord,
-            zCoord, // position
-            0,
-            0,
-            0, // offsets
-            false // forceCheckAll
-        );
-
-        return formed;
+        // Use AltarStructureHelper for structure validation
+        return AltarStructureHelper.isStructureComplete(worldObj, xCoord, yCoord, zCoord, getAltarLevel());
     }
 
     // ========================================================================
@@ -216,22 +225,22 @@ public class TileAltar extends TileEntitySynchronized implements IGuiHolder<PosG
     }
 
     // TODO: ItemHandlerTile not available - method commented out
-//     protected TileReceiverBaseInventory.ItemHandlerTile createNewItemHandler() {
-//     return new ItemHandlerTileFiltered(this) {
-//     @Override
-//     public boolean canInsertItem(int slot, ItemStack toAdd, @Nonnull ItemStack existing) {
-//     if (!super.canInsertItem(slot, toAdd, existing)) {
-//     return false;
-//     }
-//     AltarLevel al = TileAltar.this.getAltarLevel();
-//     if (al == null) {
-//     al = AltarLevel.DISCOVERY;
-//     }
-//     int allowed = al.getAccessibleInventorySize();
-//     return slot >= 0 && slot < allowed;
-//     }
-//     };
-//     }
+    // protected TileReceiverBaseInventory.ItemHandlerTile createNewItemHandler() {
+    // return new ItemHandlerTileFiltered(this) {
+    // @Override
+    // public boolean canInsertItem(int slot, ItemStack toAdd, @Nonnull ItemStack existing) {
+    // if (!super.canInsertItem(slot, toAdd, existing)) {
+    // return false;
+    // }
+    // AltarLevel al = TileAltar.this.getAltarLevel();
+    // if (al == null) {
+    // al = AltarLevel.DISCOVERY;
+    // }
+    // int allowed = al.getAccessibleInventorySize();
+    // return slot >= 0 && slot < allowed;
+    // }
+    // };
+    // }
 
     // TODO: Re-enable after IWeakConstellation is migrated
     // public void receiveStarlight(@Nullable IWeakConstellation type, double amount) {
@@ -243,6 +252,18 @@ public class TileAltar extends TileEntitySynchronized implements IGuiHolder<PosG
     @Override
     public void updateEntity() {
         super.updateEntity();
+
+        // Log first tick to verify updateEntity is being called
+        if (!hasLoggedUpdate) {
+            LogHelper.info(
+                "[TileAltar] updateEntity called at [%d, %d, %d] - Level: %s, isRemote: %s",
+                xCoord,
+                yCoord,
+                zCoord,
+                getAltarLevel(),
+                worldObj.isRemote);
+            hasLoggedUpdate = true;
+        }
 
         boolean canSee = worldObj.canBlockSeeTheSky(xCoord, yCoord, zCoord);
         updateSkyState(canSee);
@@ -257,22 +278,57 @@ public class TileAltar extends TileEntitySynchronized implements IGuiHolder<PosG
 
             // StructureLib integration: Check multiblock structure
             // Only check periodically to avoid performance impact (every 20 ticks = 1 second)
-            if (worldObj.getTotalWorldTime() % 20 == 0) {
+            long worldTime = worldObj.getTotalWorldTime();
+            if (hasLoggedUpdate && ticksExisted % 100 == 0) {
+                LogHelper.info(
+                    "[TileAltar] Tick check: ticksExisted=%d, worldTime=%d, worldTime%%20=%d",
+                    ticksExisted,
+                    worldTime,
+                    worldTime % 20);
+            }
+
+            if (worldTime % 20 == 0) {
+                // Log structure check attempt
+                LogHelper.info(
+                    "[TileAltar] Checking structure at [%d, %d, %d] - Level: %s",
+                    xCoord,
+                    yCoord,
+                    zCoord,
+                    getAltarLevel());
+
                 boolean structureFormed = checkStructure();
+
+                // Log check result
+                LogHelper.info(
+                    "[TileAltar] Structure check result: %s (previous: %s)",
+                    structureFormed,
+                    this.multiblockMatches);
+
                 if (structureFormed != this.multiblockMatches) {
                     this.multiblockMatches = structureFormed;
                     needUpdate = true;
 
-                    // If structure is broken and we're crafting, stop crafting
-                    if (!structureFormed && activeCraftingTask != null) {
-                        activeCraftingTask = null;
+                    // Log structure state changes
+                    if (structureFormed) {
                         LogHelper.info(
-                            "Altar structure broken at " + xCoord
-                                + ","
-                                + yCoord
-                                + ","
-                                + zCoord
-                                + ", stopping crafting");
+                            "[TileAltar] ✓ Multiblock structure COMPLETED at [%d, %d, %d] - Level: %s",
+                            xCoord,
+                            yCoord,
+                            zCoord,
+                            getAltarLevel());
+                    } else {
+                        LogHelper.info(
+                            "[TileAltar] ✗ Multiblock structure BROKEN at [%d, %d, %d] - Level: %s",
+                            xCoord,
+                            yCoord,
+                            zCoord,
+                            getAltarLevel());
+
+                        // If structure is broken and we're crafting, stop crafting
+                        if (activeCraftingTask != null) {
+                            activeCraftingTask = null;
+                            LogHelper.info("[TileAltar] Stopping crafting due to broken structure");
+                        }
                     }
                 }
             }
@@ -394,6 +450,34 @@ public class TileAltar extends TileEntitySynchronized implements IGuiHolder<PosG
         return focusItem != null ? focusItem : null;
     }
 
+    /**
+     * Get the focused constellation from the focus item
+     *
+     * @return The constellation name, or null if no focus/constellation
+     */
+    @Nullable
+    public String getFocusedConstellation() {
+        if (focusItem != null && focusItem.stackSize > 0) {
+            // Check if the item is a constellation focus
+            // For now, we'll use NBT data to store the constellation
+            if (focusItem.stackTagCompound != null && focusItem.stackTagCompound.hasKey("Constellation")) {
+                return focusItem.stackTagCompound.getString("Constellation");
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Check if a specific constellation is focused
+     *
+     * @param constellation The constellation to check
+     * @return true if this constellation is focused
+     */
+    public boolean isConstellationFocused(String constellation) {
+        String focused = getFocusedConstellation();
+        return focused != null && focused.equals(constellation);
+    }
+
     public void setFocusStack(@Nonnull ItemStack stack) {
         this.focusItem = stack;
 
@@ -451,7 +535,7 @@ public class TileAltar extends TileEntitySynchronized implements IGuiHolder<PosG
 
     /**
      * Attempt to craft a recipe
-     * Phase 4: Complete crafting system implementation
+     * Phase 4: Complete crafting system implementation with gated recipe support
      */
     private boolean doTryCraft(boolean needUpdate) {
         // Structure check: Cannot craft without a complete structure (except Discovery altar)
@@ -475,6 +559,33 @@ public class TileAltar extends TileEntitySynchronized implements IGuiHolder<PosG
 
             ASAltarRecipe recipe = AltarRecipeRegistry.findRecipe(inventoryArray, getAltarLevel());
             if (recipe != null) {
+                // Check if recipe is gated
+                if (recipe instanceof IGatedRecipe) {
+                    IGatedRecipe gatedRecipe = (IGatedRecipe) recipe;
+
+                    // Find nearby players to check progression
+                    java.util.List<EntityPlayer> nearbyPlayers = worldObj.getEntitiesWithinAABB(
+                        EntityPlayer.class,
+                        net.minecraft.util.AxisAlignedBB
+                            .getBoundingBox(xCoord - 5, yCoord - 2, zCoord - 5, xCoord + 6, yCoord + 3, zCoord + 6));
+
+                    boolean hasProgression = false;
+                    for (EntityPlayer player : nearbyPlayers) {
+                        if (gatedRecipe.hasProgressionServer(player)) {
+                            hasProgression = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasProgression) {
+                        // Player doesn't have required progression
+                        LogHelper.debug(
+                            "Recipe is gated: player lacks required progression for " + recipe.getOutput()
+                                .getDisplayName());
+                        return needUpdate;
+                    }
+                }
+
                 int craftingDivisor = getAltarLevel().ordinal() + 1;
                 // Use a placeholder UUID (will be replaced with actual player UUID when possible)
                 activeCraftingTask = new ActiveCraftingTask(recipe, craftingDivisor, UUID.randomUUID());
@@ -551,109 +662,6 @@ public class TileAltar extends TileEntitySynchronized implements IGuiHolder<PosG
         worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
     }
 
-    // TODO: Re-enable after crafting system is migrated
-    // private boolean doTryCraft(boolean needUpdate) {
-    // if(craftingTask == null) return needUpdate;
-    // AbstractAltarRecipe altarRecipe = craftingTask.getRecipeToCraft();
-    // if(!doesRecipeMatch(altarRecipe, true)) {
-    // abortCrafting();
-    // return true;
-    // }
-    // if(!altarRecipe.fulfillesStarlightRequirement(this)) {
-    // if(craftingTask.shouldPersist(this)) {
-    // craftingTask.setState(ActiveCraftingTask.CraftingState.PAUSED);
-    // return true;
-    // }
-    // abortCrafting();
-    // return true;
-    // }
-    // if((ticksExisted % 5) == 0) {
-    // if(matchDownMultiblocks(altarRecipe.getNeededLevel()) == null) {
-    // abortCrafting();
-    // return true;
-    // }
-    // }
-    // if(craftingTask.isFinished()) {
-    // finishCrafting();
-    // return true;
-    // }
-    // if(!craftingTask.tick(this)) {
-    // craftingTask.setState(ActiveCraftingTask.CraftingState.WAITING);
-    // return true;
-    // }
-    // ActiveCraftingTask.CraftingState prev = craftingTask.getState();
-    // craftingTask.setState(ActiveCraftingTask.CraftingState.ACTIVE);
-    // craftingTask.getRecipeToCraft().onCraftServerTick(
-    // this,
-    // ActiveCraftingTask.CraftingState.ACTIVE,
-    // craftingTask.getTicksCrafting(),
-    // craftingTask.getTotalCraftingTime(),
-    // rand);
-    // return (prev != craftingTask.getState()) || needUpdate;
-    // }
-
-    // TODO: Re-enable after crafting system is migrated
-    // private void finishCrafting() {
-    // if(craftingTask == null) return; //Wtf
-    //
-    // AbstractAltarRecipe recipe = craftingTask.getRecipeToCraft();
-    // ShapeMap current = copyGetCurrentCraftingGrid();
-    // ItemStack out = recipe.getOutput(current, this); //Central item helps defining output - probably, eventually.
-    // if(!out.isEmpty()) {
-    // out = ItemUtils.copyStackWithSize(out, out.getCount());
-    // }
-    //
-    // ForgeHooks.setCraftingPlayer(craftingTask.tryGetCraftingPlayerServer());
-    // recipe.handleInputConsumption(this, craftingTask, getInventoryHandler());
-    // ForgeHooks.setCraftingPlayer(null);
-    //
-    // if(!out.isEmpty() && !(out.getItem() instanceof ItemBlockAltar)) {
-    // if(out.getCount() > 0) {
-    // ItemUtils.dropItem(world, pos.getX() + 0.5, pos.getY() + 1.3, pos.getZ() + 0.5, out).setNoDespawn();
-    // }
-    // }
-    //
-    // starlightStored = Math.max(0, starlightStored - recipe.getPassiveStarlightRequired());
-    //
-    // if (!recipe.allowsForChaining() || !doesRecipeMatch(recipe, false) ||
-    // matchDownMultiblocks(recipe.getNeededLevel()) == null) {
-    // if(getAltarLevel().ordinal() >= AltarLevel.CONSTELLATION_CRAFT.ordinal()) {
-    // Vector3 pos = new Vector3(getPos()).add(0.5, 0, 0.5);
-    // PktParticleEvent ev = new PktParticleEvent(PktParticleEvent.ParticleEventType.CRAFT_FINISH_BURST, pos.getX(),
-    // pos.getY() + 0.05, pos.getZ());
-    // PacketChannel.CHANNEL.sendToAllAround(ev, PacketChannel.pointFromPos(getWorld(), getPos(), 32));
-    // }
-    // craftingTask.getRecipeToCraft().onCraftServerFinish(this, rand);
-    //
-    // if(!recipe.getOutputForMatching().isEmpty()) {
-    // ItemStack match = recipe.getOutputForMatching();
-    // if(match.getItem() instanceof ItemBlockAltar) {
-    // TileAltar.AltarLevel to = TileAltar.AltarLevel.values()[
-    // MathHelper.clamp(match.getItemDamage(), 0, AltarLevel.values().length - 1)];
-    // tryForceLevelUp(to, true);
-    // }
-    // }
-    // ResearchManager.informCraftingAltarCompletion(this, craftingTask);
-    // SoundHelper.playSoundAround(Sounds.craftFinish, world, getPos(), 1F, 1.7F);
-    // EntityFlare.spawnAmbient(world, new Vector3(this).add(-3 + rand.nextFloat() * 7, 0.6, -3 + rand.nextFloat() *
-    // 7));
-    // craftingTask = null;
-    // markForUpdate();
-    // }
-
-    // TODO: Re-enable after crafting system is migrated
-    // public ShapeMap copyGetCurrentCraftingGrid() {
-    // ShapeMap current = new ShapeMap();
-    // for (int i = 0; i < 9; i++) {
-    // ShapedRecipeSlot slot = ShapedRecipeSlot.values()[i];
-    // ItemStack stack = getInventoryHandler().getStackInSlot(i);
-    // if(!stack.isEmpty()) {
-    // current.put(slot, new ItemHandle(ItemUtils.copyStackWithSize(stack, 1)));
-    // }
-    // }
-    // return current;
-    // }
-
     public boolean tryForceLevelUp(AltarLevel to, boolean doLevelUp) {
         int curr = getAltarLevel().ordinal();
         if (curr >= to.ordinal()) return false;
@@ -684,11 +692,19 @@ public class TileAltar extends TileEntitySynchronized implements IGuiHolder<PosG
         return block != blockNew;
     }
 
-    // TODO: Re-enable after crafting system is migrated
-    // private void abortCrafting() {
-    // this.craftingTask = null;
-    // markForUpdate();
-    // }
+    /**
+     * Abort the current crafting task
+     * Called when crafting needs to be stopped prematurely
+     */
+    private void abortCrafting() {
+        if (activeCraftingTask != null) {
+            LogHelper.debug("Crafting aborted for recipe: " + activeCraftingTask.getRecipe()
+                .getOutput()
+                .getDisplayName());
+            activeCraftingTask = null;
+            markForUpdate();
+        }
+    }
 
     /**
      * Starlight passive collection
@@ -782,8 +798,12 @@ public class TileAltar extends TileEntitySynchronized implements IGuiHolder<PosG
 
                                 // Log occasionally
                                 if (worldObj.getTotalWorldTime() % 200 == 0) {
-                                    LogHelper.debug("Altar pulled %.1f starlight from collector at [%d,%d,%d]",
-                                        pulled, x, y, z);
+                                    LogHelper.debug(
+                                        "Altar pulled %.1f starlight from collector at [%d,%d,%d]",
+                                        pulled,
+                                        x,
+                                        y,
+                                        z);
                                 }
                             }
 
@@ -883,6 +903,59 @@ public class TileAltar extends TileEntitySynchronized implements IGuiHolder<PosG
             return true;
         }
         return false;
+    }
+
+    /**
+     * Drop a container item into the world
+     * Called when a container item can't fit back into the altar inventory
+     *
+     * @param stack The container item to drop
+     */
+    public void dropContainerItem(net.minecraft.item.ItemStack stack) {
+        if (stack == null || stack.stackSize <= 0) {
+            return;
+        }
+
+        // Drop the item in front of the altar
+        net.minecraft.entity.item.EntityItem itemEntity = new net.minecraft.entity.item.EntityItem(
+            worldObj,
+            xCoord + 0.5,
+            yCoord + 1.3,
+            zCoord + 0.5,
+            stack.copy());
+        itemEntity.lifespan = 1200; // 60 seconds
+        worldObj.spawnEntityInWorld(itemEntity);
+
+        LogHelper.debug("Dropped container item: " + stack.getDisplayName());
+    }
+
+    /**
+     * Drop experience orbs into the world
+     * Called when a recipe grants experience
+     *
+     * @param amount Experience amount to drop
+     */
+    public void dropExperience(int amount) {
+        if (amount <= 0) {
+            return;
+        }
+
+        // Drop experience orbs in front of the altar
+        // Split into multiple orbs if amount is large (vanilla behavior: max XP per orb is determined by formula)
+        while (amount > 0) {
+            int orbSize = net.minecraft.entity.item.EntityXPOrb.getXPSplit(amount);
+            amount -= orbSize;
+
+            net.minecraft.entity.item.EntityXPOrb orb = new net.minecraft.entity.item.EntityXPOrb(
+                worldObj,
+                xCoord + 0.5 + (worldObj.rand.nextDouble() - 0.5) * 0.5,
+                yCoord + 1.3,
+                zCoord + 0.5 + (worldObj.rand.nextDouble() - 0.5) * 0.5,
+                orbSize);
+            worldObj.spawnEntityInWorld(orb);
+        }
+
+        LogHelper.debug("Dropped " + amount + " experience");
     }
 
     // TODO: Re-enable after crafting system is migrated

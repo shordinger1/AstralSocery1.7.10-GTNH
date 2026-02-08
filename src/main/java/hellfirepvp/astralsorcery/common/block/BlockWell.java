@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
@@ -21,14 +22,17 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
-
-import com.cleanroommc.modularui.factory.TileEntityGuiFactory;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidContainerRegistry;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.IFluidContainerItem;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
 import hellfirepvp.astralsorcery.common.tile.TileWell;
-import hellfirepvp.astralsorcery.common.util.LogHelper;
+import hellfirepvp.astralsorcery.common.util.FluidHelper;
+import hellfirepvp.astralsorcery.common.util.WellLiquefaction;
 
 /**
  * BlockWell - Starlight well (1.7.10)
@@ -174,24 +178,141 @@ public class BlockWell extends BlockContainer {
         return true;
     }
 
+    @Override
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX,
         float hitY, float hitZ) {
-        // Open well GUI using ModularUI
-        TileEntity te = world.getTileEntity(x, y, z);
-        if (te instanceof TileWell) {
-            TileWell well = (TileWell) te;
-            if (!world.isRemote) {
-                // Open ModularUI GUI on server side
-                TileEntityGuiFactory.INSTANCE.open(player, well);
+        if (!world.isRemote) {
+            TileWell well = (TileWell) world.getTileEntity(x, y, z);
+            if (well == null) {
+                return false;
             }
-            return true;
+
+            ItemStack heldItem = player.getCurrentEquippedItem();
+
+            if (heldItem != null && heldItem.stackSize > 0) {
+                // Try to insert catalyst (liquefaction item)
+                WellLiquefaction.LiquefactionEntry entry = WellLiquefaction.getLiquefactionEntry(heldItem);
+
+                if (entry != null) {
+                    // Check if slot 0 is empty
+                    ItemStack currentCatalyst = well.getStackInSlot(0);
+
+                    if (currentCatalyst != null && currentCatalyst.stackSize > 0) {
+                        return false; // Already has a catalyst
+                    }
+
+                    // Check if block above is air
+                    boolean isAirAbove = world.isAirBlock(x, y + 1, z);
+
+                    if (!isAirAbove) {
+                        return false;
+                    }
+
+                    // Insert the catalyst
+                    well.setInventorySlotContents(0, heldItem.splitStack(1));
+                    world.playSoundAtEntity(
+                        player,
+                        "random.pop",
+                        0.2F,
+                        ((world.rand.nextFloat() - world.rand.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+                    world.markBlockForUpdate(x, y, z);
+                    return true;
+                }
+
+                // Try to fill fluid container from well
+                Fluid heldFluid = FluidHelper.getFluidType(heldItem);
+
+                if (heldFluid != null) {
+                    // Item is already filled, don't fill it
+                    return false;
+                }
+
+                // Try to fill empty container
+                Fluid wellFluid = well.getHeldFluid();
+                int fluidAmount = well.getFluidAmount();
+
+                if (wellFluid != null && fluidAmount > 0) {
+                    // Try IFluidContainerItem first
+                    if (heldItem.getItem() instanceof IFluidContainerItem) {
+                        IFluidContainerItem container = (IFluidContainerItem) heldItem.getItem();
+
+                        // Try to fill without actually doing it
+                        ItemStack copy = heldItem.copy();
+                        copy.stackSize = 1;
+                        int canFill = container
+                            .fill(copy, new FluidStack(wellFluid, FluidContainerRegistry.BUCKET_VOLUME), false);
+
+                        if (canFill > 0) {
+                            // Actually fill the item
+                            int filled = container.fill(
+                                heldItem,
+                                new FluidStack(wellFluid, Math.min(canFill, well.getFluidAmount())),
+                                true);
+
+                            if (filled > 0) {
+                                // Drain from well
+                                well.drain(net.minecraftforge.common.util.ForgeDirection.UNKNOWN, filled, true);
+                                world.playSoundAtEntity(player, "liquid.fill", 1F, 1F);
+                                world.markBlockForUpdate(x, y, z);
+                                return true;
+                            }
+                        }
+                    } else {
+                        // Try FluidContainerRegistry
+                        FluidStack fluidStack = new FluidStack(
+                            wellFluid,
+                            Math.min(FluidContainerRegistry.BUCKET_VOLUME, well.getFluidAmount()));
+                        ItemStack filledContainer = FluidContainerRegistry.fillFluidContainer(fluidStack, heldItem);
+
+                        if (filledContainer != null) {
+                            // Get the amount that was actually filled
+                            FluidStack filledFluid = FluidContainerRegistry.getFluidForFilledItem(filledContainer);
+                            if (filledFluid != null && filledFluid.amount > 0) {
+                                // Drain from well
+                                well.drain(
+                                    net.minecraftforge.common.util.ForgeDirection.UNKNOWN,
+                                    filledFluid.amount,
+                                    true);
+
+                                // Replace held item with filled container
+                                if (!player.capabilities.isCreativeMode) {
+                                    heldItem.stackSize--;
+                                    if (heldItem.stackSize <= 0) {
+                                        player.inventory.mainInventory[player.inventory.currentItem] = filledContainer;
+                                    } else {
+                                        // Add to inventory or drop
+                                        if (!player.inventory.addItemStackToInventory(filledContainer)) {
+                                            player.dropPlayerItemWithRandomChoice(filledContainer, false);
+                                        }
+                                    }
+                                }
+                                world.playSoundAtEntity(player, "liquid.fill", 1F, 1F);
+                                world.markBlockForUpdate(x, y, z);
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
         }
-        return false;
+        return true;
+    }
+
+    @Override
+    public void breakBlock(World world, int x, int y, int z, Block block, int meta) {
+        TileWell well = (TileWell) world.getTileEntity(x, y, z);
+        if (well != null && !world.isRemote) {
+            ItemStack catalyst = well.getStackInSlot(0);
+            if (catalyst != null && catalyst.stackSize > 0) {
+                well.breakCatalyst();
+            }
+        }
+
+        super.breakBlock(world, x, y, z, block, meta);
     }
 
     public Item getItemDropped(int meta, Random rand, int fortune) {
         return Item.getItemFromBlock(this);
-
     }
 
     public int quantityDropped(Random rand) {
@@ -224,7 +345,6 @@ public class BlockWell extends BlockContainer {
         // Register all block textures and store reference for quick access
         hellfirepvp.astralsorcery.client.util.BlockTextureRegister.registerAll(reg);
         iconWell = reg.registerIcon("astralsorcery:blocks/well");
-        LogHelper.info("[BlockWell] Registered icon: " + iconWell.getIconName());
     }
 
     @Override

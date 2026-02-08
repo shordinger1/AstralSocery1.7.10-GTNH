@@ -7,6 +7,7 @@
 package hellfirepvp.astralsorcery.proxy;
 
 import net.minecraft.item.Item;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.MinecraftForge;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -15,8 +16,8 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
-import hellfirepvp.astralsorcery.common.data.config.Config;
 import hellfirepvp.astralsorcery.common.constellation.distribution.ConstellationSkyHandler;
+import hellfirepvp.astralsorcery.common.data.config.Config;
 import hellfirepvp.astralsorcery.common.event.EventHandler;
 import hellfirepvp.astralsorcery.common.lib.Constants;
 import hellfirepvp.astralsorcery.common.network.NetworkWrapper;
@@ -175,7 +176,8 @@ public class CommonProxy {
         } catch (Exception e) {
             LogHelper.info("NEI not installed or integration failed: " + e.getMessage());
         }
-
+        LogHelper.info(
+            "entity.EntityShootingStar.name   :   " + StatCollector.translateToLocal("entity.EntityShootingStar.name"));
         LogHelper.exit("CommonProxy.postInit");
     }
 

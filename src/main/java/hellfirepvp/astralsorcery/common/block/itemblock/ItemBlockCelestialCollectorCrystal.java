@@ -6,21 +6,21 @@
 
 package hellfirepvp.astralsorcery.common.block.itemblock;
 
+import java.awt.Color;
+
+import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.item.EnumRarity;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
+
 import hellfirepvp.astralsorcery.common.constellation.IConstellation;
 import hellfirepvp.astralsorcery.common.constellation.IMinorConstellation;
 import hellfirepvp.astralsorcery.common.constellation.IWeakConstellation;
 import hellfirepvp.astralsorcery.common.entity.EntityItemHighlighted;
 import hellfirepvp.astralsorcery.common.item.base.ItemHighlighted;
 import hellfirepvp.astralsorcery.common.util.nbt.NBTHelper;
-import net.minecraft.block.Block;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.item.EnumRarity;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
-
-import java.awt.Color;
 
 /**
  * ItemBlock for BlockCelestialCollectorCrystal
@@ -79,12 +79,13 @@ public class ItemBlockCelestialCollectorCrystal extends ItemBlock implements Ite
     }
 
     public static void setTraitConstellation(ItemStack stack, IMinorConstellation constellation) {
-        if(constellation == null) return;
+        if (constellation == null) return;
         constellation.writeToNBT(NBTHelper.getPersistentData(stack), IConstellation.getDefaultSaveKey() + "trait");
     }
 
     public static IMinorConstellation getTrait(ItemStack stack) {
-        return (IMinorConstellation) IConstellation.readFromNBT(NBTHelper.getPersistentData(stack), IConstellation.getDefaultSaveKey() + "trait");
+        return (IMinorConstellation) IConstellation
+            .readFromNBT(NBTHelper.getPersistentData(stack), IConstellation.getDefaultSaveKey() + "trait");
     }
 
 }

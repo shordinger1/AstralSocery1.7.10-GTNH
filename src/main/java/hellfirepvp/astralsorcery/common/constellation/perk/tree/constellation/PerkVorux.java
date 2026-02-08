@@ -32,7 +32,9 @@ public class PerkVorux extends ConstellationPerk {
         super("cst_vorux", constellation, x, y);
 
         // Add ranged damage modifier: +25% ranged damage
-        addModifier(0.25F, PerkAttributeModifier.Mode.ADDED_MULTIPLY,
+        addModifier(
+            0.25F,
+            PerkAttributeModifier.Mode.ADDED_MULTIPLY,
             hellfirepvp.astralsorcery.common.constellation.perk.attribute.AttributeTypeRegistry.ATTR_TYPE_RANGED_DAMAGE);
     }
 

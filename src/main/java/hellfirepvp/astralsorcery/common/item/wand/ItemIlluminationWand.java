@@ -19,8 +19,8 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.common.base.AstralBaseItem;
 import hellfirepvp.astralsorcery.common.block.BlockFlareLight;
-import hellfirepvp.astralsorcery.common.registry.reference.BlocksAS;
 import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
+import hellfirepvp.astralsorcery.common.registry.reference.BlocksAS;
 
 /**
  * Illumination Wand

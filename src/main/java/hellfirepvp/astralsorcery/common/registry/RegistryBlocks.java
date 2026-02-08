@@ -48,8 +48,9 @@ public class RegistryBlocks {
         if (registered) {
             LogHelper.info("Registered fluid: " + BlocksAS.fluidLiquidStarlight.getName());
         } else {
-            LogHelper.warn("Fluid already registered: " + BlocksAS.fluidLiquidStarlight.getName()
-                + " (may be registered by another mod)");
+            LogHelper.warn(
+                "Fluid already registered: " + BlocksAS.fluidLiquidStarlight.getName()
+                    + " (may be registered by another mod)");
         }
 
         LogHelper.info("=== Fluid Registration Complete ===");
@@ -233,7 +234,7 @@ public class RegistryBlocks {
             "blockmachine");
 
         // Log registered blocks
-        System.out.println("[AstralSorcery] Registered " + BLOCKS_TO_REGISTER.size() + " blocks");
+        LogHelper.info("Registered " + BLOCKS_TO_REGISTER.size() + " blocks");
     }
 
     /**
@@ -245,19 +246,18 @@ public class RegistryBlocks {
             throw new IllegalArgumentException("Attempted to register null block!");
         }
 
-        // Set block unlocalizedName - match original 1.12.2 format
-        // Use simple name without prefixes - Minecraft adds "tile." automatically
-        // unlocalizedName: "blockcustomore" -> lang key: "tile.blockcustomore.name"
-        block.setBlockName(name);
-
         // Register block with custom ItemBlock using GameRegistry (1.7.10)
         // Single call handles both Block and ItemBlock registration
         GameRegistry.registerBlock(block, itemClass, name);
 
+        // IMPORTANT: Set blockName AFTER registration to override any auto-added prefix
+        // In 1.7.10, GameRegistry.registerBlock may modify the unlocalizedName
+        // Minecraft will automatically add "tile." prefix, so we don't include it here
+        // unlocalizedName: "blockcustomore" -> lang key: "tile.blockcustomore.name"
+        block.setBlockName(name);
+
         // Track for later
         BLOCKS_TO_REGISTER.add(block);
-
-        LogHelper.debug("Registered block: " + name + " (unlocalizedName: " + name + ")");
 
         return block;
     }

@@ -17,8 +17,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-import com.cleanroommc.modularui.factory.TileEntityGuiFactory;
-
 import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
 import hellfirepvp.astralsorcery.common.tile.TileObservatory;
 
@@ -82,7 +80,8 @@ public class BlockObservatory extends BlockContainer {
                     if (!world.isAirBlock(checkX, checkY, checkZ)) {
                         net.minecraft.block.Block block = world.getBlock(checkX, checkY, checkZ);
                         // Check if block is replaceable
-                        if (block != null && !block.getMaterial().isReplaceable()) {
+                        if (block != null && !block.getMaterial()
+                            .isReplaceable()) {
                             return false;
                         }
                     }
@@ -109,10 +108,10 @@ public class BlockObservatory extends BlockContainer {
                 // 1.12.2 version has player mount the observatory entity
                 // Entity e = observatory.findRideableObservatoryEntity();
                 // if (e != null) {
-                //     if(player.ridingEntity == null) {
-                //         player.mountEntity(e);
-                //     }
-                //     // Open GUI
+                // if(player.ridingEntity == null) {
+                // player.mountEntity(e);
+                // }
+                // // Open GUI
                 // }
 
                 // Check if observatory is usable

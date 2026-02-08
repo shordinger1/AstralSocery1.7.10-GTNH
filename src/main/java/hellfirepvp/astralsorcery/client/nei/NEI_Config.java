@@ -12,11 +12,6 @@ import codechicken.nei.api.API;
 import codechicken.nei.api.IConfigureNEI;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import hellfirepvp.astralsorcery.client.nei.ASNEIAltarAttunementHandler;
-import hellfirepvp.astralsorcery.client.nei.ASNEIAltarBrillianceHandler;
-import hellfirepvp.astralsorcery.client.nei.ASNEIAltarConstellationHandler;
-import hellfirepvp.astralsorcery.client.nei.ASNEIAltarDiscoveryHandler;
-import hellfirepvp.astralsorcery.client.nei.ASNEIAltarTraitHandler;
 import hellfirepvp.astralsorcery.common.registry.reference.BlocksAS;
 
 /**

@@ -24,16 +24,14 @@ public class ObservatoryGuiFactory {
     /**
      * Create a ModularUI panel for the observatory
      *
-     * @param tile The observatory tile entity
-     * @param guiData GUI data from ModularUI
+     * @param tile           The observatory tile entity
+     * @param guiData        GUI data from ModularUI
      * @param guiSyncManager Sync manager for data synchronization
-     * @param settings UI settings
+     * @param settings       UI settings
      * @return The constructed ModularPanel
      */
-    public static ModularPanel createObservatoryUI(TileObservatory tile,
-                                                   PosGuiData guiData,
-                                                   PanelSyncManager guiSyncManager,
-                                                   UISettings settings) {
+    public static ModularPanel createObservatoryUI(TileObservatory tile, PosGuiData guiData,
+        PanelSyncManager guiSyncManager, UISettings settings) {
         LogHelper.info("[ObservatoryGuiFactory] Creating Observatory GUI");
         return ObservatoryGui.buildUI(tile, guiData, guiSyncManager, settings);
     }

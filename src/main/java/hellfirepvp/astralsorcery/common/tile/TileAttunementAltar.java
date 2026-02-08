@@ -186,8 +186,10 @@ public class TileAttunementAltar extends TileEntity {
             // Auto-discover constellation for players who haven't discovered it yet
             if (!progress.hasConstellationDiscovered(activeConstellation)) {
                 ResearchManager.discoverConstellation(activeConstellation, player);
-                LogHelper.info("Player " + player.getCommandSenderName() + " discovered constellation: "
-                    + activeConstellation.getUnlocalizedName());
+                LogHelper.info(
+                    "Player " + player.getCommandSenderName()
+                        + " discovered constellation: "
+                        + activeConstellation.getUnlocalizedName());
             }
         }
     }
@@ -202,12 +204,14 @@ public class TileAttunementAltar extends TileEntity {
         // Check requirements
         if (activeConstellation == null) {
             player.addChatMessage(new net.minecraft.util.ChatComponentText("§cNo constellation is currently active!"));
-            player.addChatMessage(new net.minecraft.util.ChatComponentText("§eWait for nighttime and ensure the altar can see the sky."));
+            player.addChatMessage(
+                new net.minecraft.util.ChatComponentText("§eWait for nighttime and ensure the altar can see the sky."));
             return;
         }
 
         if (!(activeConstellation instanceof hellfirepvp.astralsorcery.common.constellation.IMajorConstellation)) {
-            player.addChatMessage(new net.minecraft.util.ChatComponentText("§cOnly Major constellations can be attuned!"));
+            player.addChatMessage(
+                new net.minecraft.util.ChatComponentText("§cOnly Major constellations can be attuned!"));
             return;
         }
 
@@ -231,26 +235,32 @@ public class TileAttunementAltar extends TileEntity {
         // Check if player has discovered this constellation
         if (!progress.hasConstellationDiscovered(activeConstellation)) {
             ResearchManager.discoverConstellation(activeConstellation, player);
-            player.addChatMessage(new net.minecraft.util.ChatComponentText("§aYou discovered the constellation: §6"
-                + activeConstellation.getUnlocalizedName()));
+            player.addChatMessage(
+                new net.minecraft.util.ChatComponentText(
+                    "§aYou discovered the constellation: §6" + activeConstellation.getUnlocalizedName()));
         }
 
         // Attempt attunement
-        hellfirepvp.astralsorcery.common.constellation.IMajorConstellation majorConstellation =
-            (hellfirepvp.astralsorcery.common.constellation.IMajorConstellation) activeConstellation;
+        hellfirepvp.astralsorcery.common.constellation.IMajorConstellation majorConstellation = (hellfirepvp.astralsorcery.common.constellation.IMajorConstellation) activeConstellation;
 
         boolean success = ResearchManager.setAttunedConstellation(player, majorConstellation);
 
         if (success) {
-            player.addChatMessage(new net.minecraft.util.ChatComponentText("§aYou have attuned to: §6"
-                + activeConstellation.getUnlocalizedName()));
+            player.addChatMessage(
+                new net.minecraft.util.ChatComponentText(
+                    "§aYou have attuned to: §6" + activeConstellation.getUnlocalizedName()));
             player.addChatMessage(new net.minecraft.util.ChatComponentText("§eYour perk tree has been reset."));
-            player.addChatMessage(new net.minecraft.util.ChatComponentText("§eYou can now use constellation-specific recipes!"));
+            player.addChatMessage(
+                new net.minecraft.util.ChatComponentText("§eYou can now use constellation-specific recipes!"));
 
-            LogHelper.info("Player " + player.getCommandSenderName() + " attuned to constellation: "
-                + activeConstellation.getUnlocalizedName());
+            LogHelper.info(
+                "Player " + player.getCommandSenderName()
+                    + " attuned to constellation: "
+                    + activeConstellation.getUnlocalizedName());
         } else {
-            player.addChatMessage(new net.minecraft.util.ChatComponentText("§cFailed to attune! You may already be attuned to this constellation."));
+            player.addChatMessage(
+                new net.minecraft.util.ChatComponentText(
+                    "§cFailed to attune! You may already be attuned to this constellation."));
         }
     }
 

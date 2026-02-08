@@ -11,11 +11,8 @@ import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.common.util.ForgeDirection;
 
 import hellfirepvp.astralsorcery.common.tile.base.TileEntityTick;
 import hellfirepvp.astralsorcery.common.util.LogHelper;
@@ -194,7 +191,8 @@ public class TileBore extends TileEntityTick {
 
         // Try to merge with existing stacks
         for (int i = 0; i < inventory.length; i++) {
-            if (inventory[i] != null && inventory[i].isItemEqual(stack) && ItemStack.areItemStackTagsEqual(inventory[i], stack)) {
+            if (inventory[i] != null && inventory[i].isItemEqual(stack)
+                && ItemStack.areItemStackTagsEqual(inventory[i], stack)) {
                 int space = inventory[i].getMaxStackSize() - inventory[i].stackSize;
                 if (space > 0) {
                     int toAdd = Math.min(space, stack.stackSize);
@@ -236,8 +234,7 @@ public class TileBore extends TileEntityTick {
             xCoord + offsetX,
             yCoord + 1 + offsetY,
             zCoord + offsetZ,
-            stack.copy()
-        );
+            stack.copy());
 
         entityItem.delayBeforeCanPickup = 10;
         worldObj.spawnEntityInWorld(entityItem);

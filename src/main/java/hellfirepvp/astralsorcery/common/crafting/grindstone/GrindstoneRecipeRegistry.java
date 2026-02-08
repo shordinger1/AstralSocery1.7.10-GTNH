@@ -32,8 +32,8 @@ public class GrindstoneRecipeRegistry {
     /**
      * Register a grindstone recipe
      *
-     * @param in Input item
-     * @param out Output item
+     * @param in     Input item
+     * @param out    Output item
      * @param chance 1 in X chance
      * @return Registered recipe
      */
@@ -46,13 +46,14 @@ public class GrindstoneRecipeRegistry {
     /**
      * Register a grindstone recipe with double output chance
      *
-     * @param in Input item
-     * @param out Output item
-     * @param chance 1 in X chance
+     * @param in           Input item
+     * @param out          Output item
+     * @param chance       1 in X chance
      * @param doubleChance Chance (0-1) to double output
      * @return Registered recipe
      */
-    public static GrindstoneRecipe registerGrindstoneRecipe(ItemStack in, ItemStack out, int chance, float doubleChance) {
+    public static GrindstoneRecipe registerGrindstoneRecipe(ItemStack in, ItemStack out, int chance,
+        float doubleChance) {
         GrindstoneRecipe recipe = new GrindstoneRecipe(in, out, chance, doubleChance);
         recipes.add(recipe);
         return recipe;

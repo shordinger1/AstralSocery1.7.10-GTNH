@@ -38,11 +38,9 @@ public class ItemPerkSeal extends AstralBaseItem {
         if (!world.isRemote) {
             // Grant free allocation point for perk tree
             String token = "perk_seal_" + System.currentTimeMillis();
-            if (hellfirepvp.astralsorcery.common.data.research.ResearchManager.grantFreePerkPoint(
-                player,
-                token)) {
-                hellfirepvp.astralsorcery.common.util.LogHelper.info(
-                    "Player " + player.getCommandSenderName() + " used Perk Seal - granted free perk point");
+            if (hellfirepvp.astralsorcery.common.data.research.ResearchManager.grantFreePerkPoint(player, token)) {
+                hellfirepvp.astralsorcery.common.util.LogHelper
+                    .info("Player " + player.getCommandSenderName() + " used Perk Seal - granted free perk point");
             }
             // Consume one item
             if (!player.capabilities.isCreativeMode) {

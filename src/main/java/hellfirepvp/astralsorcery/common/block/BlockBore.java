@@ -108,8 +108,9 @@ public class BlockBore extends BlockContainer {
         int belowY = y - 1;
         if (belowY >= 0) {
             net.minecraft.block.Block blockBelow = world.getBlock(x, belowY, z);
-            if (blockBelow == null || blockBelow.isAir(world, x, belowY, z) ||
-                blockBelow.getMaterial().isReplaceable()) {
+            if (blockBelow == null || blockBelow.isAir(world, x, belowY, z)
+                || blockBelow.getMaterial()
+                    .isReplaceable()) {
 
                 // Check if player is holding a bore head item
                 net.minecraft.item.ItemStack held = player.inventory.mainInventory[player.inventory.currentItem];

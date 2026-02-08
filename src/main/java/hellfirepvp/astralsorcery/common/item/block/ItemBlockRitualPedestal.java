@@ -8,12 +8,10 @@
 
 package hellfirepvp.astralsorcery.common.item.block;
 
-import hellfirepvp.astralsorcery.common.block.BlockRitualPedestal;
-import hellfirepvp.astralsorcery.common.registry.reference.BlocksAS;
-import hellfirepvp.astralsorcery.common.registry.RegistryItems;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemStack;
+
+import hellfirepvp.astralsorcery.common.registry.reference.BlocksAS;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -25,7 +23,7 @@ import net.minecraft.item.ItemStack;
 public class ItemBlockRitualPedestal extends ItemBlock {
 
     public ItemBlockRitualPedestal() {
-        super(BlocksAS.blockRitualPedestal);
+        super(BlocksAS.ritualPedestal);
         // 1.7.10: Ritual pedestal doesn't use ItemBlockRitualPedestal
         setHasSubtypes(true);
     }

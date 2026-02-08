@@ -203,14 +203,14 @@ public class ItemCrystalSword extends ItemSword {
         ToolCrystalProperties prop = getToolProperties(stack);
         if (prop == null) {
             // No properties yet, initialize
-            // Use super.setDamage() to avoid infinite recursion
-            super.setDamage(stack, stack.getMaxDamage());
+            // Don't set vanilla damage since getMaxDamage() returns 0
             return;
         }
 
         if (prop.getSize() <= 0) {
             // Sword broken
-            super.setDamage(stack, stack.getMaxDamage() + 1);
+            // Don't set vanilla damage since getMaxDamage() returns 0
+            // Sword will be unusable due to size check elsewhere
             return;
         }
 
@@ -237,23 +237,40 @@ public class ItemCrystalSword extends ItemSword {
                     }
                 }
             }
+
+            // Check if sword should break early
+            if (prop.getSize() <= 0) {
+                break;
+            }
         }
 
         setToolProperties(stack, prop);
 
         // Check if sword should break
         if (prop.getSize() <= 0) {
-            super.setDamage(stack, stack.getMaxDamage() + 1);
+            // Sword broken - don't set vanilla damage
+            // Sword will be unusable due to size <= 0
         }
     }
 
     /**
      * Get max damage (durability bar)
-     * 1.7.10: Swords have 10 "durability" points
+     * Return 0 to disable vanilla durability system
+     * Crystal swords use NBT-based fracturation instead
      */
     @Override
     public int getMaxDamage(ItemStack stack) {
-        return 10;
+        return 0;
+    }
+
+    /**
+     * Show durability bar
+     * Crystal swords don't use vanilla durability
+     */
+    @Override
+    @SideOnly(Side.CLIENT)
+    public boolean showDurabilityBar(ItemStack stack) {
+        return false;
     }
 
     /**

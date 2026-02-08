@@ -8,14 +8,17 @@
  * all instances can be accessed through this central manager.
  *
  * Usage Example:
- *   Block altar = InstanceManager.blocks().altar();
- *   Item wand = InstanceManager.items().wand();
- *   IConstellation discidia = InstanceManager.constellations().discidia();
+ * Block altar = InstanceManager.blocks().altar();
+ * Item wand = InstanceManager.items().wand();
+ * IConstellation discidia = InstanceManager.constellations().discidia();
  ******************************************************************************/
 
 package hellfirepvp.astralsorcery.common.registry.instance;
 
-import cpw.mods.fml.common.registry.GameRegistry;
+import net.minecraft.block.Block;
+import net.minecraft.item.Item;
+import net.minecraft.potion.Potion;
+
 import hellfirepvp.astralsorcery.common.block.*;
 import hellfirepvp.astralsorcery.common.block.fluid.FluidBlockLiquidStarlight;
 import hellfirepvp.astralsorcery.common.block.fluid.FluidLiquidStarlight;
@@ -29,11 +32,6 @@ import hellfirepvp.astralsorcery.common.item.wand.*;
 import hellfirepvp.astralsorcery.common.item.wearable.*;
 import hellfirepvp.astralsorcery.common.potion.*;
 import hellfirepvp.astralsorcery.common.tile.*;
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.potion.Potion;
-import net.minecraft.util.RegistrySimple;
 
 /**
  * Centralized instance manager for Astral Sorcery.
@@ -53,7 +51,7 @@ import net.minecraft.util.RegistrySimple;
 public class InstanceManager {
 
     // ========================================================================
-    // =                    BLOCK INSTANCES                                 =
+    // = BLOCK INSTANCES =
     // ========================================================================
 
     /**
@@ -240,7 +238,7 @@ public class InstanceManager {
         }
 
         // ====================================================================
-        // =                    HELPER METHODS                               =
+        // = HELPER METHODS =
         // ====================================================================
 
         /**
@@ -248,21 +246,14 @@ public class InstanceManager {
          * Useful for iteration and registration
          */
         public static Block[] all() {
-            return new Block[] {
-                customOre(), customSandOre(), customFlower(),
-                blockMarble(), blockBlackMarble(), blockInfusedWood(), blockFlareLight(),
-                blockMarbleSlab(), blockMarbleDoubleSlab(), blockMarbleStairs(),
-                blockStructural(), blockFakeTree(), blockVanishing(), translucentBlock(),
-                blockAltar(), attunementAltar(), blockWell(), blockIlluminator(),
-                drawingTable(), blockObservatory(), blockTelescope(),
-                collectorCrystal(), lens(), lensPrism(), celestialCollectorCrystal(),
-                attunementRelay(), celestialCrystals(),
-                ritualPedestal(), ritualLink(), treeBeacon(),
-                starlightInfuser(), celestialOrrery(),
-                blockBore(), blockBoreHead(), gemCrystals(), blockChalice(),
-                celestialGateway(), portalNode(), blockMachine(),
-                blockLiquidStarlight()
-            };
+            return new Block[] { customOre(), customSandOre(), customFlower(), blockMarble(), blockBlackMarble(),
+                blockInfusedWood(), blockFlareLight(), blockMarbleSlab(), blockMarbleDoubleSlab(), blockMarbleStairs(),
+                blockStructural(), blockFakeTree(), blockVanishing(), translucentBlock(), blockAltar(),
+                attunementAltar(), blockWell(), blockIlluminator(), drawingTable(), blockObservatory(),
+                blockTelescope(), collectorCrystal(), lens(), lensPrism(), celestialCollectorCrystal(),
+                attunementRelay(), celestialCrystals(), ritualPedestal(), ritualLink(), treeBeacon(),
+                starlightInfuser(), celestialOrrery(), blockBore(), blockBoreHead(), gemCrystals(), blockChalice(),
+                celestialGateway(), portalNode(), blockMachine(), blockLiquidStarlight() };
         }
 
         /**
@@ -285,7 +276,7 @@ public class InstanceManager {
     }
 
     // ========================================================================
-    // =                    ITEM INSTANCES                                  =
+    // = ITEM INSTANCES =
     // ========================================================================
 
     /**
@@ -428,22 +419,19 @@ public class InstanceManager {
         // Special tools
         // NOTE: These item classes don't exist yet - commented out
         /*
-        public static ItemRoseBranchBow roseBranchBow() {
-            return hellfirepvp.astralsorcery.common.registry.reference.ItemsAS.roseBranchBow;
-        }
-
-        public static ItemLinkingTool linkingTool() {
-            return hellfirepvp.astralsorcery.common.registry.reference.ItemsAS.linkingTool;
-        }
-
-        public static ItemSkyResonator skyResonator() {
-            return hellfirepvp.astralsorcery.common.registry.reference.ItemsAS.skyResonator;
-        }
-
-        public static ItemSextant sextant() {
-            return hellfirepvp.astralsorcery.common.registry.reference.ItemsAS.sextant;
-        }
-        */
+         * public static ItemRoseBranchBow roseBranchBow() {
+         * return hellfirepvp.astralsorcery.common.registry.reference.ItemsAS.roseBranchBow;
+         * }
+         * public static ItemLinkingTool linkingTool() {
+         * return hellfirepvp.astralsorcery.common.registry.reference.ItemsAS.linkingTool;
+         * }
+         * public static ItemSkyResonator skyResonator() {
+         * return hellfirepvp.astralsorcery.common.registry.reference.ItemsAS.skyResonator;
+         * }
+         * public static ItemSextant sextant() {
+         * return hellfirepvp.astralsorcery.common.registry.reference.ItemsAS.sextant;
+         * }
+         */
 
         // Wearable items
         public static ItemCape cape() {
@@ -455,7 +443,7 @@ public class InstanceManager {
         }
 
         // ====================================================================
-        // =                    HELPER METHODS                               =
+        // = HELPER METHODS =
         // ====================================================================
 
         /**
@@ -463,19 +451,14 @@ public class InstanceManager {
          * NOTE: Some items may not exist yet and are commented out
          */
         public static Item[] all() {
-            return new Item[] {
-                craftingComponent(), crystalToolBase(),
-                crystalPickaxe(), crystalSword(), crystalAxe(), crystalShovel(),
-                chargedCrystalPickaxe(), chargedCrystalAxe(),
-                chargedCrystalShovel(), chargedCrystalSword(),
-                rockCrystalSimple(), tunedRockCrystal(), celestialCrystal(), tunedCelestialCrystal(),
-                journal(), constellationPaper(), knowledgeFragment(), fragmentCapsule(), knowledgeShare(),
-                handTelescope(), infusedGlass(), coloredLens(), usableDust(),
-                perkGem(), perkSeal(), shiftingStar(),
-                wand(), architectWand(), exchangeWand(), grappleWand(), illuminationWand(),
+            return new Item[] { craftingComponent(), crystalToolBase(), crystalPickaxe(), crystalSword(), crystalAxe(),
+                crystalShovel(), chargedCrystalPickaxe(), chargedCrystalAxe(), chargedCrystalShovel(),
+                chargedCrystalSword(), rockCrystalSimple(), tunedRockCrystal(), celestialCrystal(),
+                tunedCelestialCrystal(), journal(), constellationPaper(), knowledgeFragment(), fragmentCapsule(),
+                knowledgeShare(), handTelescope(), infusedGlass(), coloredLens(), usableDust(), perkGem(), perkSeal(),
+                shiftingStar(), wand(), architectWand(), exchangeWand(), grappleWand(), illuminationWand(),
                 // roseBranchBow(), linkingTool(), skyResonator(), sextant(), // TODO: These items don't exist yet
-                cape(), enchantmentAmulet()
-            };
+                cape(), enchantmentAmulet() };
         }
 
         /**
@@ -498,7 +481,7 @@ public class InstanceManager {
     }
 
     // ========================================================================
-    // =                    CONSTELLATION INSTANCES                         =
+    // = CONSTELLATION INSTANCES =
     // ========================================================================
 
     /**
@@ -578,50 +561,43 @@ public class InstanceManager {
         }
 
         // ====================================================================
-        // =                    HELPER METHODS                               =
+        // = HELPER METHODS =
         // ====================================================================
 
         /**
          * Get all major constellations
          */
         public static IMajorConstellation[] allMajor() {
-            return new IMajorConstellation[] {
-                discidia(), armara(), vicio(), aevitas(), evorsio(), vectras()
-            };
+            return new IMajorConstellation[] { discidia(), armara(), vicio(), aevitas(), evorsio(), vectras() };
         }
 
         /**
          * Get all weak constellations
          */
         public static IWeakConstellation[] allWeak() {
-            return new IWeakConstellation[] {
-                lucerna(), mineralis(), horologium(), octans(), bootes(), fornax(), pelotrio()
-            };
+            return new IWeakConstellation[] { lucerna(), mineralis(), horologium(), octans(), bootes(), fornax(),
+                pelotrio() };
         }
 
         /**
          * Get all minor constellations
          */
         public static IMinorConstellation[] allMinor() {
-            return new IMinorConstellation[] {
-                gelu(), ulteria(), alcara(), vorux()
-            };
+            return new IMinorConstellation[] { gelu(), ulteria(), alcara(), vorux() };
         }
 
         /**
          * Get all constellations
          */
         public static IConstellation[] all() {
-            return new IConstellation[] {
-                discidia(), armara(), vicio(), aevitas(), evorsio(), vectras(),
-                lucerna(), mineralis(), horologium(), octans(), bootes(), fornax(), pelotrio(),
-                gelu(), ulteria(), alcara(), vorux()
-            };
+            return new IConstellation[] { discidia(), armara(), vicio(), aevitas(), evorsio(), vectras(), lucerna(),
+                mineralis(), horologium(), octans(), bootes(), fornax(), pelotrio(), gelu(), ulteria(), alcara(),
+                vorux() };
         }
     }
 
     // ========================================================================
-    // =                    POTION INSTANCES                                =
+    // = POTION INSTANCES =
     // ========================================================================
 
     /**
@@ -653,14 +629,12 @@ public class InstanceManager {
          * Get all potions
          */
         public static Potion[] all() {
-            return new Potion[] {
-                bleed(), timeFreeze(), dropModifier(), spellPlague(), cheatDeath()
-            };
+            return new Potion[] { bleed(), timeFreeze(), dropModifier(), spellPlague(), cheatDeath() };
         }
     }
 
     // ========================================================================
-    // =                    ENCHANTMENT INSTANCES                           =
+    // = ENCHANTMENT INSTANCES =
     // ========================================================================
 
     /**
@@ -678,15 +652,15 @@ public class InstanceManager {
     }
 
     // ========================================================================
-    // =                    GLOBAL HELPER METHODS                           =
+    // = GLOBAL HELPER METHODS =
     // ========================================================================
 
     /**
      * Get total count of all registered instances
      */
     public static int getTotalInstanceCount() {
-        return Blocks.count() + Items.count() + Constellations.all().length +
-               Potions.all().length + 2; // +2 for enchantments
+        return Blocks.count() + Items.count() + Constellations.all().length + Potions.all().length + 2; // +2 for
+                                                                                                        // enchantments
     }
 
     /**

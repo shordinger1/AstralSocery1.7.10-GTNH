@@ -12,6 +12,7 @@ import com.cleanroommc.modularui.factory.PosGuiData;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.UISettings;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
+
 import hellfirepvp.astralsorcery.common.tile.TileAltar;
 import hellfirepvp.astralsorcery.common.util.LogHelper;
 
@@ -24,18 +25,23 @@ public class AltarGuiFactory {
     /**
      * Create a ModularUI panel for the given altar tile entity.
      *
-     * @param tile The altar tile entity
-     * @param guiData GUI data from ModularUI
+     * @param tile           The altar tile entity
+     * @param guiData        GUI data from ModularUI
      * @param guiSyncManager Sync manager for data synchronization
-     * @param settings UI settings
+     * @param settings       UI settings
      * @return The constructed ModularPanel
      */
-    public static ModularPanel createAltarUI(TileAltar tile,
-                                             PosGuiData guiData,
-                                             PanelSyncManager guiSyncManager,
-                                             UISettings settings) {
+    public static ModularPanel createAltarUI(TileAltar tile, PosGuiData guiData, PanelSyncManager guiSyncManager,
+        UISettings settings) {
         TileAltar.AltarLevel level = tile.getAltarLevel();
-        LogHelper.info("[AltarGuiFactory] Creating GUI for altar level: " + level + " at " + tile.xCoord + "," + tile.yCoord + "," + tile.zCoord);
+        LogHelper.info(
+            "[AltarGuiFactory] Creating GUI for altar level: " + level
+                + " at "
+                + tile.xCoord
+                + ","
+                + tile.yCoord
+                + ","
+                + tile.zCoord);
 
         switch (level) {
             case DISCOVERY:

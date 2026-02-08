@@ -4,7 +4,6 @@
  * TESRRitualPedestal - Ritual Pedestal TileEntitySpecialRenderer
  ******************************************************************************/
 
-
 package hellfirepvp.astralsorcery.client.renderer.tile;
 
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -70,7 +69,9 @@ public class TESRRitualPedestal extends TileEntitySpecialRenderer {
         }
 
         if (!(te instanceof TileRitualPedestal)) {
-            LogHelper.warn("[TESRRitualPedestal] TileEntity is not a TileRitualPedestal: " + te.getClass().getName());
+            LogHelper.warn(
+                "[TESRRitualPedestal] TileEntity is not a TileRitualPedestal: " + te.getClass()
+                    .getName());
             return;
         }
 

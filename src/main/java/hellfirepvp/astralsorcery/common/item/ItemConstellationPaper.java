@@ -17,6 +17,7 @@ import net.minecraft.world.World;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.common.base.AstralBaseItem;
+import hellfirepvp.astralsorcery.common.util.LocalizationHelper;
 
 /**
  * Constellation Paper Item
@@ -49,13 +50,13 @@ public class ItemConstellationPaper extends AstralBaseItem {
     public void onCreated(ItemStack stack, World world, EntityPlayer player) {
         if (!world.isRemote) {
             // Generate random constellation on creation
-            java.util.List<hellfirepvp.astralsorcery.common.constellation.IConstellation> constellations =
-                hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry.getAllConstellations();
+            java.util.List<hellfirepvp.astralsorcery.common.constellation.IConstellation> constellations = hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry
+                .getAllConstellations();
 
             if (!constellations.isEmpty()) {
                 java.util.Random rand = new java.util.Random();
-                hellfirepvp.astralsorcery.common.constellation.IConstellation constellation =
-                    constellations.get(rand.nextInt(constellations.size()));
+                hellfirepvp.astralsorcery.common.constellation.IConstellation constellation = constellations
+                    .get(rand.nextInt(constellations.size()));
                 setConstellation(stack, constellation.getUnlocalizedName());
             }
         }
@@ -76,29 +77,33 @@ public class ItemConstellationPaper extends AstralBaseItem {
             return stack;
         }
 
-        hellfirepvp.astralsorcery.common.constellation.IConstellation constellation =
-            hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry.getConstellationByName(constellationName);
+        hellfirepvp.astralsorcery.common.constellation.IConstellation constellation = hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry
+            .getConstellationByName(constellationName);
 
         if (constellation == null) {
             if (player != null) {
-                player.addChatMessage(new net.minecraft.util.ChatComponentText("§cInvalid constellation: " + constellationName));
+                player.addChatMessage(
+                    new net.minecraft.util.ChatComponentText("§cInvalid constellation: " + constellationName));
             }
             return stack;
         }
 
         // Check if player has discovered this constellation
-        hellfirepvp.astralsorcery.common.data.research.PlayerProgress progress =
-            hellfirepvp.astralsorcery.common.data.research.PlayerProgressProperties.getProgress(player);
+        hellfirepvp.astralsorcery.common.data.research.PlayerProgress progress = hellfirepvp.astralsorcery.common.data.research.PlayerProgressProperties
+            .getProgress(player);
 
         if (!progress.hasConstellationDiscovered(constellation)) {
-            player.addChatMessage(new net.minecraft.util.ChatComponentText("§cYou haven't discovered this constellation yet!"));
-            player.addChatMessage(new net.minecraft.util.ChatComponentText("§eUse a §6Telescope §eat night to discover constellations."));
+            player.addChatMessage(
+                new net.minecraft.util.ChatComponentText("§cYou haven't discovered this constellation yet!"));
+            player.addChatMessage(
+                new net.minecraft.util.ChatComponentText("§eUse a §6Telescope §eat night to discover constellations."));
             return stack;
         }
 
         // Check if player can attune (needs attuned constellation)
         if (progress.getAttunedConstellation() == null) {
-            player.addChatMessage(new net.minecraft.util.ChatComponentText("§cYou need to attune to a constellation first!"));
+            player.addChatMessage(
+                new net.minecraft.util.ChatComponentText("§cYou need to attune to a constellation first!"));
             player.addChatMessage(new net.minecraft.util.ChatComponentText("§eUse an §6Attunement Altar §eto attune."));
             return stack;
         }
@@ -151,15 +156,27 @@ public class ItemConstellationPaper extends AstralBaseItem {
     public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced) {
         String constellation = getConstellation(stack);
         if (constellation != null) {
-            tooltip.add("§7Constellation: §e" + constellation);
-            // TODO: Show discovered/unknown status when constellation system is implemented
+            // Try to get localized constellation name
+            String constelKey = "astralsorcery.constellation." + constellation;
+            String constelName = LocalizationHelper.tr(constelKey);
+            // If translation exists (not equal to key), show it
+            if (!constelName.equals(constelKey)) {
+                tooltip.add("§b" + constelName);
+            } else {
+                tooltip.add("§e" + constellation);
+            }
+            // Show discovered/unknown status when constellation system is implemented
             // boolean discovered = isDiscovered(player, constellation);
-            // String status = discovered ? "§aDiscovered" : "§cUnknown";
-            // tooltip.add("§7Status: " + status);
+            // String status = discovered ? "§a" + tr("item.itemconstellationpaper.discovered") : "§c" +
+            // tr("item.itemconstellationpaper.unknown");
+            // tooltip.add("§7" + tr("item.itemconstellationpaper.status") + ": " + status);
         } else {
-            tooltip.add("§7Constellation: §cNone");
-            tooltip.add("§8Use on an altar to identify");
+            tooltip.add("§c" + LocalizationHelper.tr("item.itemconstellationpaper.noConstellation"));
+            tooltip.add("§8" + LocalizationHelper.tr("item.itemconstellationpaper.usage"));
         }
+
+        // Add general tooltip
+        LocalizationHelper.addItemTooltip(stack, tooltip, 2, false);
     }
 
     @SideOnly(Side.CLIENT)

@@ -8,13 +8,13 @@ package hellfirepvp.astralsorcery.client.gui.modularui.renderer;
 
 import java.util.Random;
 
-import hellfirepvp.astralsorcery.common.lib.Constants;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.opengl.GL11;
+
+import hellfirepvp.astralsorcery.common.lib.Constants;
 
 /**
  * Base class for rendering sky/constellation views in GUIs
@@ -95,7 +95,7 @@ public abstract class SkyRenderer {
     /**
      * Render random stars in the background
      *
-     * @param starCount Number of stars to render
+     * @param starCount    Number of stars to render
      * @param partialTicks Partial ticks for flickering
      */
     public void renderStars(int starCount, float partialTicks) {
@@ -174,7 +174,7 @@ public abstract class SkyRenderer {
      * Calculate flickering effect for stars/constellations
      *
      * @param partialTicks Partial ticks
-     * @param offset Random offset for variation
+     * @param offset       Random offset for variation
      * @return Brightness multiplier (0.0 - 1.0)
      */
     protected float calculateFlicker(float partialTicks, int offset) {

@@ -6,6 +6,10 @@
 
 package hellfirepvp.astralsorcery.common.util;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.util.IIcon;
 
@@ -255,5 +259,149 @@ public final class IconHelper {
         }
 
         return icons[index];
+    }
+
+    // ========== Map-based Icon Registration (TST-style) ==========
+
+    /**
+     * Register variant icons using a Map storage (TST-style approach)
+     * <p>
+     * This method provides a more elegant way to register icons for metadata variants
+     * using a Map<Integer, IIcon> instead of an array. This makes the code more
+     * maintainable and flexible.
+     * <p>
+     * <b>Usage:</b>
+     *
+     * <pre>
+     * // In your block class:
+     * private Map<Integer, IIcon> iconMap;
+     *
+     * {@literal @}Override
+     * public void registerBlockIcons(IIconRegister reg) {
+     *     // Method 1: Use custom naming function
+     *     iconMap = IconHelper.registerVariantIconMap(
+     *         reg,
+     *         new int[]{0, 1, 2, 3, 4, 5, 6},
+     *         meta -> "marble_" + getMarbleName(meta)
+     *     );
+     *
+     *     // Method 2: Use simple numeric naming
+     *     iconMap = IconHelper.registerVariantIconMap(
+     *         reg,
+     *         new int[]{0, 1, 2, 3, 4, 5, 6},
+     *         meta -> "myblock/" + meta
+     *     );
+     * }
+     *
+     * {@literal @}Override
+     * public IIcon getIcon(int side, int meta) {
+     *     return IconHelper.getIconFromMap(iconMap, meta);
+     * }
+     * </pre>
+     *
+     * @param register   The IIconRegister
+     * @param metaValues Array of metadata values to register icons for
+     * @param iconPath   Function that maps metadata to icon name (without mod ID prefix)
+     * @return Map of metadata to registered IIcons
+     */
+    public static Map<Integer, IIcon> registerVariantIconMap(IIconRegister register, int[] metaValues,
+        Function<Integer, String> iconPath) {
+        if (register == null) {
+            LogHelper.warn("[IconHelper] Cannot register icons: register is null");
+            return new HashMap<>();
+        }
+
+        if (metaValues == null || metaValues.length == 0) {
+            LogHelper.warn("[IconHelper] Cannot register icons: metaValues is null or empty");
+            return new HashMap<>();
+        }
+
+        if (iconPath == null) {
+            LogHelper.warn("[IconHelper] Cannot register icons: iconPath function is null");
+            return new HashMap<>();
+        }
+
+        Map<Integer, IIcon> iconMap = new HashMap<>();
+
+        for (int meta : metaValues) {
+            String iconName = iconPath.apply(meta);
+            IIcon icon = registerIcon(register, iconName);
+            iconMap.put(meta, icon);
+        }
+
+        LogHelper.debug(
+            "[IconHelper] Registered " + iconMap.size()
+                + " variant icons for metadata values "
+                + java.util.Arrays.toString(metaValues));
+        return iconMap;
+    }
+
+    /**
+     * Register variant icons from String array using Map storage
+     * <p>
+     * Convenience method that automatically maps array indices to metadata values.
+     *
+     * @param register  The IIconRegister
+     * @param iconNames Array of icon names (without mod ID prefix)
+     * @return Map of metadata (array index) to registered IIcons
+     */
+    public static Map<Integer, IIcon> registerVariantIconMap(IIconRegister register, String[] iconNames) {
+        if (register == null) {
+            LogHelper.warn("[IconHelper] Cannot register icons: register is null");
+            return new HashMap<>();
+        }
+
+        if (iconNames == null || iconNames.length == 0) {
+            LogHelper.warn("[IconHelper] Cannot register icons: iconNames is null or empty");
+            return new HashMap<>();
+        }
+
+        Map<Integer, IIcon> iconMap = new HashMap<>();
+
+        for (int meta = 0; meta < iconNames.length; meta++) {
+            IIcon icon = registerIcon(register, iconNames[meta]);
+            iconMap.put(meta, icon);
+        }
+
+        LogHelper.debug("[IconHelper] Registered " + iconMap.size() + " variant icons from name array");
+        return iconMap;
+    }
+
+    /**
+     * Get icon from Map with bounds checking
+     * <p>
+     * Helper method for retrieving icons from a Map-based storage.
+     *
+     * @param iconMap The icon map
+     * @param meta    The metadata value
+     * @return Icon for metadata, or first icon if not found, or null if map is empty
+     */
+    public static IIcon getIconFromMap(Map<Integer, IIcon> iconMap, int meta) {
+        if (iconMap == null || iconMap.isEmpty()) {
+            return null;
+        }
+
+        // Return icon for metadata, or first icon if not found
+        return iconMap.getOrDefault(
+            meta,
+            iconMap.values()
+                .iterator()
+                .next());
+    }
+
+    /**
+     * Get icon from Map with default fallback
+     *
+     * @param iconMap     The icon map
+     * @param meta        The metadata value
+     * @param defaultIcon The default icon to return if map is empty or icon not found
+     * @return Icon for metadata, or defaultIcon if not found
+     */
+    public static IIcon getIconFromMap(Map<Integer, IIcon> iconMap, int meta, IIcon defaultIcon) {
+        if (iconMap == null || iconMap.isEmpty()) {
+            return defaultIcon;
+        }
+
+        return iconMap.getOrDefault(meta, defaultIcon);
     }
 }

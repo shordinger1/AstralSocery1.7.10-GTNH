@@ -8,7 +8,8 @@ package hellfirepvp.astralsorcery.client.gui.modularui.widget;
 
 import java.util.List;
 
-import org.lwjgl.opengl.GL11;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.World;
 
 import com.cleanroommc.modularui.api.GuiAxis;
 import com.cleanroommc.modularui.api.widget.Interactable;
@@ -18,12 +19,9 @@ import com.cleanroommc.modularui.widget.Widget;
 
 import hellfirepvp.astralsorcery.client.gui.modularui.renderer.ConstellationRenderer;
 import hellfirepvp.astralsorcery.common.constellation.IConstellation;
-import hellfirepvp.astralsorcery.common.data.research.PlayerProgress;
 import hellfirepvp.astralsorcery.common.constellation.distribution.ConstellationSkyHandler;
+import hellfirepvp.astralsorcery.common.data.research.PlayerProgress;
 import hellfirepvp.astralsorcery.common.tile.TileTelescope;
-import hellfirepvp.astralsorcery.common.util.LogHelper;
-import net.minecraft.client.Minecraft;
-import net.minecraft.world.World;
 
 /**
  * SkyRenderWidget - Custom widget for telescope constellation viewing
@@ -39,11 +37,11 @@ import net.minecraft.world.World;
  * <b>Usage in TelescopeGui:</b>
  *
  * <pre>
- * panel.child(new SkyRenderWidget()
- *     .pos(20, 20)
- *     .size(240, 240)
- *     .setTelescope(telescope)
- *     .setPlayerProgress(playerProgress));
+ * panel.child(
+ *     new SkyRenderWidget().pos(20, 20)
+ *         .size(240, 240)
+ *         .setTelescope(telescope)
+ *         .setPlayerProgress(playerProgress));
  * </pre>
  */
 public class SkyRenderWidget extends Widget<SkyRenderWidget> implements Interactable {
@@ -135,8 +133,14 @@ public class SkyRenderWidget extends Widget<SkyRenderWidget> implements Interact
         for (IConstellation constellation : visibleConstellations) {
             String name = constellation.getUnlocalizedName();
             // Center the constellation in view
-            renderer.renderConstellation(name, viewWidth / 2, viewHeight / 2, 1.5F,
-                                         context.getPartialTicks(), playerProgress, true);
+            renderer.renderConstellation(
+                name,
+                viewWidth / 2,
+                viewHeight / 2,
+                1.5F,
+                context.getPartialTicks(),
+                playerProgress,
+                true);
         }
     }
 
@@ -197,6 +201,7 @@ public class SkyRenderWidget extends Widget<SkyRenderWidget> implements Interact
      * Interface for constellation click handling
      */
     public interface ConstellationClickListener {
+
         /**
          * Called when a constellation is clicked
          *

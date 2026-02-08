@@ -235,28 +235,40 @@ public class TESRStarlightInfuser extends TileEntitySpecialRenderer {
 
         switch (face) {
             case 0: // Top
-                GL11.glVertex3f(-s, s, -s); GL11.glVertex3f(s, s, -s);
-                GL11.glVertex3f(s, s, s); GL11.glVertex3f(-s, s, s);
+                GL11.glVertex3f(-s, s, -s);
+                GL11.glVertex3f(s, s, -s);
+                GL11.glVertex3f(s, s, s);
+                GL11.glVertex3f(-s, s, s);
                 break;
             case 1: // Bottom
-                GL11.glVertex3f(-s, -s, s); GL11.glVertex3f(s, -s, s);
-                GL11.glVertex3f(s, -s, -s); GL11.glVertex3f(-s, -s, -s);
+                GL11.glVertex3f(-s, -s, s);
+                GL11.glVertex3f(s, -s, s);
+                GL11.glVertex3f(s, -s, -s);
+                GL11.glVertex3f(-s, -s, -s);
                 break;
             case 2: // Front
-                GL11.glVertex3f(-s, -s, s); GL11.glVertex3f(s, -s, s);
-                GL11.glVertex3f(s, s, s); GL11.glVertex3f(-s, s, s);
+                GL11.glVertex3f(-s, -s, s);
+                GL11.glVertex3f(s, -s, s);
+                GL11.glVertex3f(s, s, s);
+                GL11.glVertex3f(-s, s, s);
                 break;
             case 3: // Back
-                GL11.glVertex3f(s, -s, -s); GL11.glVertex3f(-s, -s, -s);
-                GL11.glVertex3f(-s, s, -s); GL11.glVertex3f(s, s, -s);
+                GL11.glVertex3f(s, -s, -s);
+                GL11.glVertex3f(-s, -s, -s);
+                GL11.glVertex3f(-s, s, -s);
+                GL11.glVertex3f(s, s, -s);
                 break;
             case 4: // Left
-                GL11.glVertex3f(-s, -s, -s); GL11.glVertex3f(-s, -s, s);
-                GL11.glVertex3f(-s, s, s); GL11.glVertex3f(-s, s, -s);
+                GL11.glVertex3f(-s, -s, -s);
+                GL11.glVertex3f(-s, -s, s);
+                GL11.glVertex3f(-s, s, s);
+                GL11.glVertex3f(-s, s, -s);
                 break;
             case 5: // Right
-                GL11.glVertex3f(s, -s, s); GL11.glVertex3f(s, -s, -s);
-                GL11.glVertex3f(s, s, -s); GL11.glVertex3f(s, s, s);
+                GL11.glVertex3f(s, -s, s);
+                GL11.glVertex3f(s, -s, -s);
+                GL11.glVertex3f(s, s, -s);
+                GL11.glVertex3f(s, s, s);
                 break;
         }
     }

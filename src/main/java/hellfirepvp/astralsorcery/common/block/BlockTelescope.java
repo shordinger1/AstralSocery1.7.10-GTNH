@@ -7,7 +7,6 @@
 package hellfirepvp.astralsorcery.common.block;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 import net.minecraft.block.BlockContainer;
@@ -21,8 +20,6 @@ import net.minecraft.world.World;
 
 import com.cleanroommc.modularui.factory.TileEntityGuiFactory;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.common.lib.CreativeTabsAS;
 import hellfirepvp.astralsorcery.common.tile.TileTelescope;
 import hellfirepvp.astralsorcery.common.util.LogHelper;
@@ -93,8 +90,16 @@ public class BlockTelescope extends BlockContainer {
                 TileTelescope.TelescopeRotation current = telescope.getRotation();
                 TileTelescope.TelescopeRotation newRotation = current.nextClockWise();
                 telescope.setRotation(newRotation);
-                LogHelper.info("[BlockTelescope] Rotated telescope at " + x + "," + y + "," + z +
-                    " from " + current + " to " + newRotation);
+                LogHelper.info(
+                    "[BlockTelescope] Rotated telescope at " + x
+                        + ","
+                        + y
+                        + ","
+                        + z
+                        + " from "
+                        + current
+                        + " to "
+                        + newRotation);
             }
             return true;
         }

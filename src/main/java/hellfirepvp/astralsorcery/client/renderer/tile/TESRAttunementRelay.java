@@ -89,7 +89,8 @@ public class TESRAttunementRelay extends TileEntitySpecialRenderer {
 
                 // NOTE: hasGlassLens() check removed - method doesn't exist in TileAttunementRelay yet
 
-                OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f * brightness, 240f * brightness);
+                OpenGlHelper
+                    .setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f * brightness, 240f * brightness);
 
                 // Bind texture
                 this.bindTexture(this.texture);

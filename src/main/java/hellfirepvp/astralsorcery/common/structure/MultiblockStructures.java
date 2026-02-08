@@ -36,6 +36,7 @@ import hellfirepvp.astralsorcery.common.util.LogHelper;
  * </ul>
  * <p>
  * <b>Structure Definitions:</b>
+ * 
  * <pre>
  * Character Mapping:
  * 'A' = Altar (center)
@@ -63,74 +64,68 @@ public class MultiblockStructures {
         .build();
 
     /**
-     * Attunement Altar - Simplified (8 marble + altar)
+     * Attunement Altar - Simple structure for testing
      * <p>
-     * Shape:
-     * <pre>
-     *   M
-     *  MPM
-     *   M
-     * </pre>
+     * Two layers:
+     * - Y=0 (bottom): 3x3 marble base
+     * - Y=1 (top): Altar in center
      */
     public static final IStructureDefinition<Object> ALTAR_ATTUNEMENT_SIMPLE = StructureDefinition.builder()
-        .addShape("main", transpose(new String[][] {
-            { " M ",
-              "MPM",
-              " M " }
-        }))
+        .addShape(
+            "main",
+            transpose(
+                new String[][] { { "MMM", "MMM", "MMM" }, // Y=0: 3x3 marble base (bottom)
+                    { "   ", " ~ ", "   " } // Y=1: Altar in center (top)
+                }))
         .addElement('M', ofBlockAnyMeta(BlocksAS.blockMarble))
-        .addElement('P', ofBlock(BlocksAS.blockAltar, AltarType.ATTUNEMENT.getMetadata()))
-        .addElement('~', ofBlock(BlocksAS.blockMarble, 0))
+        .addElement('~', ofBlock(BlocksAS.blockAltar, AltarType.ATTUNEMENT.getMetadata()))
         .build();
 
     /**
-     * Constellation Altar - Simplified (16 marble + altar)
+     * Constellation Altar - Simple structure for testing
      * <p>
-     * Shape:
-     * <pre>
-     * MMM
-     * MPM
-     * MMM
-     * </pre>
+     * Two layers:
+     * - Y=0 (bottom): 5x5 marble base
+     * - Y=1 (top): Altar in center
      */
     public static final IStructureDefinition<Object> ALTAR_CONSTELLATION_SIMPLE = StructureDefinition.builder()
-        .addShape("main", transpose(new String[][] {
-            { "MMM",
-              "MPM",
-              "MMM" }
-        }))
+        .addShape(
+            "main",
+            transpose(
+                new String[][] { { "MMMMM", "MMMMM", "MMMMM", "MMMMM", "MMMMM" }, // Y=0: 5x5 marble base (bottom)
+                    { "     ", "     ", "  ~  ", "     ", "     " } // Y=1: Altar in center (top)
+                }))
         .addElement('M', ofBlockAnyMeta(BlocksAS.blockMarble))
-        .addElement('P', ofBlock(BlocksAS.blockAltar, AltarType.CONSTELLATION_CRAFT.getMetadata()))
-        .addElement('~', ofBlock(BlocksAS.blockMarble, 0))
+        .addElement('~', ofBlock(BlocksAS.blockAltar, AltarType.CONSTELLATION_CRAFT.getMetadata()))
         .build();
 
     /**
-     * Trait Altar - Simplified (20 marble + altar with special corners)
+     * Trait Altar - Simple structure for testing
      * <p>
-     * Shape:
-     * <pre>
-     * MMM
-     * MCM
-     * MMM
-     * Where 'C' = Chiseled marble at corners
-     * </pre>
+     * Two layers:
+     * - Y=0 (bottom): 7x7 marble base
+     * - Y=1 (top): Altar in center
      */
     public static final IStructureDefinition<Object> ALTAR_TRAIT_SIMPLE = StructureDefinition.builder()
-        .addShape("main", transpose(new String[][] {
-            { "MMM",
-              "MCM",
-              "MMM" }
-        }))
+        .addShape(
+            "main",
+            transpose(
+                new String[][] { { "MMMMMMM", "MMMMMMM", "MMMMMMM", "MMMMMMM", "MMMMMMM", "MMMMMMM", "MMMMMMM" }, // Y=0:
+                                                                                                                  // 7x7
+                                                                                                                  // marble
+                                                                                                                  // base
+                                                                                                                  // (bottom)
+                    { "       ", "       ", "       ", "   ~   ", "       ", "       ", "       " } // Y=1: Altar in
+                                                                                                    // center (top)
+                }))
         .addElement('M', ofBlockAnyMeta(BlocksAS.blockMarble))
-        .addElement('C', ofBlock(BlocksAS.blockMarble, BlockMarble.MarbleType.CHISELED.ordinal()))
-        .addElement('P', ofBlock(BlocksAS.blockAltar, AltarType.TRAIT_CRAFT.getMetadata()))
-        .addElement('~', ofBlock(BlocksAS.blockMarble, 0))
+        .addElement('~', ofBlock(BlocksAS.blockAltar, AltarType.TRAIT_CRAFT.getMetadata()))
         .build();
 
     /**
-     * Brilliance Altar - Same as Trait Altar
+     * Brilliance Altar - No structure required (same as Discovery)
      */
-    public static final IStructureDefinition<Object> ALTAR_BRILLIANCE_SIMPLE = ALTAR_TRAIT_SIMPLE;
+    public static final IStructureDefinition<Object> ALTAR_BRILLIANCE_SIMPLE = ALTAR_DISCOVERY;
 
     // ==================== Machine Structures ====================
 
@@ -138,6 +133,7 @@ public class MultiblockStructures {
      * Starlight Infuser - Simplified
      * <p>
      * Shape:
+     * 
      * <pre>
      * Layer 0 (top): I  C
      * Layer 1 (base): MMMM
@@ -145,12 +141,7 @@ public class MultiblockStructures {
      * </pre>
      */
     public static final IStructureDefinition<Object> STARLIGHT_INFUSER = StructureDefinition.builder()
-        .addShape("main", transpose(new String[][] {
-            { "I  C",
-              "    ",
-              "MM  ",
-              "MM  " }
-        }))
+        .addShape("main", transpose(new String[][] { { "I  C", "    ", "MM  ", "MM  " } }))
         .addElement('I', ofBlock(BlocksAS.starlightInfuser, 0))
         .addElement('C', ofBlock(BlocksAS.collectorCrystal, 0))
         .addElement('M', ofBlockAnyMeta(BlocksAS.blockMarble))
@@ -160,18 +151,14 @@ public class MultiblockStructures {
      * Collector Relay - Simplified
      * <p>
      * Shape:
+     * 
      * <pre>
      * Layer 0: R  C
      * Layer 1: MMMM
      * </pre>
      */
     public static final IStructureDefinition<Object> COLLECTOR_RELAY = StructureDefinition.builder()
-        .addShape("main", transpose(new String[][] {
-            { "R  C",
-              "    ",
-              "MM  ",
-              "MM  " }
-        }))
+        .addShape("main", transpose(new String[][] { { "R  C", "    ", "MM  ", "MM  " } }))
         .addElement('R', ofBlock(BlocksAS.attunementRelay, 0))
         .addElement('C', ofBlock(BlocksAS.collectorCrystal, 0))
         .addElement('M', ofBlockAnyMeta(BlocksAS.blockMarble))
@@ -202,6 +189,7 @@ public class MultiblockStructures {
      * Ritual Pedestal - Basic pedestal with lens
      * <p>
      * Shape:
+     * 
      * <pre>
      * M
      * M
@@ -209,11 +197,7 @@ public class MultiblockStructures {
      * </pre>
      */
     public static final IStructureDefinition<Object> RITUAL_PEDESTAL = StructureDefinition.builder()
-        .addShape("main", transpose(new String[][] {
-            { "M",
-              "M",
-              "P" }
-        }))
+        .addShape("main", transpose(new String[][] { { "M", "M", "P" } }))
         .addElement('M', ofBlockAnyMeta(BlocksAS.blockMarble))
         .addElement('P', ofBlock(BlocksAS.ritualPedestal, 0))
         .build();
@@ -224,6 +208,7 @@ public class MultiblockStructures {
      * Ancient Shrine - Simplified mountain shrine
      * <p>
      * Shape:
+     * 
      * <pre>
      *    C
      *   MMM
@@ -232,12 +217,7 @@ public class MultiblockStructures {
      * </pre>
      */
     public static final IStructureDefinition<Object> ANCIENT_SHRINE = StructureDefinition.builder()
-        .addShape("main", transpose(new String[][] {
-            { "   C   ",
-              "  MMM  ",
-              " MPMPM ",
-              "  MMM  " }
-        }))
+        .addShape("main", transpose(new String[][] { { "   C   ", "  MMM  ", " MPMPM ", "  MMM  " } }))
         .addElement('C', ofBlock(BlocksAS.celestialCrystals, 0))
         .addElement('M', ofBlockAnyMeta(BlocksAS.blockMarble))
         .addElement('P', ofBlock(BlocksAS.blockMarble, BlockMarble.MarbleType.PILLAR.ordinal()))
@@ -252,10 +232,7 @@ public class MultiblockStructures {
      * Small Shrine - Minimal surface shrine
      */
     public static final IStructureDefinition<Object> SMALL_SHRINE = StructureDefinition.builder()
-        .addShape("main", transpose(new String[][] {
-            { " M ",
-              "MPM" }
-        }))
+        .addShape("main", transpose(new String[][] { { " M ", "MPM" } }))
         .addElement('M', ofBlockAnyMeta(BlocksAS.blockMarble))
         .addElement('P', ofBlock(BlocksAS.blockMarble, BlockMarble.MarbleType.PILLAR.ordinal()))
         .build();
@@ -269,10 +246,7 @@ public class MultiblockStructures {
      * Small Ruin - Ruined structure
      */
     public static final IStructureDefinition<Object> SMALL_RUIN = StructureDefinition.builder()
-        .addShape("main", transpose(new String[][] {
-            { "M",
-              "M" }
-        }))
+        .addShape("main", transpose(new String[][] { { "M", "M" } }))
         .addElement('M', ofBlockAnyMeta(BlocksAS.blockMarble))
         .build();
 

@@ -6,8 +6,6 @@
 
 package hellfirepvp.astralsorcery.common.world;
 
-import java.util.Random;
-
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 
@@ -55,12 +53,11 @@ public class StructureGenAncientShrine extends StructureGenBase {
         String biomeName = biome.biomeName.toLowerCase();
 
         // Mountain biomes
-        return biomeName.contains("extreme") ||
-               biomeName.contains("mountain") ||
-               biomeName.contains("hill") ||
-               biomeName.contains("snow") ||
-               biomeName.equals("taiga") ||
-               biomeName.equals("taigahills");
+        return biomeName.contains("extreme") || biomeName.contains("mountain")
+            || biomeName.contains("hill")
+            || biomeName.contains("snow")
+            || biomeName.equals("taiga")
+            || biomeName.equals("taigahills");
     }
 
     @Override

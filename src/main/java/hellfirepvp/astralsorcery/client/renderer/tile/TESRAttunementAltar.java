@@ -82,8 +82,8 @@ public class TESRAttunementAltar extends TileEntitySpecialRenderer {
             GL11.glEnable(GL11.GL_LIGHTING);
             GL11.glEnable(GL11.GL_CULL_FACE);
 
-            // Scale the model
-            GL11.glScaled(1.0, 1.0, 1.0);
+            // Scale the model - 1.12.2 uses 0.0625
+            GL11.glScaled(0.0625, 0.0625, 0.0625);
 
             // Set full brightness for glow effect
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);

@@ -36,9 +36,7 @@ import hellfirepvp.astralsorcery.proxy.CommonProxy;
     name = Constants.MODNAME,
     version = Constants.VERSION,
     acceptedMinecraftVersions = Constants.ACCEPTED_VERSIONS,
-    dependencies = Constants.DEPENDENCIES,
-    guiFactory = Constants.CLIENT_PROXY + "$$GuiFactory" // Placeholder for GUI factory
-)
+    dependencies = Constants.DEPENDENCIES)
 public class AstralSorcery {
 
     /**

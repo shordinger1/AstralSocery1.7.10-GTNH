@@ -8,6 +8,9 @@
 
 package hellfirepvp.astralsorcery.client.gui.modularui;
 
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.world.World;
+
 import com.cleanroommc.modularui.factory.PosGuiData;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.UISettings;
@@ -15,8 +18,6 @@ import com.cleanroommc.modularui.utils.Alignment;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 
 import hellfirepvp.astralsorcery.common.util.LogHelper;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.world.World;
 
 /**
  * HandTelescope GUI - 216x216 handheld constellation viewing interface
@@ -36,11 +37,8 @@ public class HandTelescopeGui {
      * <p>
      * This is an item GUI, not tied to a TileEntity
      */
-    public static ModularPanel buildUI(EntityPlayer player,
-                                      World world,
-                                      PosGuiData guiData,
-                                      PanelSyncManager guiSyncManager,
-                                      UISettings settings) {
+    public static ModularPanel buildUI(EntityPlayer player, World world, PosGuiData guiData,
+        PanelSyncManager guiSyncManager, UISettings settings) {
         LogHelper.info("[HandTelescopeGui] Building Hand Telescope GUI");
 
         // Create main panel - 216x216 size
@@ -51,8 +49,7 @@ public class HandTelescopeGui {
 
         // Add background texture
         panel.child(
-            HandTelescopeGuiTextures.BACKGROUND
-                .asWidget()
+            HandTelescopeGuiTextures.BACKGROUND.asWidget()
                 .pos(0, 0)
                 .size(216, 216));
 

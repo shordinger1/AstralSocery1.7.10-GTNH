@@ -112,46 +112,14 @@ public class RegistryRender {
         // which properly passes dual textures to TESRObservatory constructor
 
         // Register Well TESR
-        String tileName = "TileWell";
-        String className = "hellfirepvp.astralsorcery.common.tile.TileWell";
-        String tesrName = "hellfirepvp.astralsorcery.client.renderer.tile.TESRWell";
-        try {
-            LogHelper.debug("Attempting to register TESR for: " + tileName);
-            Class<? extends TileEntity> tileWell = (Class<? extends TileEntity>) Class.forName(className);
-            Class<?> tesrClass = Class.forName(tesrName);
-            TileEntitySpecialRenderer tesr = (TileEntitySpecialRenderer) tesrClass.newInstance();
-            registerTileEntityRenderer(tileWell, tesr);
-            successCount++;
-            LogHelper.info("✓ Successfully registered TESR for: " + tileName);
-        } catch (ClassNotFoundException e) {
-            failCount++;
-            LogHelper.error("✗ Failed to register TESR for " + tileName + " - Class not found: " + e.getMessage(), e);
-            LogHelper.debug("  Looking for TileEntity: " + className);
-            LogHelper.debug("  Looking for TESR: " + tesrName);
-        } catch (InstantiationException e) {
-            failCount++;
-            LogHelper.error("✗ Failed to instantiate TESR for " + tileName + " - Instantiation: " + e.getMessage(), e);
-        } catch (IllegalAccessException e) {
-            failCount++;
-            LogHelper.error(
-                "✗ Failed to access TESR constructor for " + tileName + " - Illegal access: " + e.getMessage(),
-                e);
-        } catch (Exception e) {
-            failCount++;
-            LogHelper.error(
-                "✗ Unexpected error registering TESR for " + tileName
-                    + " - "
-                    + e.getClass()
-                        .getSimpleName()
-                    + ": "
-                    + e.getMessage(),
-                e);
-        }
+        // DISABLED: Handled by AstralRenderLoader.registerStarlightWellRenderer()
+        LogHelper.info("⊘ Skipping TileWell TESR registration (handled by AstralRenderLoader)");
+        successCount++;
 
         // Register Vanishing TESR
-        tileName = "TileVanishing";
-        className = "hellfirepvp.astralsorcery.common.tile.TileVanishing";
-        tesrName = "hellfirepvp.astralsorcery.client.renderer.tile.TESRVanishing";
+        String tileName = "TileVanishing";
+        String className = "hellfirepvp.astralsorcery.common.tile.TileVanishing";
+        String tesrName = "hellfirepvp.astralsorcery.client.renderer.tile.TESRVanishing";
         try {
             LogHelper.debug("Attempting to register TESR for: " + tileName);
             Class<? extends TileEntity> tileVanishing = (Class<? extends TileEntity>) Class.forName(className);
@@ -186,40 +154,14 @@ public class RegistryRender {
         }
 
         // Register Attunement Altar TESR
+        // DISABLED: Handled by AstralRenderLoader.registerAttunementAltarRenderer()
         tileName = "TileAttunementAltar";
-        className = "hellfirepvp.astralsorcery.common.tile.TileAttunementAltar";
-        tesrName = "hellfirepvp.astralsorcery.client.renderer.tile.TESRAttunementAltar";
         try {
-            LogHelper.debug("Attempting to register TESR for: " + tileName);
-            Class<? extends TileEntity> tileAttunementAltar = (Class<? extends TileEntity>) Class.forName(className);
-            Class<?> tesrClass = Class.forName(tesrName);
-            TileEntitySpecialRenderer tesr = (TileEntitySpecialRenderer) tesrClass.newInstance();
-            registerTileEntityRenderer(tileAttunementAltar, tesr);
+            LogHelper.info("⊘ Skipping TileAttunementAltar TESR registration (handled by AstralRenderLoader)");
             successCount++;
-            LogHelper.info("✓ Successfully registered TESR for: " + tileName);
-        } catch (ClassNotFoundException e) {
-            failCount++;
-            LogHelper.error("✗ Failed to register TESR for " + tileName + " - Class not found: " + e.getMessage(), e);
-            LogHelper.debug("  Looking for TileEntity: " + className);
-            LogHelper.debug("  Looking for TESR: " + tesrName);
-        } catch (InstantiationException e) {
-            failCount++;
-            LogHelper.error("✗ Failed to instantiate TESR for " + tileName + " - Instantiation: " + e.getMessage(), e);
-        } catch (IllegalAccessException e) {
-            failCount++;
-            LogHelper.error(
-                "✗ Failed to access TESR constructor for " + tileName + " - Illegal access: " + e.getMessage(),
-                e);
         } catch (Exception e) {
             failCount++;
-            LogHelper.error(
-                "✗ Unexpected error registering TESR for " + tileName
-                    + " - "
-                    + e.getClass()
-                        .getSimpleName()
-                    + ": "
-                    + e.getMessage(),
-                e);
+            LogHelper.error("✗ Failed to confirm AttunementAltar TESR registration", e);
         }
 
         // Register Celestial Gateway TESR using AstralRenderLoader
@@ -237,77 +179,25 @@ public class RegistryRender {
         }
 
         // Register Grindstone TESR
+        // DISABLED: Handled by AstralRenderLoader.registerGrindstoneRenderer()
         tileName = "TileGrindstone";
-        className = "hellfirepvp.astralsorcery.common.tile.TileGrindstone";
-        tesrName = "hellfirepvp.astralsorcery.client.renderer.tile.TESRGrindstone";
         try {
-            LogHelper.debug("Attempting to register TESR for: " + tileName);
-            Class<? extends TileEntity> tileGrindstone = (Class<? extends TileEntity>) Class.forName(className);
-            Class<?> tesrClass = Class.forName(tesrName);
-            TileEntitySpecialRenderer tesr = (TileEntitySpecialRenderer) tesrClass.newInstance();
-            registerTileEntityRenderer(tileGrindstone, tesr);
+            LogHelper.info("⊘ Skipping TileGrindstone TESR registration (handled by AstralRenderLoader)");
             successCount++;
-            LogHelper.info("✓ Successfully registered TESR for: " + tileName);
-        } catch (ClassNotFoundException e) {
-            failCount++;
-            LogHelper.error("✗ Failed to register TESR for " + tileName + " - Class not found: " + e.getMessage(), e);
-            LogHelper.debug("  Looking for TileEntity: " + className);
-            LogHelper.debug("  Looking for TESR: " + tesrName);
-        } catch (InstantiationException e) {
-            failCount++;
-            LogHelper.error("✗ Failed to instantiate TESR for " + tileName + " - Instantiation: " + e.getMessage(), e);
-        } catch (IllegalAccessException e) {
-            failCount++;
-            LogHelper.error(
-                "✗ Failed to access TESR constructor for " + tileName + " - Illegal access: " + e.getMessage(),
-                e);
         } catch (Exception e) {
             failCount++;
-            LogHelper.error(
-                "✗ Unexpected error registering TESR for " + tileName
-                    + " - "
-                    + e.getClass()
-                        .getSimpleName()
-                    + ": "
-                    + e.getMessage(),
-                e);
+            LogHelper.error("✗ Failed to confirm Grindstone TESR registration", e);
         }
 
         // Register Attunement Relay TESR
+        // DISABLED: Handled by AstralRenderLoader.registerAttunementRelayRenderer()
         tileName = "TileAttunementRelay";
-        className = "hellfirepvp.astralsorcery.common.tile.TileAttunementRelay";
-        tesrName = "hellfirepvp.astralsorcery.client.renderer.tile.TESRAttunementRelay";
         try {
-            LogHelper.debug("Attempting to register TESR for: " + tileName);
-            Class<? extends TileEntity> tileAttunementRelay = (Class<? extends TileEntity>) Class.forName(className);
-            Class<?> tesrClass = Class.forName(tesrName);
-            TileEntitySpecialRenderer tesr = (TileEntitySpecialRenderer) tesrClass.newInstance();
-            registerTileEntityRenderer(tileAttunementRelay, tesr);
+            LogHelper.info("⊘ Skipping TileAttunementRelay TESR registration (handled by AstralRenderLoader)");
             successCount++;
-            LogHelper.info("✓ Successfully registered TESR for: " + tileName);
-        } catch (ClassNotFoundException e) {
-            failCount++;
-            LogHelper.error("✗ Failed to register TESR for " + tileName + " - Class not found: " + e.getMessage(), e);
-            LogHelper.debug("  Looking for TileEntity: " + className);
-            LogHelper.debug("  Looking for TESR: " + tesrName);
-        } catch (InstantiationException e) {
-            failCount++;
-            LogHelper.error("✗ Failed to instantiate TESR for " + tileName + " - Instantiation: " + e.getMessage(), e);
-        } catch (IllegalAccessException e) {
-            failCount++;
-            LogHelper.error(
-                "✗ Failed to access TESR constructor for " + tileName + " - Illegal access: " + e.getMessage(),
-                e);
         } catch (Exception e) {
             failCount++;
-            LogHelper.error(
-                "✗ Unexpected error registering TESR for " + tileName
-                    + " - "
-                    + e.getClass()
-                        .getSimpleName()
-                    + ": "
-                    + e.getMessage(),
-                e);
+            LogHelper.error("✗ Failed to confirm AttunementRelay TESR registration", e);
         }
 
         // Register TranslucentBlock TESR (from 1.12.2 - TileTranslucent)

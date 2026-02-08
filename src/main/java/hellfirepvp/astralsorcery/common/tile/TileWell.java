@@ -16,28 +16,19 @@ import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 
-import com.cleanroommc.modularui.api.IGuiHolder;
-import com.cleanroommc.modularui.api.drawable.IKey;
-import com.cleanroommc.modularui.factory.PosGuiData;
-import com.cleanroommc.modularui.screen.ModularPanel;
-import com.cleanroommc.modularui.screen.UISettings;
 import com.cleanroommc.modularui.utils.item.IItemHandlerModifiable;
 import com.cleanroommc.modularui.utils.item.ItemStackHandler;
-import com.cleanroommc.modularui.value.sync.PanelSyncManager;
-import com.cleanroommc.modularui.widgets.ProgressWidget;
-import com.cleanroommc.modularui.widgets.slot.ItemSlot;
-import com.cleanroommc.modularui.widgets.slot.ModularSlot;
 
 import hellfirepvp.astralsorcery.common.tile.base.TileReceiverBaseInventory;
 import hellfirepvp.astralsorcery.common.util.WellLiquefaction;
-import hellfirepvp.astralsorcery.common.util.LogHelper;
+import hellfirepvp.astralsorcery.common.util.block.PrecisionFluidTank;
 
 /**
  * This class is part of the Astral Sorcery Mod
@@ -46,16 +37,18 @@ import hellfirepvp.astralsorcery.common.util.LogHelper;
  * Created by HellFirePvP
  * Date: 18.10.2016 / 12:28
  */
-public class TileWell extends TileReceiverBaseInventory implements IFluidHandler, IGuiHolder<PosGuiData> {
+public class TileWell extends TileReceiverBaseInventory implements IFluidHandler {
 
     private static final Random rand = new Random();
     private static final int MAX_CAPACITY = 2000;
-
-    /** Active liquefaction recipe */
+    private int ticksExisted = 0;
+    /**
+     * Active liquefaction recipe
+     */
     private WellLiquefaction.LiquefactionEntry running = null;
 
-    // 1.7.10: Using Forge's FluidTank instead of Capability system
-    private final FluidTank tank;
+    // 1.7.10: Using custom PrecisionFluidTank for fractional amount support
+    private final PrecisionFluidTank tank;
 
     private double starlightBuffer = 0;
     private float posDistribution = -1;
@@ -65,8 +58,8 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
 
     public TileWell() {
         super(1); // Inventory size 1 for catalyst
-        // Initialize Forge FluidTank (TileEntity will be set when available)
-        this.tank = new FluidTank(MAX_CAPACITY);
+        // Initialize PrecisionFluidTank for fractional amount support
+        this.tank = new PrecisionFluidTank(MAX_CAPACITY);
         // Create wrapper for ModularUI
         this.itemHandlerWrapper = new ItemStackHandler(1) {
 
@@ -95,16 +88,17 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
 
     public void updateEntity() {
         super.updateEntity();
+        ticksExisted += 1;
 
         if (!worldObj.isRemote) {
-            // TODO: Re-enable after MiscUtils.canSeeSky is migrated
-            // if (MiscUtils.canSeeSky(this.getWorld(), this.getPos(), true, false)) {
+            // Check if well can see sky (simplified 1.7.10 version)
             if (worldObj.canBlockSeeTheSky(xCoord, yCoord, zCoord)) {
-                // TODO: Re-enable after ConstellationSkyHandler is migrated
-                // double sbDayDistribution =
-                // ConstellationSkyHandler.getInstance().getCurrentDaytimeDistribution(world);
-                // sbDayDistribution = 0.3 + (0.7 * sbDayDistribution);
-                double sbDayDistribution = 0.3 + (0.7 * 0.5); // Placeholder
+                // Calculate starlight distribution based on time of day
+                // In 1.7.10, we use world time to estimate day/night cycle
+                long time = worldObj.getWorldTime();
+                float dayProgress = ((time % 24000) / 24000F);
+                // Starlight is stronger at night (0.3 to 1.0)
+                double sbDayDistribution = 0.3 + (0.7 * (1F - dayProgress));
 
                 int yLevel = yCoord;
                 float dstr;
@@ -114,9 +108,11 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
                     dstr = yLevel / 120F;
                 }
                 if (posDistribution == -1) {
-                    // TODO: Re-enable after SkyCollectionHelper is migrated
-                    // posDistribution = SkyCollectionHelper.getSkyNoiseDistribution(world, getPos());
-                    posDistribution = 0.5F; // Placeholder
+                    // Generate position-based distribution using world seed
+                    // Simplified noise distribution for 1.7.10
+                    long seed = worldObj.getSeed();
+                    double noise = Math.sin((xCoord * 0.1) + (zCoord * 0.1) + (seed % 1000) * 0.01);
+                    posDistribution = (float) ((noise + 1) / 2); // Normalize to 0-1
                 }
 
                 sbDayDistribution *= dstr;
@@ -125,6 +121,13 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
             }
 
             ItemStack stack = getInventoryHandler().getStackInSlot(0);
+
+            // Auto-collect items above well
+            if (stack == null || stack.stackSize <= 0) {
+                attemptCollectItem();
+            }
+
+            stack = getInventoryHandler().getStackInSlot(0);
             if (stack != null && stack.stackSize > 0) {
                 if (!worldObj.isAirBlock(xCoord, yCoord + 1, zCoord)) {
                     breakCatalyst();
@@ -133,6 +136,7 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
 
                     if (running != null) {
                         double gain = running.calculateProduction(starlightBuffer);
+
                         if (gain > 0 && tank.getFluidAmount() < MAX_CAPACITY) {
                             fillAndDiscardRest(running, gain);
                         }
@@ -141,7 +145,6 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
                         // Check if catalyst should shatter
                         if (running.shouldShatter(rand)) {
                             breakCatalyst();
-                            LogHelper.debug("Catalyst shattered in well at " + xCoord + ", " + yCoord + ", " + zCoord);
                         }
                     } else {
                         starlightBuffer = 0;
@@ -151,128 +154,49 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
                 starlightBuffer = 0;
             }
 
-            // TODO: Re-enable after LiquidStarlightChaliceHandler is migrated
-            // if((ticksExisted % 100 == 0) && getHeldFluid() != null && getFluidAmount() > 100) {
-            // int mb = Math.min(400, getFluidAmount());
-            // FluidStack fluidStack = new FluidStack(getHeldFluid(), mb);
-            // java.util.List<TileChalice> out = LiquidStarlightChaliceHandler.findNearbyChalicesWithSpaceFor(this,
-            // fluidStack);
-            // if(!out.isEmpty()) {
-            // TileChalice target = out.get(rand.nextInt(out.size()));
-            // LiquidStarlightChaliceHandler.doFluidTransfer(this, target, fluidStack.copy());
-            // this.tank.drain(mb, true);
-            // markForUpdate();
-            // }
-            // }
+            // Auto-transfer liquid to nearby chalices
+            // Check every 100 ticks (5 seconds)
+            if ((ticksExisted % 100 == 0) && getHeldFluid() != null && getFluidAmount() > 100) {
+                int mb = Math.min(400, getFluidAmount());
+                FluidStack fluidStack = new FluidStack(getHeldFluid(), mb);
+
+                // Find nearby chalices with space
+                java.util.List<TileChalice> nearbyChalices = findNearbyChalicesWithSpace(fluidStack);
+                if (!nearbyChalices.isEmpty()) {
+                    TileChalice target = nearbyChalices.get(rand.nextInt(nearbyChalices.size()));
+                    // Transfer fluid to chalice
+                    int transferred = target.fill(ForgeDirection.UNKNOWN, fluidStack, true);
+                    if (transferred > 0) {
+                        this.tank.drain(transferred, true);
+                    }
+                }
+            }
         } else {
             ItemStack stack = getInventoryHandler().getStackInSlot(0);
             if (stack != null && stack.stackSize > 0) {
                 running = WellLiquefaction.getLiquefactionEntry(stack);
 
                 if (running != null) {
-                    // TODO: Re-enable client-side rendering effects
+                    // Client-side rendering effects (not yet implemented)
                     // Color color = running.catalystColor != null ? running.catalystColor : Color.WHITE;
                     // doCatalystEffect(color);
                 }
             }
-            // TODO: Re-enable after FluidLiquidStarlight is migrated
-            // if(tank.getFluidAmount() > 0 && tank.getTankFluid() != null && tank.getTankFluid() instanceof
-            // FluidLiquidStarlight) {
+            // Client-side rendering effects (not yet implemented)
+            // if(tank.getFluidAmount() > 0 && tank.getFluid() != null) {
             // doStarlightEffect();
             // }
         }
     }
 
-    // ========================================================================
-    // ModularUI Implementation - Well GUI
-    // ========================================================================
-
-    /**
-     * Build the Well GUI
-     * Shows catalyst slot, fluid tank, and starlight collection status
-     */
-    @Override
-    public ModularPanel buildUI(PosGuiData guiData, PanelSyncManager guiSyncManager, UISettings settings) {
-        // Register slot group for catalyst slot
-        guiSyncManager.registerSlotGroup("catalyst", 1);
-        guiSyncManager.bindPlayerInventory(guiData.getPlayer());
-
-        // Sync fluid amount
-        com.cleanroommc.modularui.value.sync.IntSyncValue fluidValue = new com.cleanroommc.modularui.value.sync.IntSyncValue(
-            this::getFluidAmount,
-            val -> {
-                // Fluid amount is synced from tank directly
-            });
-        guiSyncManager.syncValue("fluid", fluidValue);
-
-        // Sync starlight buffer
-        com.cleanroommc.modularui.value.sync.IntSyncValue starlightValue = new com.cleanroommc.modularui.value.sync.IntSyncValue(
-            () -> (int) starlightBuffer,
-            val -> this.starlightBuffer = val);
-        guiSyncManager.syncValue("starlight", starlightValue);
-
-        // Create main panel
-        ModularPanel panel = new ModularPanel("well_gui");
-        panel.flex()
-            .size(176, 166)
-            .align(com.cleanroommc.modularui.utils.Alignment.Center);
-
-        // Add title
-        panel.child(
-            IKey.str("Liquid Starlight Well")
-                .asWidget()
-                .pos(8, 6));
-
-        // Add fluid tank progress bar
-        panel.child(
-            new ProgressWidget().progress(() -> (double) getFluidAmount() / (double) MAX_CAPACITY)
-                .texture(com.cleanroommc.modularui.drawable.GuiTextures.PROGRESS_ARROW, 20)
-                .pos(8, 20)
-                .size(160, 10)
-                .tooltip(
-                    tooltip -> tooltip
-                        .addLine("Liquid Starlight: " + getFluidAmount() + " / " + MAX_CAPACITY + " mB")));
-
-        // Add starlight buffer indicator
-        panel.child(
-            new ProgressWidget().progress(() -> starlightBuffer / 100.0) // Normalize to 0-1 range
-                .texture(com.cleanroommc.modularui.drawable.GuiTextures.PROGRESS_ARROW, 20)
-                .pos(8, 34)
-                .size(160, 5)
-                .tooltip(tooltip -> tooltip.addLine("Starlight Buffer: " + (int) starlightBuffer)));
-
-        // Add catalyst slot
-        panel.child(
-            new ItemSlot().slot(new ModularSlot(itemHandlerWrapper, 0))
-                .pos(80, 50)
-                .tooltip(tooltip -> {
-                    tooltip.addLine("Catalyst Slot");
-                    tooltip.addLine("Insert items to convert to liquid starlight");
-                }));
-
-        // Add player inventory
-        panel.child(com.cleanroommc.modularui.widgets.SlotGroupWidget.playerInventory(7, true));
-
-        return panel;
-    }
-
-    // ========================================================================
-    // End ModularUI Implementation
-    // ========================================================================
-
     public void breakCatalyst() {
         setInventorySlotContents(0, null);
-        // TODO: Re-enable after network packet system is migrated
-        // PktParticleEvent ev = new PktParticleEvent(PktParticleEvent.ParticleEventType.WELL_CATALYST_BREAK,
-        // getPos().getX(), getPos().getY(), getPos().getZ());
-        // PacketChannel.CHANNEL.sendToAllAround(ev, PacketChannel.pointFromPos(world, getPos(), 32));
-        // SoundHelper.playSoundAround(SoundEvents.BLOCK_GLASS_BREAK, getWorld(), getPos(), 1F, 1F);
-
-        // 1.7.10 sound effect
+        // Network packet system not yet migrated for particle effects
+        // 1.7.10: Play sound effect locally
         worldObj.playSoundEffect(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5, "step.stone", 1F, 1F);
     }
 
-    // TODO: Re-enable after client-side rendering is migrated
+    // Client-side rendering effects (not yet implemented for 1.7.10)
     // @SideOnly(Side.CLIENT)
     // private void doStarlightEffect() {
     // if(rand.nextInt(3) == 0) {
@@ -285,7 +209,7 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
     // }
     // }
 
-    // TODO: Re-enable after client-side rendering is migrated
+    // Client-side rendering effects (not yet implemented for 1.7.10)
     // @SideOnly(Side.CLIENT)
     // private void doCatalystEffect(Color color) {
     // if(rand.nextInt(6) == 0) {
@@ -305,23 +229,132 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
     }
 
     /**
-     * Fill tank with produced fluid
+     * Find nearby chalices with space for the given fluid
+     * Searches in a 10 block radius
+     *
+     * @param fluid The fluid to transfer
+     * @return List of nearby chalices that can accept the fluid
      */
-    private void fillAndDiscardRest(WellLiquefaction.LiquefactionEntry entry, double gain) {
-        if (tank.getFluid() == null) {
-            tank.setFluid(new FluidStack(entry.producing.getFluid(), (int) gain));
-        } else if (tank.getFluid()
-            .isFluidEqual(entry.producing)) {
-            tank.fill(new FluidStack(entry.producing.getFluid(), (int) gain), true);
-        } else {
-            // Different fluid - drain and replace
-            tank.drain(tank.getFluidAmount(), true);
-            tank.setFluid(new FluidStack(entry.producing.getFluid(), (int) gain));
+    private java.util.List<TileChalice> findNearbyChalicesWithSpace(FluidStack fluid) {
+        java.util.List<TileChalice> chalices = new java.util.ArrayList<>();
+
+        // Search in a 10 block radius
+        int radius = 10;
+        for (int x = xCoord - radius; x <= xCoord + radius; x++) {
+            for (int y = yCoord - radius; y <= yCoord + radius; y++) {
+                for (int z = zCoord - radius; z <= zCoord + radius; z++) {
+                    // Skip center (this well)
+                    if (x == xCoord && y == yCoord && z == zCoord) {
+                        continue;
+                    }
+
+                    // Check if this is a chalice
+                    if (worldObj.blockExists(x, y, z)) {
+                        net.minecraft.tileentity.TileEntity te = worldObj.getTileEntity(x, y, z);
+                        if (te instanceof TileChalice) {
+                            TileChalice chalice = (TileChalice) te;
+                            // Check if chalice can accept this fluid
+                            if (chalice.canFill(ForgeDirection.UNKNOWN, fluid.getFluid())) {
+                                // Try to fill in simulation mode to check available space
+                                int canAccept = chalice.fill(ForgeDirection.UNKNOWN, fluid, false);
+                                if (canAccept > 0) {
+                                    chalices.add(chalice);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-        markDirty();
+
+        return chalices;
     }
 
-    // TODO: Re-enable after particle system is migrated
+    /**
+     * Attempt to collect an item entity above the well
+     * Automatically picks up items that have liquefaction recipes
+     */
+    private void attemptCollectItem() {
+        // Check if slot 0 is empty
+        ItemStack currentCatalyst = getInventoryHandler().getStackInSlot(0);
+        if (currentCatalyst != null && currentCatalyst.stackSize > 0) {
+            return; // Already has a catalyst
+        }
+
+        // Check if block above is air
+        if (!worldObj.isAirBlock(xCoord, yCoord + 1, zCoord)) {
+            return; // Block above is not air
+        }
+
+        // Search for item entities above the well
+        // Search area: 0.5 block around center, from y+1 to y+3
+        AxisAlignedBB searchBox = AxisAlignedBB
+            .getBoundingBox(xCoord + 0.25, yCoord + 1, zCoord + 0.25, xCoord + 0.75, yCoord + 3, zCoord + 0.75);
+
+        @SuppressWarnings("unchecked")
+        java.util.List<net.minecraft.entity.item.EntityItem> items = worldObj
+            .getEntitiesWithinAABB(net.minecraft.entity.item.EntityItem.class, searchBox);
+
+        if (items.isEmpty()) {
+            return;
+        }
+
+        // Try to find a valid liquefaction item
+        for (net.minecraft.entity.item.EntityItem entity : items) {
+            if (entity == null || entity.isDead) {
+                continue;
+            }
+
+            ItemStack entityItem = entity.getEntityItem();
+            if (entityItem == null || entityItem.stackSize <= 0) {
+                continue;
+            }
+
+            // Check if this item has a liquefaction recipe
+            WellLiquefaction.LiquefactionEntry entry = WellLiquefaction.getLiquefactionEntry(entityItem);
+            if (entry != null) {
+                // Insert the catalyst
+                setInventorySlotContents(0, entityItem.splitStack(1));
+
+                // Play sound
+                worldObj.playSoundEffect(
+                    xCoord + 0.5,
+                    yCoord + 0.5,
+                    zCoord + 0.5,
+                    "random.pop",
+                    0.2F,
+                    ((worldObj.rand.nextFloat() - worldObj.rand.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+
+                // Update entity
+                if (entityItem.stackSize <= 0) {
+                    entity.setDead();
+                }
+
+                // Mark for update
+                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+
+                return; // Only collect one item per tick
+            }
+        }
+    }
+
+    /**
+     * Fill tank with produced fluid
+     * Matches 1.12.2 implementation - uses addAmount(double) for fractional support
+     */
+    private void fillAndDiscardRest(WellLiquefaction.LiquefactionEntry entry, double gain) {
+        if (tank.getTankFluid() == null) {
+            tank.setTankFluid(entry.producing.getFluid());
+        } else if (!entry.producing.getFluid()
+            .equals(tank.getTankFluid())) {
+                // Different fluid - drain and replace
+                tank.drain(tank.getFluidAmount(), true);
+                tank.setTankFluid(entry.producing.getFluid());
+            }
+        tank.addAmount(gain); // KEY: Adds fractional amount directly
+    }
+
+    // Particle system not yet implemented for 1.7.10
     // @SideOnly(Side.CLIENT)
     // public static void catalystBurst(PktParticleEvent event) {
     // BlockPos at = event.getVec().toBlockPos();
@@ -329,7 +362,7 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
     // at.getZ() + 0.5, 1.5F));
     // }
 
-    // TODO: Re-enable after ITransmissionReceiver is migrated
+    // ITransmissionReceiver not yet implemented for 1.7.10
     // @Nullable
     // @Override
     // public String getUnLocalizedDisplayName() {
@@ -376,8 +409,8 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
     public FluidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
         FluidStack drained = tank.drain(maxDrain, doDrain);
         if (drained != null && doDrain) {
-            // TODO: markForUpdate() not available in 1.7.10 TileEntity
-            // markForUpdate();
+            // 1.7.10: Mark block for update
+            worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
         }
         return drained;
     }
@@ -439,7 +472,7 @@ public class TileWell extends TileReceiverBaseInventory implements IFluidHandler
         }
     }
 
-    // TODO: Re-enable after ITransmissionReceiver is migrated
+    // ITransmissionReceiver not yet implemented for 1.7.10
     // public static class TransmissionReceiverWell extends SimpleTransmissionReceiver {
     //
     // public TransmissionReceiverWell(BlockPos thisPos) {

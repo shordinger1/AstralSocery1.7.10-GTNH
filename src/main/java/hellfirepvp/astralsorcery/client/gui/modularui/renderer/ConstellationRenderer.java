@@ -12,8 +12,8 @@ import java.util.Map;
 
 import org.lwjgl.opengl.GL11;
 
-import hellfirepvp.astralsorcery.common.constellation.IConstellation;
 import hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry;
+import hellfirepvp.astralsorcery.common.constellation.IConstellation;
 import hellfirepvp.astralsorcery.common.constellation.star.StarConnection;
 import hellfirepvp.astralsorcery.common.constellation.star.StarLocation;
 import hellfirepvp.astralsorcery.common.data.research.PlayerProgress;
@@ -41,12 +41,13 @@ public class ConstellationRenderer extends SkyRenderer {
      * Render a constellation at the specified position
      *
      * @param constellationName The constellation to render
-     * @param offsetX X offset within view
-     * @param offsetY Y offset within view
-     * @param scale Scale multiplier
-     * @param partialTicks Partial ticks
+     * @param offsetX           X offset within view
+     * @param offsetY           Y offset within view
+     * @param scale             Scale multiplier
+     * @param partialTicks      Partial ticks
      */
-    public void renderConstellation(String constellationName, int offsetX, int offsetY, float scale, float partialTicks) {
+    public void renderConstellation(String constellationName, int offsetX, int offsetY, float scale,
+        float partialTicks) {
         renderConstellation(constellationName, offsetX, offsetY, scale, partialTicks, null, true);
     }
 
@@ -54,19 +55,17 @@ public class ConstellationRenderer extends SkyRenderer {
      * Render a constellation at the specified position with discovery state
      *
      * @param constellationName The constellation to render
-     * @param offsetX X offset within view
-     * @param offsetY Y offset within view
-     * @param scale Scale multiplier
-     * @param partialTicks Partial ticks
-     * @param playerProgress Player progress (null to ignore discovery state)
-     * @param checkDiscovery Whether to check discovery state
+     * @param offsetX           X offset within view
+     * @param offsetY           Y offset within view
+     * @param scale             Scale multiplier
+     * @param partialTicks      Partial ticks
+     * @param playerProgress    Player progress (null to ignore discovery state)
+     * @param checkDiscovery    Whether to check discovery state
      */
-    public void renderConstellation(String constellationName, int offsetX, int offsetY, float scale,
-                                     float partialTicks, PlayerProgress playerProgress,
-                                     boolean checkDiscovery) {
+    public void renderConstellation(String constellationName, int offsetX, int offsetY, float scale, float partialTicks,
+        PlayerProgress playerProgress, boolean checkDiscovery) {
         // Lookup constellation from registry
-        IConstellation constellation =
-            ConstellationRegistry.getConstellationByName(constellationName);
+        IConstellation constellation = ConstellationRegistry.getConstellationByName(constellationName);
 
         if (constellation == null) {
             // Fallback to placeholder if constellation not found
@@ -75,8 +74,8 @@ public class ConstellationRenderer extends SkyRenderer {
         }
 
         // Check discovery state
-        boolean discovered = !checkDiscovery || playerProgress == null ||
-                           playerProgress.hasConstellationDiscovered(constellation);
+        boolean discovered = !checkDiscovery || playerProgress == null
+            || playerProgress.hasConstellationDiscovered(constellation);
 
         // Set constellation color
         setConstellationColor(constellation.getConstellationColor());
@@ -120,8 +119,7 @@ public class ConstellationRenderer extends SkyRenderer {
                 offsetX + (int) (50 * scale),
                 offsetY + (int) (50 * scale),
                 scale,
-                constellation
-            );
+                constellation);
             cachedPositions.put(constellationName, info);
         }
     }
@@ -131,7 +129,7 @@ public class ConstellationRenderer extends SkyRenderer {
      * The constellation grid is 31x31, centered at (15, 15)
      *
      * @param gridCoord Grid coordinate (0-30)
-     * @param scale Scale multiplier
+     * @param scale     Scale multiplier
      * @return Screen coordinate
      */
     private float mapGridToScreen(int gridCoord, float scale) {
@@ -143,12 +141,12 @@ public class ConstellationRenderer extends SkyRenderer {
     /**
      * Render constellation connection line
      *
-     * @param x1 Start X
-     * @param y1 Start Y
-     * @param x2 End X
-     * @param y2 End Y
+     * @param x1         Start X
+     * @param y1         Start Y
+     * @param x2         End X
+     * @param y2         End Y
      * @param brightness Line brightness
-     * @param thickness Line thickness
+     * @param thickness  Line thickness
      */
     public void renderConnection(float x1, float y1, float x2, float y2, float brightness, float thickness) {
         if (brightness <= 0) return;
@@ -161,8 +159,7 @@ public class ConstellationRenderer extends SkyRenderer {
             constellationColor.getRed() / 255F,
             constellationColor.getGreen() / 255F,
             constellationColor.getBlue() / 255F,
-            brightness
-        );
+            brightness);
 
         // Draw line as quad (thickness)
         float dx = x2 - x1;
@@ -187,9 +184,9 @@ public class ConstellationRenderer extends SkyRenderer {
     /**
      * Render a single constellation star
      *
-     * @param x X position
-     * @param y Y position
-     * @param size Star size
+     * @param x          X position
+     * @param y          Y position
+     * @param size       Star size
      * @param brightness Star brightness
      */
     public void renderStar(int x, int y, int size, float brightness) {
@@ -203,8 +200,7 @@ public class ConstellationRenderer extends SkyRenderer {
             constellationColor.getRed() / 255F,
             constellationColor.getGreen() / 255F,
             constellationColor.getBlue() / 255F,
-            brightness
-        );
+            brightness);
 
         // Draw star as quad
         int halfSize = size / 2;
@@ -236,9 +232,9 @@ public class ConstellationRenderer extends SkyRenderer {
      * @param partialTicks Partial ticks for animation
      */
     public void renderVisibleConstellations(float partialTicks) {
-        java.util.List<IConstellation> visibleConstellations =
-            hellfirepvp.astralsorcery.common.constellation.distribution.ConstellationSkyHandler.getInstance()
-                .getVisibleConstellations(mc.theWorld);
+        java.util.List<IConstellation> visibleConstellations = hellfirepvp.astralsorcery.common.constellation.distribution.ConstellationSkyHandler
+            .getInstance()
+            .getVisibleConstellations(mc.theWorld);
 
         if (visibleConstellations.isEmpty()) {
             return;
@@ -276,10 +272,9 @@ public class ConstellationRenderer extends SkyRenderer {
      * Render a specific constellation at center of view
      *
      * @param constellation The constellation to render
-     * @param partialTicks Partial ticks
+     * @param partialTicks  Partial ticks
      */
-    public void renderConstellationCentered(IConstellation constellation,
-                                              float partialTicks) {
+    public void renderConstellationCentered(IConstellation constellation, float partialTicks) {
         if (constellation == null) return;
 
         renderConstellation(constellation.getUnlocalizedName(), viewWidth / 2, viewHeight / 2, 1.5F, partialTicks);
@@ -289,14 +284,12 @@ public class ConstellationRenderer extends SkyRenderer {
      * Render a list of constellations with custom positioning
      *
      * @param constellations List of constellations to render
-     * @param positions List of (x, y) positions for each constellation
-     * @param scales List of scales for each constellation
-     * @param partialTicks Partial ticks
+     * @param positions      List of (x, y) positions for each constellation
+     * @param scales         List of scales for each constellation
+     * @param partialTicks   Partial ticks
      */
     public void renderConstellations(java.util.List<IConstellation> constellations,
-                                      java.util.List<java.awt.Point> positions,
-                                      java.util.List<Float> scales,
-                                      float partialTicks) {
+        java.util.List<java.awt.Point> positions, java.util.List<Float> scales, float partialTicks) {
         if (constellations == null || positions == null || scales == null) return;
 
         int count = Math.min(constellations.size(), Math.min(positions.size(), scales.size()));
@@ -366,12 +359,11 @@ public class ConstellationRenderer extends SkyRenderer {
      * Check if a specific constellation is clicked
      *
      * @param constellation The constellation to check
-     * @param clickX X position of click
-     * @param clickY Y position of click
+     * @param clickX        X position of click
+     * @param clickY        Y position of click
      * @return true if clicked
      */
-    public boolean isClickOnConstellation(IConstellation constellation,
-                                           float clickX, float clickY) {
+    public boolean isClickOnConstellation(IConstellation constellation, float clickX, float clickY) {
         ConstellationDisplayInfo info = cachedPositions.get(constellation.getUnlocalizedName());
         if (info == null) return false;
 
@@ -394,14 +386,14 @@ public class ConstellationRenderer extends SkyRenderer {
      * Display info for a constellation in the view
      */
     public static class ConstellationDisplayInfo {
+
         public final float displayX;
         public final float displayY;
         public final float scale;
         public final long lastUpdate;
         public final IConstellation constellation;
 
-        public ConstellationDisplayInfo(float x, float y, float scale,
-                                      IConstellation constellation) {
+        public ConstellationDisplayInfo(float x, float y, float scale, IConstellation constellation) {
             this.displayX = x;
             this.displayY = y;
             this.scale = scale;

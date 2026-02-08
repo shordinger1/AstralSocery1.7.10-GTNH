@@ -20,6 +20,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import hellfirepvp.astralsorcery.common.util.LogHelper;
 
 /**
@@ -32,6 +34,7 @@ import hellfirepvp.astralsorcery.common.util.LogHelper;
  * - Store block + metadata combinations
  * - Retrieve stored blocks
  * - Clear stored blocks
+ * - Automatic icon registration
  * <p>
  * Simplified for 1.7.10:
  * - Uses Block + metadata instead of IBlockState
@@ -283,5 +286,34 @@ public abstract class ItemBlockStorage extends Item {
         public String toString() {
             return block.getUnlocalizedName() + ":" + meta;
         }
+    }
+
+    // ========== Icon Registration (1.7.10) ==========
+
+    /**
+     * Register icons for ItemBlockStorage subclasses
+     * Uses texture name set by setTextureName() in RegistryItems
+     */
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void registerIcons(net.minecraft.client.renderer.texture.IIconRegister register) {
+        // Get the texture name that was set by setTextureName() in RegistryItems
+        String iconString = this.getIconString();
+        if (iconString != null) {
+            this.itemIcon = register.registerIcon(iconString);
+        } else {
+            // Fallback: use unlocalizedName without "item." prefix
+            String unlocalized = this.getUnlocalizedName();
+            if (unlocalized.startsWith("item.")) {
+                unlocalized = unlocalized.substring(5);
+            }
+            this.itemIcon = register.registerIcon("astralsorcery:" + unlocalized);
+        }
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public net.minecraft.util.IIcon getIconFromDamage(int damage) {
+        return this.itemIcon;
     }
 }

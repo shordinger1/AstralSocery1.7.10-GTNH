@@ -129,15 +129,33 @@ public class CraftingAltarItemRenderer implements IItemRenderer {
         ResourceLocation texSide = getTexture(tier, "side");
         ResourceLocation texBottom = getTexture(tier, "bottom");
 
-        // Render each part with its texture
-        Minecraft.getMinecraft().renderEngine.bindTexture(texSide);
-        model.renderPart("pillar");
+        // Multi-texture rendering: render each group with its texture
+        // OBJ now has 'g' markers for different textures (Forge recognizes these)
+        // Group names: altar_X_top, altar_X_side, altar_X_bottom (without path)
 
+        // Render parts with bottom texture
         Minecraft.getMinecraft().renderEngine.bindTexture(texBottom);
-        model.renderPart("base");
+        try {
+            model.renderPart("altar_" + tier + "_bottom");
+        } catch (Exception e) {
+            // Silently ignore if renderPart fails (old OBJ format)
+        }
 
+        // Render parts with side texture
+        Minecraft.getMinecraft().renderEngine.bindTexture(texSide);
+        try {
+            model.renderPart("altar_" + tier + "_side");
+        } catch (Exception e) {
+            // Silently ignore if renderPart fails (old OBJ format)
+        }
+
+        // Render parts with top texture
         Minecraft.getMinecraft().renderEngine.bindTexture(texTop);
-        model.renderPart("top");
+        try {
+            model.renderPart("altar_" + tier + "_top");
+        } catch (Exception e) {
+            // Silently ignore if renderPart fails (old OBJ format)
+        }
 
         GL11.glPopMatrix();
     }

@@ -6,12 +6,14 @@
 
 package hellfirepvp.astralsorcery.common.crafting.altar;
 
+import java.util.Random;
 import java.util.UUID;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
 import hellfirepvp.astralsorcery.common.tile.TileAltar;
+import hellfirepvp.astralsorcery.common.util.FluidHelper;
 import hellfirepvp.astralsorcery.common.util.LogHelper;
 
 /**
@@ -40,6 +42,7 @@ public class ActiveCraftingTask {
     private final UUID playerUUID;
     private final int craftingTicks;
     private final int craftingDivisor;
+    private final Random rand; // Random instance for callbacks
 
     private int currentTick;
     private CraftingState state;
@@ -60,6 +63,7 @@ public class ActiveCraftingTask {
         this.currentTick = 0;
         this.state = CraftingState.RUNNING;
         this.taskId = UUID.randomUUID();
+        this.rand = new Random(taskId.hashCode()); // Deterministic random
     }
 
     /**
@@ -95,6 +99,9 @@ public class ActiveCraftingTask {
         // Increment crafting progress
         currentTick++;
 
+        // Call recipe callback
+        recipe.onCraftServerTick(altar, state, currentTick, craftingTicks, rand);
+
         // Check if complete
         if (currentTick >= craftingTicks) {
             state = CraftingState.COMPLETE;
@@ -125,6 +132,7 @@ public class ActiveCraftingTask {
 
     /**
      * Complete the crafting
+     * Phase 5: Added fluid container support
      *
      * @param altar The altar
      * @return The output item stack
@@ -133,13 +141,109 @@ public class ActiveCraftingTask {
         ItemStack output = recipe.getOutput()
             .copy();
 
-        // Consume input items
+        // Apply output modifications from recipe
+        recipe.applyOutputModificationsServer(altar, this.rand);
+
+        // Get recipe inputs for checking
+        ItemStack[] recipeInputs = recipe.getInputs();
+
+        // Consume input items with container item and fluid handling
         for (int i = 0; i < altar.getInventorySize(); i++) {
             ItemStack stack = altar.getInventory()
                 .getStackInSlot(i);
             if (stack != null && stack.stackSize > 0) {
-                altar.getInventory()
-                    .extractItem(i, 1, false);
+                ItemStack recipeInput = i < recipeInputs.length ? recipeInputs[i] : null;
+
+                // Phase 5: Check if this is a fluid container
+                if (recipeInput != null && FluidHelper.hasFluid(recipeInput)) {
+                    // Handle fluid container consumption
+                    FluidHelper.ContainerDrainResult drainResult = FluidHelper.drain(stack, Integer.MAX_VALUE);
+
+                    if (drainResult.isSuccess()) {
+                        // Replace with drained container (empty container)
+                        ItemStack resultingItem = drainResult.resultingItem;
+
+                        if (resultingItem != null && resultingItem.stackSize > 0) {
+                            altar.getInventory()
+                                .setStackInSlot(i, resultingItem);
+                        } else {
+                            // Container was fully consumed
+                            stack.stackSize--;
+                            if (stack.stackSize <= 0) {
+                                altar.getInventory()
+                                    .setStackInSlot(i, null);
+                            }
+                        }
+
+                        LogHelper.debug(
+                            "Drained fluid container in slot " + i
+                                + ", resulting in: "
+                                + (resultingItem != null ? resultingItem.getDisplayName() : "empty"));
+                    } else {
+                        // Failed to drain - treat as normal consumption
+                        stack.stackSize--;
+                        if (stack.stackSize <= 0) {
+                            altar.getInventory()
+                                .setStackInSlot(i, null);
+                        }
+                    }
+                } else if (recipeInput != null && recipe.requiresSpecialConsumption(recipeInput, stack)) {
+                    // Check if this item has a container item (like buckets)
+                    ItemStack container = stack.getItem()
+                        .getContainerItem(stack);
+
+                    if (container != null && container.stackSize > 0) {
+                        // This is a container item - replace with container instead of consuming
+                        // Decrease stack size
+                        stack.stackSize--;
+                        if (stack.stackSize <= 0) {
+                            // Stack is empty, replace with container
+                            altar.getInventory()
+                                .setStackInSlot(i, container.copy());
+                        } else {
+                            // Still has items, try to add container to same slot
+                            ItemStack remaining = altar.getInventory()
+                                .insertItem(i, container.copy(), false);
+
+                            // If couldn't fit in same slot, try to add to nearby slots
+                            if (remaining != null && remaining.stackSize > 0) {
+                                // Try to find an empty slot nearby
+                                boolean inserted = false;
+                                for (int j = 0; j < altar.getInventorySize(); j++) {
+                                    if (j == i) continue;
+                                    ItemStack testInsert = altar.getInventory()
+                                        .insertItem(j, remaining.copy(), true);
+                                    if (testInsert == null || testInsert.stackSize < remaining.stackSize) {
+                                        // Can fit at least some
+                                        altar.getInventory()
+                                            .insertItem(j, remaining.copy(), false);
+                                        inserted = true;
+                                        break;
+                                    }
+                                }
+
+                                // If still couldn't insert, drop the container item
+                                if (!inserted) {
+                                    altar.dropContainerItem(remaining.copy());
+                                }
+                            }
+                        }
+                    } else {
+                        // Normal consumption - just decrease stack size
+                        stack.stackSize--;
+                        if (stack.stackSize <= 0) {
+                            altar.getInventory()
+                                .setStackInSlot(i, null);
+                        }
+                    }
+                } else {
+                    // Normal consumption - just decrease stack size
+                    stack.stackSize--;
+                    if (stack.stackSize <= 0) {
+                        altar.getInventory()
+                            .setStackInSlot(i, null);
+                    }
+                }
             }
         }
 
@@ -147,6 +251,17 @@ public class ActiveCraftingTask {
         int starlightConsumed = recipe.getStarlightRequired();
         if (!altar.consumeStarlight(starlightConsumed)) {
             LogHelper.warn("Failed to consume " + starlightConsumed + " starlight for crafting!");
+        }
+
+        // Call recipe finish callback
+        recipe.onCraftServerFinish(altar, this.rand);
+
+        // Drop experience if recipe grants XP
+        int experience = recipe.getCraftExperience();
+        if (experience > 0) {
+            float multiplier = recipe.getCraftExperienceMultiplier();
+            int finalXp = Math.round(experience * multiplier);
+            altar.dropExperience(finalXp);
         }
 
         LogHelper

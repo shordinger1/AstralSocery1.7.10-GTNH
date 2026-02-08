@@ -99,8 +99,7 @@ public class ConstellationDrawingHandler {
         if (length > 2) {
             DrawnLine line = new DrawnLine(
                 new Point(lineStart.x - viewX, lineStart.y - viewY),
-                new Point(lineEnd.x - viewX, lineEnd.y - viewY)
-            );
+                new Point(lineEnd.x - viewX, lineEnd.y - viewY));
             drawnLines.add(line);
         }
 
@@ -138,8 +137,7 @@ public class ConstellationDrawingHandler {
         if (lineStart != null && lineEnd != null) {
             return new DrawnLine(
                 new Point(lineStart.x - viewX, lineStart.y - viewY),
-                new Point(lineEnd.x - viewX, lineEnd.y - viewY)
-            );
+                new Point(lineEnd.x - viewX, lineEnd.y - viewY));
         }
         return null;
     }
@@ -187,8 +185,7 @@ public class ConstellationDrawingHandler {
             start = new Point(start.x + viewX, start.y + viewY);
             end = new Point(end.x + viewX, end.y + viewY);
 
-            if ((r1.contains(start) && r2.contains(end)) ||
-                (r2.contains(start) && r1.contains(end))) {
+            if ((r1.contains(start) && r2.contains(end)) || (r2.contains(start) && r1.contains(end))) {
                 return true;
             }
         }
@@ -199,14 +196,14 @@ public class ConstellationDrawingHandler {
      * Check if point is in drawing area
      */
     private boolean isInDrawingArea(int x, int y) {
-        return x >= viewX && x <= viewX + viewWidth &&
-               y >= viewY && y <= viewY + viewHeight;
+        return x >= viewX && x <= viewX + viewWidth && y >= viewY && y <= viewY + viewHeight;
     }
 
     /**
      * Represents a drawn line
      */
     public static class DrawnLine {
+
         public final Point start;
         public final Point end;
 
@@ -220,6 +217,7 @@ public class ConstellationDrawingHandler {
      * Represents a constellation connection to match
      */
     public static class ConstellationConnection {
+
         public final Point from;
         public final Point to;
 

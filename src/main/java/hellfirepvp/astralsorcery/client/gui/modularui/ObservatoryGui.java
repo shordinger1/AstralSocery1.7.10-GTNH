@@ -35,11 +35,10 @@ public class ObservatoryGui {
      * <p>
      * Note: This is a full-screen GUI, so the panel size should match the screen dimensions
      */
-    public static ModularPanel buildUI(TileObservatory tile,
-                                      PosGuiData guiData,
-                                      PanelSyncManager guiSyncManager,
-                                      UISettings settings) {
-        LogHelper.info("[ObservatoryGui] Building Observatory GUI at " + tile.xCoord + "," + tile.yCoord + "," + tile.zCoord);
+    public static ModularPanel buildUI(TileObservatory tile, PosGuiData guiData, PanelSyncManager guiSyncManager,
+        UISettings settings) {
+        LogHelper.info(
+            "[ObservatoryGui] Building Observatory GUI at " + tile.xCoord + "," + tile.yCoord + "," + tile.zCoord);
 
         // Sync viewing angles (use IntSyncValue to store float as int * 1000)
         IntSyncValue yawValue = new IntSyncValue(
@@ -61,8 +60,7 @@ public class ObservatoryGui {
 
         // Add background texture
         panel.child(
-            ObservatoryGuiTextures.BACKGROUND
-                .asWidget()
+            ObservatoryGuiTextures.BACKGROUND.asWidget()
                 .pos(0, 0)
                 .size(256, 220));
 

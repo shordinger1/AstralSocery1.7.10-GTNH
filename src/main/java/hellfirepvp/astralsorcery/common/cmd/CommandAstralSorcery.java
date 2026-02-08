@@ -14,23 +14,20 @@ import java.util.List;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.PlayerNotFoundException;
-import net.minecraft.command.CommandException;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 
+import hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry;
 import hellfirepvp.astralsorcery.common.constellation.IConstellation;
 import hellfirepvp.astralsorcery.common.constellation.IMajorConstellation;
-import hellfirepvp.astralsorcery.common.constellation.IMinorConstellation;
-import hellfirepvp.astralsorcery.common.constellation.ConstellationRegistry;
 import hellfirepvp.astralsorcery.common.constellation.perk.AbstractPerk;
 import hellfirepvp.astralsorcery.common.data.research.PlayerProgress;
 import hellfirepvp.astralsorcery.common.data.research.ProgressionTier;
 import hellfirepvp.astralsorcery.common.data.research.ResearchManager;
 import hellfirepvp.astralsorcery.common.data.research.ResearchProgression;
 import hellfirepvp.astralsorcery.common.structure.StructureBuilder;
-import hellfirepvp.astralsorcery.common.util.LogHelper;
 
 /**
  * Astral Sorcery Command Handler
@@ -53,8 +50,8 @@ import hellfirepvp.astralsorcery.common.util.LogHelper;
  */
 public class CommandAstralSorcery extends CommandBase {
 
-    private static final String[] COMMANDS = new String[] { "help", "constellations", "research", "progress",
-        "reset", "exp", "attune", "maximize", "build" };
+    private static final String[] COMMANDS = new String[] { "help", "constellations", "research", "progress", "reset",
+        "exp", "attune", "maximize", "build" };
 
     private final List<String> cmdAliases = new ArrayList<String>();
 
@@ -122,8 +119,10 @@ public class CommandAstralSorcery extends CommandBase {
                 return getListOfStringsMatchingLastWord(args, names.toArray(new String[0]));
             }
             // Tab complete player names for other commands
-            return getListOfStringsMatchingLastWord(args, MinecraftServer.getServer()
-                .getAllUsernames());
+            return getListOfStringsMatchingLastWord(
+                args,
+                MinecraftServer.getServer()
+                    .getAllUsernames());
         } else if (args.length == 3) {
             String identifier = args[0].toLowerCase();
             if ("constellations".equals(identifier)) {
@@ -216,24 +215,34 @@ public class CommandAstralSorcery extends CommandBase {
     private void displayHelp(ICommandSender sender) {
         sender.addChatMessage(new ChatComponentText("§a/astralsorcery constellation§7 - lists all constellations"));
         sender.addChatMessage(
-            new ChatComponentText("§a/astralsorcery constellation [playerName]§7 - lists all discovered constellations of the specified player"));
-        sender.addChatMessage(new ChatComponentText(
-            "§a/astralsorcery constellation [playerName] <cName;all>§7 - player discovers the specified constellation or all"));
+            new ChatComponentText(
+                "§a/astralsorcery constellation [playerName]§7 - lists all discovered constellations of the specified player"));
         sender.addChatMessage(
-            new ChatComponentText("§a/astralsorcery progress [playerName]§7 - displays progress information about the player"));
-        sender.addChatMessage(new ChatComponentText("§a/astralsorcery progress [playerName] <all>§7 - maximize progression"));
+            new ChatComponentText(
+                "§a/astralsorcery constellation [playerName] <cName;all>§7 - player discovers the specified constellation or all"));
         sender.addChatMessage(
-            new ChatComponentText("§a/astralsorcery progress [playerName] <next>§7 - advance to next progression tier"));
+            new ChatComponentText(
+                "§a/astralsorcery progress [playerName]§7 - displays progress information about the player"));
+        sender.addChatMessage(
+            new ChatComponentText("§a/astralsorcery progress [playerName] <all>§7 - maximize progression"));
+        sender.addChatMessage(
+            new ChatComponentText(
+                "§a/astralsorcery progress [playerName] <next>§7 - advance to next progression tier"));
         sender.addChatMessage(
             new ChatComponentText("§a/astralsorcery research [playerName] <research;all>§7 - set/add research"));
         sender.addChatMessage(
-            new ChatComponentText("§a/astralsorcery reset [playerName]§7 - resets all progression-related data for that player"));
+            new ChatComponentText(
+                "§a/astralsorcery reset [playerName]§7 - resets all progression-related data for that player"));
         sender.addChatMessage(
             new ChatComponentText("§a/astralsorcery maximize [playerName]§7 - unlocks everything for that player"));
-        sender.addChatMessage(new ChatComponentText("§a/astralsorcery exp [playerName] <exp>§7 - sets the perk exp for a player"));
         sender.addChatMessage(
-            new ChatComponentText("§a/astralsorcery attune [playerName] <majorConstellationName>§7 - sets the attunement constellation for a player"));
-        sender.addChatMessage(new ChatComponentText("§a/astralsorcery build <structure>§7 - build multiblock structure at your position"));
+            new ChatComponentText("§a/astralsorcery exp [playerName] <exp>§7 - sets the perk exp for a player"));
+        sender.addChatMessage(
+            new ChatComponentText(
+                "§a/astralsorcery attune [playerName] <majorConstellationName>§7 - sets the attunement constellation for a player"));
+        sender.addChatMessage(
+            new ChatComponentText(
+                "§a/astralsorcery build <structure>§7 - build multiblock structure at your position"));
     }
 
     private void listConstellations(ICommandSender sender) {
@@ -276,7 +285,8 @@ public class CommandAstralSorcery extends CommandBase {
         if ("all".equals(argument)) {
             Collection<IConstellation> constellations = ConstellationRegistry.getAllConstellations();
             if (!ResearchManager.discoverConstellations(constellations, other)) {
-                sender.addChatMessage(new ChatComponentText("§cFailed! Could not load Progress for (" + otherPlayerName + ") !"));
+                sender.addChatMessage(
+                    new ChatComponentText("§cFailed! Could not load Progress for (" + otherPlayerName + ") !"));
                 return;
             }
             other.addChatMessage(new ChatComponentText("§aDiscovered all Constellations!"));
@@ -288,7 +298,8 @@ public class CommandAstralSorcery extends CommandBase {
                 return;
             }
             if (!ResearchManager.discoverConstellation(c, other)) {
-                sender.addChatMessage(new ChatComponentText("§cFailed! Could not load Progress for (" + otherPlayerName + ") !"));
+                sender.addChatMessage(
+                    new ChatComponentText("§cFailed! Could not load Progress for (" + otherPlayerName + ") !"));
                 return;
             }
             other.addChatMessage(new ChatComponentText("§aDiscovered constellation " + c.getUnlocalizedName() + "!"));
@@ -305,15 +316,18 @@ public class CommandAstralSorcery extends CommandBase {
         EntityPlayer other = tuple.player;
 
         sender.addChatMessage(new ChatComponentText("§aPlayer " + otherPlayerName + "'s research Data:"));
-        sender.addChatMessage(new ChatComponentText("§aProgression tier: " + progress.getTierReached()
-            .name()));
+        sender.addChatMessage(
+            new ChatComponentText(
+                "§aProgression tier: " + progress.getTierReached()
+                    .name()));
 
         IConstellation attuned = progress.getAttunedConstellation();
         sender.addChatMessage(
             new ChatComponentText("§aAttuned to: " + (attuned == null ? "<none>" : attuned.getUnlocalizedName())));
 
-        sender.addChatMessage(new ChatComponentText("§aPerk-Exp: " + progress.getPerkExp() + " - As level: " + progress
-            .getPerkLevel(other)));
+        sender.addChatMessage(
+            new ChatComponentText(
+                "§aPerk-Exp: " + progress.getPerkExp() + " - As level: " + progress.getPerkLevel(other)));
 
         sender.addChatMessage(new ChatComponentText("§aUnlocked perks:"));
         for (AbstractPerk perk : progress.getAppliedPerks()) {
@@ -351,9 +365,11 @@ public class CommandAstralSorcery extends CommandBase {
 
         if ("all".equalsIgnoreCase(argument)) {
             if (!ResearchManager.maximizeTier(other)) {
-                sender.addChatMessage(new ChatComponentText("§cFailed! Could not load Progress for (" + otherPlayerName + ") !"));
+                sender.addChatMessage(
+                    new ChatComponentText("§cFailed! Could not load Progress for (" + otherPlayerName + ") !"));
             } else {
-                sender.addChatMessage(new ChatComponentText("§aMaximized ProgressionTier for " + otherPlayerName + " !"));
+                sender
+                    .addChatMessage(new ChatComponentText("§aMaximized ProgressionTier for " + otherPlayerName + " !"));
             }
         } else if ("next".equalsIgnoreCase(argument)) {
             ProgressionTier tier = prog.getTierReached();
@@ -436,17 +452,21 @@ public class CommandAstralSorcery extends CommandBase {
         IConstellation c = ConstellationRegistry.getConstellationByName(majorConstellationStr);
         if (c == null || !(c instanceof IMajorConstellation)) {
             sender.addChatMessage(
-                new ChatComponentText("§cFailed! Given constellation name is not a (major) constellation! " + majorConstellationStr));
-            sender.addChatMessage(new ChatComponentText("§cSee '/astralsorcery constellations' to get all constellations!"));
+                new ChatComponentText(
+                    "§cFailed! Given constellation name is not a (major) constellation! " + majorConstellationStr));
+            sender.addChatMessage(
+                new ChatComponentText("§cSee '/astralsorcery constellations' to get all constellations!"));
             return;
         }
         IMajorConstellation cst = (IMajorConstellation) c;
 
         if (ResearchManager.setAttunedConstellation(other, cst)) {
-            sender.addChatMessage(new ChatComponentText("§aSuccess! Player has been attuned to " + cst.getUnlocalizedName()));
+            sender.addChatMessage(
+                new ChatComponentText("§aSuccess! Player has been attuned to " + cst.getUnlocalizedName()));
         } else {
             sender.addChatMessage(
-                new ChatComponentText("§cFailed! Player specified doesn't seem to have the research progress necessary!"));
+                new ChatComponentText(
+                    "§cFailed! Player specified doesn't seem to have the research progress necessary!"));
         }
     }
 
@@ -524,6 +544,7 @@ public class CommandAstralSorcery extends CommandBase {
      * Tuple class for player and progress
      */
     private static class PlayerProgressTuple {
+
         public final EntityPlayerMP player;
         public final PlayerProgress progress;
 

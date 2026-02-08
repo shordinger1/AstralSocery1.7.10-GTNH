@@ -59,6 +59,16 @@ public class ItemUsableDust extends AstralBaseItem {
                 .toLowerCase();
     }
 
+    @Override
+    public String getItemStackDisplayName(ItemStack stack) {
+        // For metadata variants, append the type name with period separator
+        DustType type = DustType.byMetadata(stack.getItemDamage());
+        // Build localization key directly: item.itemusabledust.type.name
+        String key = "item.itemusabledust." + type.name()
+            .toLowerCase();
+        return net.minecraft.util.StatCollector.translateToLocal(key);
+    }
+
     @SideOnly(Side.CLIENT)
     @Override
     public void registerIcons(IIconRegister register) {

@@ -52,30 +52,15 @@ public class BlockWorldIlluminator extends BlockContainer {
     }
 
     /**
-     * On block activated - open GUI or toggle illuminator
-     * 1.7.10: Removed EnumHand (off-hand is 1.9+ feature)
+     * On block activated - set player placed
+     * 1.12.2 version: Does NOT have onBlockActivated, only has onBlockPlacedBy
+     * 1.7.10: Removed GUI functionality that was incorrectly added
      */
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX,
         float hitY, float hitZ) {
-        if (world.isRemote) {
-            return true;
-        }
-
-        hellfirepvp.astralsorcery.common.tile.TileWorldIlluminator illuminator =
-            (hellfirepvp.astralsorcery.common.tile.TileWorldIlluminator) world.getTileEntity(x, y, z);
-
-        if (illuminator != null) {
-            // Sneak + right-click: Toggle illuminator
-            if (player.isSneaking()) {
-                illuminator.setPlayerPlaced();
-                hellfirepvp.astralsorcery.common.util.LogHelper.info("[BlockWorldIlluminator] Toggled illuminator at " + x + "," + y + "," + z);
-            } else {
-                // Normal right-click: Open GUI
-                TileEntityGuiFactory.INSTANCE.open(player, illuminator);
-            }
-            return true;
-        }
-
+        // 1.12.2 version doesn't have this method.
+        // It only sets playerPlaced during placement.
+        // This block should NOT have a GUI.
         return false;
     }
 
